@@ -5,7 +5,12 @@ from datetime import datetime
 from difflib import SequenceMatcher
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from job_pipeline.domain.models import TargetPayBounds, FitEvaluation, CandidateProfile, ScreeningQA, QuickLink
+from job_pipeline.domain.models import (
+    TargetPayBounds, FitEvaluation, CandidateProfile, ScreeningQA, QuickLink,
+    ScreeningMatchResult
+)
+from job_pipeline.domain.screening_intelligence import ScreeningIntelligenceService
+from job_pipeline.domain.story_bank import StoryBankService
 
 
 
@@ -417,7 +422,7 @@ class QuickLinksService:
             QuickLink(
                 id="link-website",
                 title="Personal Website",
-                url="https://your-website.example.com",
+                url="https://your-portfolio.com",
                 category="Portfolio",
                 icon="🌐"
             ),
