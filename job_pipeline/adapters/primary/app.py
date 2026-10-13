@@ -2309,7 +2309,7 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
                 s_icon = "📞"
             elif curr_status == "Applied":
                 s_icon = "📤"
-            elif "Flagged" in curr_status:
+            elif curr_status == "FLAGGED_TELEMETRY" or "Flagged" in curr_status:
                 s_icon = "⚠️"
             else:
                 s_icon = "📋"
@@ -2322,7 +2322,8 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
             # Two-line CRM summary visible while collapsed
             # Line 1: Header (Company — Title / Contact fallback)
             # Line 2: Stage · Source Pill · Strategic Category · Priority · Platform · Compensation
-            line2_items = [f"`{curr_status}`"]
+            stage_pill_summary = ":red[Flagged]" if curr_status == "FLAGGED_TELEMETRY" else f"`{curr_status}`"
+            line2_items = [stage_pill_summary]
             if opp_source.lower() == "inbound":
                 line2_items.append("`📥 Inbound`")
             if stale_info.get("is_stale"):
@@ -2349,7 +2350,9 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
             is_card_open = (st.session_state.get("active_opp_card") == opp_id)
             with st.expander(expander_title, expanded=is_card_open):
                 # Structured Application Summary Card
-                if "Offer" in curr_status:
+                if curr_status == "FLAGGED_TELEMETRY":
+                    st_bg, st_fg, st_bd = "#7F1D1D33", "#FCA5A5", "#DC262644"
+                elif "Offer" in curr_status:
                     st_bg, st_fg, st_bd = "#064E3B44", "#6EE7B7", "#05966955"
                 elif any(s in curr_status for s in ["Screen", "Manager", "Technical", "Final", "Interview"]):
                     st_bg, st_fg, st_bd = "#312E8144", "#A5B4FC", "#6366F155"
@@ -2364,8 +2367,10 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
                 else:
                     st_bg, st_fg, st_bd = "#1E293B", "#CBD5E1", "#475569"
 
+                status_display = "Flagged" if curr_status == "FLAGGED_TELEMETRY" else curr_status
+
                 pills_html_list = [
-                    f'<span style="background:{st_bg}; color:{st_fg}; border:1px solid {st_bd}; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;">{curr_status}</span>'
+                    f'<span style="background:{st_bg}; color:{st_fg}; border:1px solid {st_bd}; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;">{status_display}</span>'
                 ]
                 if opp_source.lower() == "inbound":
                     pills_html_list.append(
@@ -2606,8 +2611,14 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
                             disp_time = e_time.replace("T", " ") if e_time else ""
                             is_latest = (h_idx == len(stage_hist) - 1)
                             bullet = "🟢" if is_latest else "⚪"
-                            badge_style = "background: #065F46; color: #A7F3D0; font-weight: 600;" if is_latest else "background: #1E293B; color: #94A3B8;"
-                            badge = f'<span style="{badge_style} padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 6px;">{s_name}</span>'
+                            disp_s_name = "Flagged" if s_name == "FLAGGED_TELEMETRY" else s_name
+                            if s_name == "FLAGGED_TELEMETRY":
+                                badge_style = "background: #7F1D1D33; color: #FCA5A5; border: 1px solid #DC262644; font-weight: 600;" if is_latest else "background: #7F1D1D22; color: #FCA5A5; border: 1px solid #DC262633;"
+                            elif is_latest:
+                                badge_style = "background: #065F46; color: #A7F3D0; font-weight: 600;"
+                            else:
+                                badge_style = "background: #1E293B; color: #94A3B8;"
+                            badge = f'<span style="{badge_style} padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 6px;">{disp_s_name}</span>'
                             timeline_html += f'<div style="margin-bottom: 6px; display: flex; align-items: center;">{bullet} &nbsp;<span style="font-family: monospace; font-size: 0.78rem; color: #94A3B8; margin-right: 8px;">{disp_time}</span> {badge}</div>'
                         timeline_html += '</div>'
                         st.markdown(timeline_html, unsafe_allow_html=True)
@@ -2620,8 +2631,8 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
 
                 with c_card2:
                     st.markdown("##### Update Application Details & Recruiter Notes:")
-                    stage_options = list(AUTHORITATIVE_PIPELINE_STAGES)
-                    current_idx = stage_options.index(curr_status) if curr_status in stage_options else 1
+                    stage_options = ([curr_status] + [s for s in AUTHORITATIVE_PIPELINE_STAGES if s != curr_status]) if curr_status and curr_status not in AUTHORITATIVE_PIPELINE_STAGES else list(AUTHORITATIVE_PIPELINE_STAGES)
+                    current_idx = stage_options.index(curr_status) if curr_status in stage_options else 0
 
                     with st.form(key=f"edit_card_form_{opp_id}"):
                         col_comp_edit, col_title_edit = st.columns([1, 1])
@@ -2656,6 +2667,7 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
                                 "Interview Stage",
                                 stage_options,
                                 index=current_idx,
+                                format_func=lambda s: "Flagged" if s == "FLAGGED_TELEMETRY" else s,
                                 key=f"stage_sel_{opp_id}"
                             )
                         with col_cat_sel:

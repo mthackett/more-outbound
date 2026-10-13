@@ -14,7 +14,8 @@ from streamlit.testing.v1 import AppTest
 from job_pipeline.domain.models import JobPosting
 from job_pipeline.domain.services import (
     PipelineConfigService,
-    PipelineKPIService
+    PipelineKPIService,
+    PipelineSearchPaginationService
 )
 from job_pipeline.domain.telemetry_service import TelemetryService
 
@@ -333,6 +334,151 @@ class TestOpportunityCardFlagIndicator(unittest.TestCase):
                 self.assertIn(":red[Flag]", exp_single_after.label)
                 exp_clean_after = next(e for e in opp_expanders_after if "Normal Corp" in e.label)
                 self.assertNotIn("Flag", exp_clean_after.label)
+
+    def test_ui_flagged_telemetry_status_presentation_and_persistence(self):
+        """
+        Verify FLAGGED_TELEMETRY status visual cleanup:
+        - When Status is FLAGGED_TELEMETRY, display 'Flagged' in red instead of raw FLAGGED_TELEMETRY.
+        - Expander title line 2 shows :red[Flagged].
+        - Inner card pill renders Flagged with restrained red styling (#7F1D1D33, #FCA5A5, #DC262644).
+        - No raw 'FLAGGED_TELEMETRY' text leaks into card UI.
+        - Title-level red Flag indicator is retained when Job Signals contains flags.
+        - Records that advance from FLAGGED_TELEMETRY to Applied retain the title Flag indicator,
+          while displaying Applied for their stage.
+        - Records without flags do not acquire the Flag indicator.
+        - Domain model and search filtering retain the underlying FLAGGED_TELEMETRY value.
+        """
+        flag_signals_json = json.dumps({
+            "version": 1,
+            "flags": ["FLAG: [clearance-req]: Active Clearance Required"],
+            "warnings": [],
+            "benefits": []
+        })
+
+        test_records = [
+            # Opp 0: FLAGGED_TELEMETRY stage with flags
+            {
+                "Opportunity ID": "opp-flagged-stage",
+                "Company Name": "CyberShield Inc",
+                "Job Title": "Security Architect",
+                "Status": "FLAGGED_TELEMETRY",
+                "Category": "Target",
+                "Applied Via": "LinkedIn",
+                "Priority": "High",
+                "Date Created": "2026-10-01",
+                "Job Signals": flag_signals_json,
+                "Stage History": json.dumps([{"stage": "FLAGGED_TELEMETRY", "entered_at": "2026-10-01T10:00:00"}])
+            },
+            # Opp 1: Advanced to Applied but has active flags in Job Signals
+            {
+                "Opportunity ID": "opp-advanced-with-flags",
+                "Company Name": "AeroDynamics",
+                "Job Title": "Propulsion Engineer",
+                "Status": "Applied",
+                "Category": "Stretch",
+                "Applied Via": "Company Website",
+                "Priority": "Medium",
+                "Date Created": "2026-10-02",
+                "Job Signals": flag_signals_json,
+                "Stage History": json.dumps([
+                    {"stage": "FLAGGED_TELEMETRY", "entered_at": "2026-10-02T09:00:00"},
+                    {"stage": "Applied", "entered_at": "2026-10-02T11:00:00"}
+                ])
+            },
+            # Opp 2: Clean record in Pending stage (no flags)
+            {
+                "Opportunity ID": "opp-clean-pending",
+                "Company Name": "CleanCorp",
+                "Job Title": "Operations Manager",
+                "Status": "Pending",
+                "Category": "Practice",
+                "Applied Via": "Indeed",
+                "Priority": "Low",
+                "Date Created": "2026-10-03",
+                "Job Signals": ""
+            }
+        ]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            cfg_path = str(Path(tmp) / "config.json")
+            PipelineConfigService.save_config({}, cfg_path)
+            with patch.dict(os.environ, {
+                "DEMO_MODE": "true",
+                "PIPELINE_CONFIG_PATH": cfg_path,
+                "ENABLE_CLI_LOGGING": "false"
+            }), \
+                 patch("job_pipeline.adapters.secondary.mock_adapter.MockJobStorageAdapter.fetch_all_opportunities", return_value=test_records), \
+                 patch("job_pipeline.domain.services.QuickLinksService.load_quicklinks", return_value=[]), \
+                 patch("job_pipeline.domain.story_bank.StoryBankService.load_stories", return_value=[]), \
+                 patch("job_pipeline.adapters.secondary.twilio_adapter.TwilioMessagingAdapter._init_client"):
+
+                app = AppTest.from_file(self.app_path, default_timeout=20).run()
+                self.assertFalse(app.exception)
+
+                SECTION_CRM = "📊 Pipeline Tracker"
+                app.radio(key="active_main_section").set_value(SECTION_CRM).run()
+                self.assertFalse(app.exception)
+
+                opp_expanders = [
+                    exp for exp in app.expander
+                    if any(c in exp.label for c in ("CyberShield", "AeroDynamics", "CleanCorp"))
+                ]
+                self.assertEqual(len(opp_expanders), 3)
+
+                # 1. Verify opp-flagged-stage (CyberShield Inc)
+                exp_flagged = next(e for e in opp_expanders if "CyberShield" in e.label)
+                # Label must show :red[Flag] beside title
+                self.assertIn("Security Architect :red[Flag]", exp_flagged.label)
+                # Label must show :red[Flagged] for the stage summary in line 2
+                self.assertIn(":red[Flagged]", exp_flagged.label)
+                # Raw FLAGGED_TELEMETRY string MUST NOT appear in label
+                self.assertNotIn("FLAGGED_TELEMETRY", exp_flagged.label)
+                # Expander icon should be warning
+                self.assertTrue(exp_flagged.label.startswith("⚠️"))
+
+                # 2. Verify opp-advanced-with-flags (AeroDynamics)
+                exp_adv = next(e for e in opp_expanders if "AeroDynamics" in e.label)
+                # Retains title-level red Flag indicator
+                self.assertIn("Propulsion Engineer :red[Flag]", exp_adv.label)
+                # Stage in line 2 is `Applied`
+                self.assertIn("`Applied`", exp_adv.label)
+
+                # 3. Verify opp-clean-pending (CleanCorp)
+                exp_clean = next(e for e in opp_expanders if "CleanCorp" in e.label)
+                self.assertNotIn("Flag", exp_clean.label)
+                self.assertIn("`Pending`", exp_clean.label)
+
+                # 4. Verify Inner Card HTML markdown
+                all_markdowns = [m.value for m in app.markdown]
+                # CyberShield card contains restrained red Flagged pill
+                cybershield_md = [m for m in all_markdowns if "CyberShield" in m]
+                self.assertTrue(len(cybershield_md) > 0)
+                cs_pill_md = next(m for m in cybershield_md if "Security Architect" in m)
+                self.assertIn(">Flagged</span>", cs_pill_md)
+                self.assertIn("#7F1D1D33", cs_pill_md)
+                self.assertIn("#FCA5A5", cs_pill_md)
+                self.assertIn("#DC262644", cs_pill_md)
+                # Raw text FLAGGED_TELEMETRY must not appear in the card markdown
+                self.assertNotIn("FLAGGED_TELEMETRY", cs_pill_md)
+
+                # AeroDynamics inner card contains Flag indicator beside title, but status pill is Applied
+                aero_md = next(m for m in all_markdowns if "AeroDynamics" in m and "Propulsion Engineer" in m)
+                self.assertIn(">Flag</span>", aero_md)
+                self.assertIn(">Applied</span>", aero_md)
+
+                # CleanCorp inner card has NO Flag badge
+                cleancorp_md = next(m for m in all_markdowns if "CleanCorp" in m and "Operations Manager" in m)
+                self.assertNotIn(">Flag</span>", cleancorp_md)
+                self.assertIn(">Pending</span>", cleancorp_md)
+
+                # 5. Verify search filtering preserves FLAGGED_TELEMETRY querying
+                filtered = PipelineSearchPaginationService.filter_opportunities(
+                    opportunities=test_records,
+                    search_query="FLAGGED_TELEMETRY"
+                )
+                self.assertEqual(len(filtered), 1)
+                self.assertEqual(filtered[0]["Opportunity ID"], "opp-flagged-stage")
+                self.assertEqual(filtered[0]["Status"], "FLAGGED_TELEMETRY")
 
 
 if __name__ == "__main__":
