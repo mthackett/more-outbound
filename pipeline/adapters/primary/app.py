@@ -3675,4 +3675,3 @@ if active_section in (SECTION_STORIES, "📖 Global Story Bank & Interview Map")
 if st.session_state.get("app_session_started") and not st.session_state.get("app_render_completed"):
     st.session_state.app_render_completed = True
     log_startup("✨ Cockpit UI rendering complete. Dashboard is fully active and ready!")
-

@@ -611,4 +611,3 @@ class PipelineInstanceConfig(InstanceCapabilities):
     favicon_path: Optional[str] = None
     page_icon: Optional[str] = "🚀"
     stale_threshold_days: int = 28
-
