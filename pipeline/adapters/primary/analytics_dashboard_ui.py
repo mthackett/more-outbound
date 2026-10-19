@@ -252,7 +252,7 @@ def render_analytics_dashboard_view(
                     }
                     for r in oh["stale_records"]
                 ],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True
             )
 
@@ -274,7 +274,7 @@ def render_analytics_dashboard_view(
                 }
                 for r in st_data["rows"]
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 
@@ -293,7 +293,7 @@ def render_analytics_dashboard_view(
                 }
                 for r in rp["variant_rows"]
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 
@@ -312,7 +312,7 @@ def render_analytics_dashboard_view(
                 }
                 for r in tr["rows"]
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
     else:

@@ -65,7 +65,7 @@ def record_table(config, records):
     stages = {s.id: s.name for s in config.stages}
     rows = [{**{f.label: format_field(f, r.fields.get(f.key)) for f in config.fields if f.visible and f.table},
              config.labels.stage: stages[r.stage_id]} for r in records]
-    st.dataframe(rows, hide_index=True, use_container_width=True)
+    st.dataframe(rows, hide_index=True, width="stretch")
 
 
 def pipeline(config, storage, prefix):
@@ -182,7 +182,7 @@ def render_public(config):
             metric_cards(config, records)
         if 'funnel' in config.dashboard_modules:
             st.subheader('Historical Conversion Funnel')
-            st.dataframe(conversion_funnel(records, config), hide_index=True, use_container_width=True)
+            st.dataframe(conversion_funnel(records, config), hide_index=True, width="stretch")
             st.caption('Each step counts unique records that achieved every preceding milestone. Later stage moves retain earlier achievements.')
         if 'table' in config.dashboard_modules:
             record_table(config, records)

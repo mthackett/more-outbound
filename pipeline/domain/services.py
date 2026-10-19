@@ -2190,5 +2190,3 @@ class PipelineKPIService:
             return True
 
         return False
-
-

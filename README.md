@@ -38,7 +38,7 @@ Fields support text, long text, currency and ISO dates, required validation, vis
 | Reply-to-Meeting Rate | Replying records that ever booked / replying records | 10 / 17 = 58.8% |
 | Active Pipeline ACV | ACV of records currently in configured active, nonterminal stages | $1,128,000 |
 
-Each stable ID counts once. Recorded stage/activity achievements survive later stage changes, disqualification and meeting cancellation. Cancellation alone does not imply a booking. Missing/malformed history is ignored, and intermediate stages are never inferred. Zero denominators display an em dash. The funnel counts records achieving every preceding milestone: 40 ? 30 ? 17 ? 10 ? 4. Pipeline metrics describe the entire session, independently of the list filters.
+Each stable ID counts once. Recorded stage/activity achievements survive later stage changes, disqualification and meeting cancellation. Cancellation alone does not imply a booking. Missing/malformed history is ignored, and intermediate stages are never inferred. Zero denominators display an em dash. The funnel counts records achieving every preceding milestone: 40 → 30 → 17 → 10 → 4. Pipeline metrics describe the entire session, independently of the list filters.
 
 ## Architecture and private compatibility
 

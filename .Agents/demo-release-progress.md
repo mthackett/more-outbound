@@ -35,7 +35,7 @@
 - Protected-file SHA-256 comparison: **618 files unchanged**, including private settings/credentials, ignored canonical stories and personal outputs. `git diff --check` passes. No authenticated/private network verification performed.
 - Committed as **4135965** (`feat: complete isolated demo checkpoints through historical analytics`), including progress/handoff and excluding private data. Release remains gated on checkpoint 5 (namespace, launchers/docs, resume routing verification, final smoke checks).
 
-## Checkpoint 5 ? implementation and local verification complete
+## Checkpoint 5 — implementation and local verification complete
 - Canonical source is now `pipeline/`: 93 source files moved, imports/resources/tests updated. Ignored private data stays at its original paths; private canonical stories have a read-only fallback. Narrow legacy app/CLI/batch/OAuth wrappers and models/services/story-bank/logger/version aliases preserve identity without a root package alias.
 - Added explicit-mode `pipeline.launch`; Procfile/Railway explicitly select demo. start.ps1 preserves private default, supports -Mode demo, and starts its server hidden. Added public-only requirements and current README/env/deployment docs. CORS/XSRF enabled, usage telemetry disabled. Source checkout remains the supported packaging model.
 - Four resume families now tested, including Marketing Operations/AI Automation keywords and empty/invalid/ambiguous/fallback cases.

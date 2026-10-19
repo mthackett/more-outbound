@@ -6,9 +6,9 @@
     "storage": "memory",
     "pipeline_type": "b2b_outbound",
     "display_name": "More Outbound",
-    "page_title": "More Outbound ? B2B Pipeline",
+    "page_title": "More Outbound — B2B Pipeline",
     "page_subtitle": "Fictional accounts. Real pipeline intelligence. Explore, edit, and reset your own session.",
-    "page_icon": "??",
+    "page_icon": "🚀",
     "stale_threshold_days": 7,
     "stages": [
       {
