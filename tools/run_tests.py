@@ -35,7 +35,7 @@ def local_only(self, address):
         raise AssertionError('External network forbidden in offline tests')
     return original_connect(self, address)
 socket.socket.connect = local_only
-suite = unittest.defaultTestLoader.discover('job_pipeline/domain/tests', pattern=sys.argv[1])
+suite = unittest.defaultTestLoader.discover('pipeline/domain/tests', pattern=sys.argv[1])
 result = unittest.TextTestRunner(verbosity=1).run(suite)
 raise SystemExit(not result.wasSuccessful())
 '''

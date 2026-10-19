@@ -1,0 +1,3 @@
+# Public demo: no provider SDKs, credentials or API accounts required.
+streamlit>=1.66.0,<2
+pydantic>=2.14.1,<3

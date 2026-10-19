@@ -1,1 +1,1 @@
-web: streamlit run job_pipeline/adapters/primary/app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+web: python -m pipeline.launch --mode demo --port=$PORT --address=0.0.0.0

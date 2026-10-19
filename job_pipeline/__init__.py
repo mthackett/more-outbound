@@ -1,2 +1,2 @@
-# job-pipeline root package
-from job_pipeline.version import __version__
+"""Compatibility for documented private entry points; new imports use pipeline."""
+from pipeline import __version__

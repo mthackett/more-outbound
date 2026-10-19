@@ -1,14 +1,17 @@
 
 # More Outbound - Local Development Launcher
+param(
+    [ValidateSet('demo', 'private')]
+    [string]$Mode = 'private'
+)
 
 $projectDir = $PSScriptRoot
-$streamlitExe = Join-Path $projectDir ".venv\Scripts\streamlit.exe"
-$appPath = Join-Path $projectDir "job_pipeline\adapters\primary\app.py"
+$pythonExe = Join-Path $projectDir ".venv\Scripts\python.exe"
 $url = "http://localhost:8501"
 
 # Verify local environment
-if (-not (Test-Path $streamlitExe)) {
-    Write-Error "Streamlit not found. Create the virtual environment and install dependencies first."
+if (-not (Test-Path $pythonExe)) {
+    Write-Error "Python environment not found. Create the virtual environment and install dependencies first."
     exit 1
 }
 
@@ -18,8 +21,9 @@ Write-Host "Launching More Outbound local dev server..."
 Add-Type -AssemblyName System.Net.Http
 
 Start-Process `
-    -FilePath $streamlitExe `
-    -ArgumentList "run", "--logger.level=debug", "`"$appPath`"" `
+    -FilePath $pythonExe `
+    -ArgumentList "-m", "pipeline.launch", "--mode", $Mode `
+    -WindowStyle Hidden `
     -WorkingDirectory $projectDir
 
 # Wait until Streamlit is ready

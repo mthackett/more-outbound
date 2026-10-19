@@ -1,6 +1,8 @@
 # Outbound Job Application Pipeline & Role Intelligence Engine
 ## Getting Started & Self-Testing Guide
 
+For the public demo and current safe test commands, use [README.md](README.md) and [demo deployment](docs/demo-deployment.md). The guide below describes private operations; its provider steps can perform live I/O.
+
 This guide walks you through the architecture, operational runbook, pre-flight setup, and step-by-step testing plan to start using this pipeline for outbound job applications.
 
 ---
@@ -53,11 +55,11 @@ All dependencies are pre-installed in the local `.venv`.
 
 | Action | Command | What It Does |
 | :--- | :--- | :--- |
-| **Launch Web Dashboard** | `.\.venv\Scripts\streamlit run job_pipeline/adapters/primary/app.py` | Opens the full UI at `http://localhost:8501` |
-| **Process Sheets Batch** | `.\.venv\Scripts\python -m job_pipeline.adapters.primary.sheets_batch` | Evaluates all pending rows in Google Sheets |
-| **Batch Dry-Run (Demo)** | `.\.venv\Scripts\python -m job_pipeline.adapters.primary.sheets_batch --demo` | Safe test using mock fixtures (no API charges) |
-| **CLI Single Job Evaluator** | `.\.venv\Scripts\python -m job_pipeline.adapters.primary.cli_runner --jd jd.txt` | Evaluates the job description in `jd.txt` |
-| **CLI Single Job Dry-Run** | `.\.venv\Scripts\python -m job_pipeline.adapters.primary.cli_runner --jd jd.txt --demo` | Tests CLI evaluation in zero-cost demo mode |
+| **Launch Web Dashboard** | `.\.venv\Scripts\streamlit run pipeline/adapters/primary/app.py` | Opens the full UI at `http://localhost:8501` |
+| **Process Sheets Batch** | `.\.venv\Scripts\python -m pipeline.adapters.primary.sheets_batch` | Evaluates all pending rows in Google Sheets |
+| **Batch Dry-Run (Demo)** | `.\.venv\Scripts\python -m pipeline.adapters.primary.sheets_batch --demo` | Safe test using mock fixtures (no API charges) |
+| **CLI Single Job Evaluator** | `.\.venv\Scripts\python -m pipeline.adapters.primary.cli_runner --jd jd.txt` | Evaluates the job description in `jd.txt` |
+| **CLI Single Job Dry-Run** | `.\.venv\Scripts\python -m pipeline.adapters.primary.cli_runner --jd jd.txt --demo` | Tests CLI evaluation in zero-cost demo mode |
 
 ---
 
@@ -75,7 +77,7 @@ Before processing live applications, confirm the following settings:
     4. Click **Create**, download the JSON file, and save it in the project root as `client_secret.json`.
     5. Run the one-time interactive authorization:
        ```powershell
-       .\.venv\Scripts\python -m job_pipeline.setup_oauth
+       .\.venv\Scripts\python -m pipeline.setup_oauth
        ```
        *Your browser will open to log in with `you@example.com`. Once granted, `token.json` is generated.*
     * **Benefit**: All Google Docs (Screening Questions, Raw JD) and DOCX uploads will be created directly under your personal account with full 15 GB quota!
@@ -97,7 +99,7 @@ Before processing live applications, confirm the following settings:
     `<Name> <Role Track> Resume`.
 
 - [ ] **4. Candidate Profile Guardrails**:
-  * Located in `job_pipeline/domain/models.py`:
+  * Located in `pipeline/domain/models.py`:
     * `dealbreaker_skills`: `["Epic", "HL7", "Cerner", "Meditech"]`
     * `core_strengths`: `["Salesforce", "dbt", "HubSpot", "SQL", "Python", "Tableau", "RevOps", "GTM Engineering"]`
     * `minimum_compensation_floor`: `$90,000`
@@ -113,7 +115,7 @@ Run through these 4 verification tests in order:
 * **Goal**: Validate UI rendering, pay formula calculation, recall card generation, and document export without calling external APIs.
 1. Launch Streamlit:
    ```powershell
-   .\.venv\Scripts\streamlit run job_pipeline/adapters/primary/app.py
+   .\.venv\Scripts\streamlit run pipeline/adapters/primary/app.py
    ```
 2. In the left sidebar under **Pipeline Controls**, check **"Zero-Cost Demo Mode"**.
 3. Under **Tab 1 ("🚀 Role Intelligence & Evaluator")**:
@@ -133,7 +135,7 @@ Run through these 4 verification tests in order:
 1. Check that `jd.txt` contains a job description (e.g., Larkfield Software Sales Operations Analyst).
 2. Run the CLI tool:
    ```powershell
-   .\.venv\Scripts\python -m job_pipeline.adapters.primary.cli_runner --jd jd.txt
+   .\.venv\Scripts\python -m pipeline.adapters.primary.cli_runner --jd jd.txt
    ```
 3. **Verify**:
    * Console outputs parsed required skills (Salesforce, Clari, Power BI, Tableau, etc.).
@@ -153,7 +155,7 @@ Run through these 4 verification tests in order:
    * Ensure **Column G (`Status`)** is blank or set to `Pending`.
 3. Run the batch processor:
    ```powershell
-   .\.venv\Scripts\python -m job_pipeline.adapters.primary.sheets_batch
+   .\.venv\Scripts\python -m pipeline.adapters.primary.sheets_batch
    ```
    *(Or click **"🔄 Sync & Process Pending Jobs from Google Sheets"** in Tab 2 of the Streamlit dashboard).*
 4. **Verify in Google Sheets**:
@@ -194,7 +196,7 @@ Once verified, your standard operational routine is:
 ```text
 1. Find a job posting online (LinkedIn, Indeed, Company Site).
 2. Paste the text into Column A of the 'Raw Ingestion' tab in Google Sheets.
-3. Run: .\.venv\Scripts\python -m job_pipeline.adapters.primary.sheets_batch
+3. Run: .\.venv\Scripts\python -m pipeline.adapters.primary.sheets_batch
    (or click 'Sync' in the Streamlit Web UI).
 4. Review the generated Drive folder & 10-Second Recall Card before phone screens.
 ```
@@ -212,7 +214,7 @@ outbound-pipeline/
 ├── jd.txt                         # Sample job description for CLI testing
 ├── output_reports/                # Local disk backup of generated DOCX reports
 │
-└── job_pipeline/
+└── pipeline/
     ├── domain/
     │   ├── models.py              # Pure domain models (JobPosting, FitEvaluation, Profile)
     │   └── services.py            # Target pay calculator & dealbreaker fit service

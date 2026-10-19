@@ -1,2 +1,4 @@
-"""Authoritative application version definition."""
-__version__ = "1.5.2"
+"""Legacy leaf alias; shares the canonical module and all class/state identity."""
+import importlib
+import sys
+sys.modules[__name__] = importlib.import_module("pipeline.version")

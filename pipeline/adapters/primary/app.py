@@ -1,0 +1,3678 @@
+import os
+import time
+import re
+import sys
+import uuid
+import json
+from typing import List, Dict, Any, Optional
+from pathlib import Path
+from datetime import datetime
+
+# Ensure project root is in sys.path for Streamlit
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+import streamlit as st
+from pipeline.adapters.primary.runtime import public_mode, select_session, offline_adapters
+
+try:
+    if not public_mode(os.environ):
+        from dotenv import load_dotenv
+        load_dotenv()
+    is_public = public_mode(os.environ)
+except ValueError:
+    st.error("Invalid instance mode. Configure PIPELINE_MODE as demo or private.")
+    st.stop()
+
+if not is_public:
+    select_session(st.session_state, ("private", os.environ.get("PRIVATE_OFFLINE", "false"), os.environ.get("PIPELINE_CONFIG_PATH", "")))
+if is_public:
+    from pipeline.domain.instance_loader import load_demo_config, InstanceConfigError
+    try:
+        demo_config = load_demo_config(os.environ.get("PIPELINE_INSTANCE_CONFIG"))
+    except InstanceConfigError as exc:
+        st.error(str(exc))
+        st.stop()
+    st.set_page_config(page_title=demo_config.page_title, layout="wide")
+    from pipeline.adapters.primary.public_ui import render_public
+    render_public(demo_config)
+    st.stop()
+
+import pyperclip
+
+try:
+    from pipeline.version import __version__ as APP_VERSION
+except Exception:
+    APP_VERSION = "1.4"
+
+from pipeline.domain.services import (
+    JobQualificationService, ApplicationGuardrailService, ScreeningQAService, QuickLinksService,
+    ScreeningIntelligenceService, StoryBankService, PipelineConfigService, IngestionRecoveryService,
+    PipelineSearchPaginationService, PipelineKPIService
+)
+
+# Load instance configuration for dynamic branding
+instance_cfg = PipelineConfigService.get_instance_config()
+if instance_cfg.mode != "private":
+    st.error("Select PIPELINE_MODE=demo to load a public instance.")
+    st.stop()
+
+# Set page config as very first Streamlit command
+page_icon_val = instance_cfg.page_icon or "🚀"
+if instance_cfg.favicon_path and Path(instance_cfg.favicon_path).is_file():
+    page_icon_val = instance_cfg.favicon_path
+
+st.set_page_config(
+    page_title=instance_cfg.page_title,
+    page_icon=page_icon_val,
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+from pipeline.domain.models import (
+    CandidateProfile, JobPosting, FitEvaluation, StakeholderContact, Touchpoint, ScreeningQA, QuickLink,
+    SCREENING_CATEGORIES, SCREENING_ARCHETYPES, StoryBreadcrumb, CanonicalStory, StoryCueCard, ScreeningMatchResult,
+    APPLICATION_CATEGORIES, CATEGORY_ICONS, APPLICATION_STAGES, INTERVIEW_STAGES,
+    ROLE_INTELLIGENCE_STATUS_NOT_GENERATED, ROLE_INTELLIGENCE_STATUS_GENERATING,
+    ROLE_INTELLIGENCE_STATUS_GENERATED, ROLE_INTELLIGENCE_STATUS_FAILED,
+    DEFAULT_APPLICATION_SOURCES, DEFAULT_PRIORITIES, PRIORITY_ICONS, SOURCE_ICONS,
+    EMPLOYMENT_ARRANGEMENTS, PAY_BASES, WORKER_CLASSIFICATIONS
+)
+try:
+    from pipeline.domain.models import AUTHORITATIVE_PIPELINE_STAGES, ACTIVE_OPPORTUNITY_STAGES
+except ImportError:
+    AUTHORITATIVE_PIPELINE_STAGES = [
+        "Pending", "Processed", "Applied", "Declined to Apply", "Employer Interest",
+        "Application Rejected", "Recruiter Screen", "Hiring Manager",
+        "Technical Screen", "Final Round", "Offer", "Withdrawn",
+        "Archived", "Rejected"
+    ]
+    ACTIVE_OPPORTUNITY_STAGES = {
+        "Employer Interest", "Recruiter Screen", "Hiring Manager",
+        "Technical Screen", "Final Round", "Offer"
+    }
+from pipeline.domain.role_intelligence import (
+    has_role_intelligence, get_role_intelligence_status, get_local_report_path,
+    should_trigger_role_intelligence, RoleIntelligenceService
+)
+from pipeline.domain.telemetry_service import TelemetryService
+from pipeline.adapters.primary.telemetry_ui import render_telemetry_warnings_manager, render_job_signals
+from pipeline.adapters.primary.intake_ui import render_shared_intake
+from pipeline.adapters.primary.analytics_dashboard_ui import render_analytics_dashboard_view
+from pipeline.logger import (
+    log_startup, log_action, log_config, log_sheets, log_drive,
+    log_llm, log_crm, log_info, log_warn, log_error, log_success, log_timed_action,
+    log_cli, is_logging_enabled, set_logging_enabled
+)
+from pipeline.adapters.secondary.google_sheets import GoogleSheetsAdapter
+from pipeline.adapters.secondary.google_drive import GoogleDriveAdapter
+from pipeline.adapters.secondary.openai_adapter import OpenAIEngineAdapter
+from pipeline.adapters.secondary.twilio_adapter import TwilioMessagingAdapter
+from pipeline.adapters.secondary.gmail_adapter import GmailIngestionAdapter
+from pipeline.adapters.secondary.mock_adapter import (
+    MockJobStorageAdapter,
+    MockDocumentStorageAdapter,
+    MockResumeRepositoryAdapter,
+    MockLLMStrategyAdapter
+)
+
+# Custom CSS styling for premium look & feel, responsive touch targets
+st.markdown("""
+<style>
+    .block-container {
+        padding-top: 3.8rem;
+        padding-bottom: 2rem;
+    }
+    .main-title {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: #F8FAFC;
+        margin-bottom: 0.1rem;
+        letter-spacing: -0.01em;
+    }
+    .sub-title {
+        font-size: 0.90rem;
+        color: #94A3B8;
+        margin-bottom: 0.6rem;
+        line-height: 1.35;
+    }
+    /* Compact 6-metric KPI cards: centered labels and values */
+    div[data-testid="stMetric"] {
+        background-color: #0F172A;
+        border: 1px solid #334155;
+        border-radius: 8px;
+        padding: 8px 6px;
+        box-shadow: none;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    div[data-testid="stMetric"] label,
+    div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        text-align: center !important;
+    }
+    div[data-testid="stMetric"] [data-testid="stMetricLabel"] > div,
+    div[data-testid="stMetric"] [data-testid="stMetricLabel"] p {
+        font-size: 0.70rem !important;
+        color: #94A3B8 !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+        text-align: center !important;
+        width: 100% !important;
+        white-space: nowrap;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        margin: 0 auto !important;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        text-align: center !important;
+        font-size: 1.40rem !important;
+        color: #F8FAFC !important;
+        font-weight: 700 !important;
+        line-height: 1.2;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] > div {
+        text-align: center !important;
+        width: 100% !important;
+    }
+    /* Compact two-line CRM expander card styling */
+    div[data-testid="stExpander"] details {
+        border-radius: 8px;
+        border: 1px solid #334155;
+        background-color: #0B1120;
+        margin-bottom: 5px;
+    }
+    div[data-testid="stExpander"] details summary {
+        padding: 7px 12px;
+        cursor: pointer;
+    }
+    div[data-testid="stExpander"] details summary p {
+        margin-top: 0px !important;
+        margin-bottom: 2px !important;
+        line-height: 1.32;
+    }
+    /* Ensure expander summary labels and math expressions maintain identical sans-serif typography */
+    div[data-testid="stExpander"] details summary span.katex {
+        font-family: inherit !important;
+        font-size: inherit !important;
+        line-height: inherit !important;
+        color: inherit !important;
+    }
+    div[data-testid="stExpander"] details summary span.katex * {
+        font-family: inherit !important;
+        font-size: inherit !important;
+        line-height: inherit !important;
+        color: inherit !important;
+    }
+    /* Pipeline Tracker: Center inline refresh icon */
+    div.st-key-btn_inline_crm_refresh button {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100%;
+    }
+    /* Pipeline Tracker: 5th KPI element Dashboard navigation button */
+    div.dash-kpi-btn-wrapper {
+        height: 100%;
+        display: flex;
+        align-items: stretch;
+    }
+    div.dash-kpi-btn-wrapper button {
+        height: 100% !important;
+        min-height: 60px !important;
+        background-color: #0F172A !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px !important;
+        color: #F8FAFC !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: none !important;
+        transition: all 0.2s ease !important;
+    }
+    div.dash-kpi-btn-wrapper button:hover {
+        border-color: #6366F1 !important;
+        background-color: #1E293B !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15) !important;
+    }
+    .apply-kit-card {
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 1.4rem;
+        margin-bottom: 1.2rem;
+    }
+    .target-pay-box {
+        background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+        border: 1.5px solid #6366F1;
+        border-radius: 10px;
+        padding: 1.2rem;
+        color: #EEF2FF;
+        margin-top: 0.8rem;
+        margin-bottom: 1.2rem;
+    }
+    .recall-card {
+        background-color: #0F172A;
+        border-left: 5px solid #10B981;
+        padding: 1.2rem;
+        border-radius: 8px;
+        margin-top: 0.8rem;
+        margin-bottom: 1.2rem;
+    }
+    .quick-link-btn {
+        display: inline-block;
+        background-color: #2563EB;
+        color: white !important;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .quick-link-btn:hover {
+        background-color: #1D4ED8;
+    }
+    .badge-pill {
+        display: inline-block;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.85rem;
+        border-radius: 9999px;
+        background-color: #334155;
+        color: #E2E8F0;
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
+    }
+    .story-box {
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        border: 1px solid #334155;
+        border-radius: 10px;
+        padding: 1.2rem;
+        margin-bottom: 1.0rem;
+    }
+    .cue-card-box {
+        background: #111827;
+        border: 1px solid #374151;
+        border-left: 4px solid #6366F1;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.8rem;
+    }
+    .breadcrumb-step {
+        display: inline-block;
+        background: #1F2937;
+        border: 1px solid #374151;
+        border-radius: 6px;
+        padding: 0.4rem 0.7rem;
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
+        font-size: 0.82rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# Initialize Session State Objects & Startup Logging
+if "app_session_started" not in st.session_state:
+    st.session_state.app_session_started = True
+    log_startup("Initializing Job Pipeline & Ingestion Cockpit...")
+    cfg_init = PipelineConfigService.load_config()
+    log_config(f"Configuration loaded (CLI logging: {'ENABLED' if is_logging_enabled() else 'DISABLED'}).")
+
+if "profile" not in st.session_state:
+    st.session_state.profile = CandidateProfile()
+
+if "latest_eval" not in st.session_state:
+    st.session_state.latest_eval = None
+
+if "pending_guardrail_check" not in st.session_state:
+    st.session_state.pending_guardrail_check = None
+
+if "pending_job_signals_gate" not in st.session_state:
+    st.session_state.pending_job_signals_gate = None
+
+if "num_screening_qa" not in st.session_state:
+    st.session_state.num_screening_qa = 0
+
+if "quicklinks" not in st.session_state:
+    st.session_state.quicklinks = QuickLinksService.load_quicklinks()
+    log_startup(f"🔗 Loaded {len(st.session_state.quicklinks)} candidate quicklinks.")
+
+if "story_bank" not in st.session_state:
+    st.session_state.story_bank = StoryBankService.load_stories()
+    log_startup(f"📖 Loaded {len(st.session_state.story_bank)} canonical interview stories.")
+
+if "active_opp_card" not in st.session_state:
+    st.session_state.active_opp_card = None
+
+if "active_sub_card" not in st.session_state:
+    st.session_state.active_sub_card = None
+
+
+def render_breadcrumb_trail(breadcrumbs: List[StoryBreadcrumb]):
+    """
+    Renders breadcrumb milestones prominently as the primary visual for phone/Zoom recall.
+    Displays bold step numbers, distinct category tags, and high-visibility soundbite taglines.
+    """
+    if not breadcrumbs:
+        return
+
+    color_palette = [
+        ("#818CF8", "#1E1B4B"),  # Indigo
+        ("#F59E0B", "#451A03"),  # Amber
+        ("#38BDF8", "#082F49"),  # Sky
+        ("#34D399", "#064E3B"),  # Emerald
+        ("#EC4899", "#500724"),  # Pink
+        ("#A78BFA", "#2E1065"),  # Purple
+    ]
+
+    cols = st.columns(len(breadcrumbs))
+    for idx, (col, b) in enumerate(zip(cols, breadcrumbs)):
+        accent_color, bg_tint = color_palette[idx % len(color_palette)]
+        with col:
+            st.markdown(f"""
+            <div style="background:{bg_tint}; border:2px solid {accent_color}; border-radius:10px; padding:12px 14px; min-height:110px; margin-bottom:10px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="color:{accent_color}; font-weight:800; font-size:0.86rem; letter-spacing:0.6px; text-transform:uppercase;">
+                        {idx + 1}. {b.label}
+                    </span>
+                    <span style="font-size:0.72rem; background:{accent_color}33; color:{accent_color}; padding:2px 6px; border-radius:4px; font-weight:700;">
+                        {b.kind.upper()}
+                    </span>
+                </div>
+                <div style="color:#FFFFFF; font-size:0.92rem; font-weight:600; line-height:1.4;">
+                    {b.content}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
+def render_quicklinks_manager(context_key: str = "sb"):
+    """Interactive editor to add, update, remove, and reorder candidate quicklinks."""
+    current_links = list(st.session_state.quicklinks)
+
+    # Compile categories pool
+    existing_cats = []
+    for l in current_links:
+        if l.category and l.category not in existing_cats:
+            existing_cats.append(l.category)
+    cat_pool = list(QuickLinksService.DEFAULT_CATEGORIES)
+    for c in existing_cats:
+        if c not in cat_pool:
+            cat_pool.append(c)
+
+    # Icon options setup
+    icon_labels = [label for _, label in QuickLinksService.ICON_OPTIONS]
+    icon_val_to_label = {val: label for val, label in QuickLinksService.ICON_OPTIONS}
+    icon_label_to_val = {label: val for val, label in QuickLinksService.ICON_OPTIONS}
+
+    st.markdown("##### ⚙️ Configured Links:")
+    st.caption("Click ⬆️ / ⬇️ to reorder, or expand a link to edit details.")
+
+    for idx, link in enumerate(current_links):
+        header_icon = f"{link.icon} " if link.icon else ""
+        with st.expander(f"{header_icon}{link.title} ({link.category})", expanded=False):
+            # Reorder & Delete row
+            c_up, c_down, c_del = st.columns([1, 1, 1])
+            with c_up:
+                if st.button("⬆️ Up", key=f"{context_key}_up_{link.id}_{idx}", disabled=(idx == 0), help="Move up in order"):
+                    current_links[idx], current_links[idx - 1] = current_links[idx - 1], current_links[idx]
+                    QuickLinksService.save_quicklinks(current_links)
+                    st.session_state.quicklinks = current_links
+                    st.rerun()
+            with c_down:
+                if st.button("⬇️ Down", key=f"{context_key}_down_{link.id}_{idx}", disabled=(idx == len(current_links) - 1), help="Move down in order"):
+                    current_links[idx], current_links[idx + 1] = current_links[idx + 1], current_links[idx]
+                    QuickLinksService.save_quicklinks(current_links)
+                    st.session_state.quicklinks = current_links
+                    st.rerun()
+            with c_del:
+                if st.button("🗑️ Delete", key=f"{context_key}_del_{link.id}_{idx}", help="Delete this link"):
+                    current_links.pop(idx)
+                    QuickLinksService.save_quicklinks(current_links)
+                    st.session_state.quicklinks = current_links
+                    st.success(f"Deleted {link.title}!")
+                    st.rerun()
+
+            st.markdown("---")
+            # Edit form
+            with st.form(key=f"{context_key}_edit_form_{link.id}_{idx}"):
+                ed_title = st.text_input("Title / Label", value=link.title, key=f"{context_key}_t_{link.id}_{idx}", autocomplete="off")
+                ed_url = st.text_input("Value / URL / Text to Copy", value=link.url, key=f"{context_key}_u_{link.id}_{idx}", autocomplete="off")
+
+                # Category selection
+                cat_choices = cat_pool + ["+ New Category..."]
+                cat_idx = cat_pool.index(link.category) if link.category in cat_pool else 0
+                ed_cat = st.selectbox("Category", cat_choices, index=cat_idx, key=f"{context_key}_c_{link.id}_{idx}")
+                custom_cat = ""
+                if ed_cat == "+ New Category...":
+                    custom_cat = st.text_input("New Category Name", key=f"{context_key}_newcat_{link.id}_{idx}", autocomplete="off")
+
+                # Icon selection
+                curr_icon_val = link.icon if link.icon is not None else ""
+                icon_choices = icon_labels + ["✨ Custom Emoji..."]
+                if curr_icon_val in icon_val_to_label:
+                    sel_icon_idx = icon_choices.index(icon_val_to_label[curr_icon_val])
+                    custom_icon_default = ""
+                else:
+                    sel_icon_idx = icon_choices.index("✨ Custom Emoji...")
+                    custom_icon_default = curr_icon_val
+
+                ed_icon_choice = st.selectbox("Icon", icon_choices, index=sel_icon_idx, key=f"{context_key}_i_{link.id}_{idx}")
+                if ed_icon_choice == "✨ Custom Emoji...":
+                    custom_icon_val = st.text_input("Custom Emoji Character", value=custom_icon_default, max_chars=4, key=f"{context_key}_ce_{link.id}_{idx}", autocomplete="off")
+                    final_icon = custom_icon_val.strip()
+                else:
+                    final_icon = icon_label_to_val[ed_icon_choice]
+
+                btn_update = st.form_submit_button("💾 Update Link")
+                if btn_update:
+                    if ed_title.strip() and ed_url.strip():
+                        chosen_category = custom_cat.strip() if ed_cat == "+ New Category..." and custom_cat.strip() else ed_cat
+                        if chosen_category == "+ New Category...":
+                            chosen_category = "Links"
+                        current_links[idx] = QuickLink(
+                            id=link.id,
+                            title=ed_title.strip(),
+                            url=ed_url.strip(),
+                            category=chosen_category,
+                            icon=final_icon
+                        )
+                        QuickLinksService.save_quicklinks(current_links)
+                        st.session_state.quicklinks = current_links
+                        st.success(f"Updated '{ed_title}'!")
+                        st.rerun()
+                    else:
+                        st.warning("Title and Value cannot be empty.")
+
+    st.markdown("---")
+    st.markdown("##### ➕ Add New Quicklink:")
+    with st.form(key=f"{context_key}_add_form", clear_on_submit=True):
+        new_title = st.text_input("Title / Label", placeholder="e.g. Portfolio or Work Phone", autocomplete="off")
+        new_url = st.text_input("Value / URL / Text to Copy", placeholder="e.g. https://... or 555-0199", autocomplete="off")
+
+        add_cat_choices = cat_pool + ["+ New Category..."]
+        add_cat = st.selectbox("Category", add_cat_choices, key=f"{context_key}_add_cat")
+        add_custom_cat = ""
+        if add_cat == "+ New Category...":
+            add_custom_cat = st.text_input("New Category Name", key=f"{context_key}_add_new_cat", autocomplete="off")
+
+        add_icon_choices = icon_labels + ["✨ Custom Emoji..."]
+        add_icon_sel = st.selectbox("Icon", add_icon_choices, index=1, key=f"{context_key}_add_icon")  # Default to "🔗 Generic Link"
+        add_custom_icon = ""
+        if add_icon_sel == "✨ Custom Emoji...":
+            add_custom_icon = st.text_input("Custom Emoji Character", max_chars=4, key=f"{context_key}_add_custom_icon", autocomplete="off")
+
+        btn_add = st.form_submit_button("➕ Add Quicklink")
+        if btn_add:
+            if new_title.strip() and new_url.strip():
+                if add_cat == "+ New Category..." and add_custom_cat.strip():
+                    final_add_cat = add_custom_cat.strip()
+                elif add_cat == "+ New Category...":
+                    final_add_cat = "Links"
+                else:
+                    final_add_cat = add_cat
+
+                if add_icon_sel == "✨ Custom Emoji...":
+                    final_add_icon = add_custom_icon.strip()
+                else:
+                    final_add_icon = icon_label_to_val[add_icon_sel]
+
+                new_item = QuickLink(
+                    title=new_title.strip(),
+                    url=new_url.strip(),
+                    category=final_add_cat,
+                    icon=final_add_icon
+                )
+                current_links.append(new_item)
+                QuickLinksService.save_quicklinks(current_links)
+                st.session_state.quicklinks = current_links
+                st.success(f"Added '{new_item.title}'!")
+                st.rerun()
+            else:
+                st.warning("Please provide both a Title and a Value / URL.")
+
+    if st.button("🔄 Reset to Default Links", key=f"{context_key}_reset_btn", help="Resets your quicklinks list to the default setup"):
+        defaults = QuickLinksService.get_default_quicklinks()
+        QuickLinksService.save_quicklinks(defaults)
+        st.session_state.quicklinks = defaults
+        st.info("Reset to default quicklinks.")
+        st.rerun()
+
+
+# =====================================================================
+# SIDEBAR BRANDING & REORGANIZATION
+# =====================================================================
+
+# Brand Identity: Configured Logo or MO Monogram
+custom_logo_path = getattr(instance_cfg, "logo_path", None)
+if custom_logo_path and Path(custom_logo_path).is_file():
+    st.sidebar.image(custom_logo_path, use_container_width=True)
+else:
+    st.sidebar.markdown(
+        """
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 2px 0px;">
+            <div style="
+                width: 36px;
+                height: 36px;
+                background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                font-size: 15px;
+                color: #FFFFFF;
+                letter-spacing: 0.5px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+                flex-shrink: 0;
+            ">MO</div>
+            <div style="line-height: 1.25;">
+                <div style="font-size: 1.05rem; font-weight: 700; color: #F8FAFC; letter-spacing: -0.2px;">More Outbound</div>
+                <div style="font-size: 0.72rem; font-weight: 500; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.6px;">Pipeline Intelligence</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# 1. Application Quicklinks
+#st.sidebar.subheader("⚡ Application Quicklinks")
+with st.sidebar.expander("Application Quicklinks", expanded=True):
+    @st.fragment
+    def render_quicklinks_sidebar_view():
+        if not st.session_state.quicklinks:
+            st.caption("No quicklinks configured.")
+            return
+
+        # Group links by category, preserving category encounter order
+        cat_order = []
+        grouped = {}
+        for ql in st.session_state.quicklinks:
+            cat = ql.category or "Links"
+            if cat not in grouped:
+                cat_order.append(cat)
+                grouped[cat] = []
+            grouped[cat].append(ql)
+
+        ql_sections_html = ""
+        total_rows = 0
+
+        for cat in cat_order:
+            links_in_cat = grouped[cat]
+            rows_in_cat = (len(links_in_cat) + 1) // 2
+            total_rows += rows_in_cat
+
+            safe_cat_name = cat.replace("<", "&lt;").replace(">", "&gt;")
+            ql_sections_html += f'<div class="ql-category-title">{safe_cat_name}</div>'
+            ql_sections_html += '<div class="ql-grid">'
+
+            for q_link in links_in_cat:
+                safe_url = json.dumps(q_link.url)
+                safe_title = q_link.title.replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+                safe_preview = q_link.url.replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+                if q_link.icon and q_link.icon.strip():
+                    btn_text = f"{q_link.icon.strip()} {safe_title}"
+                else:
+                    btn_text = safe_title
+
+                ql_sections_html += f"""
+                <button type="button" class="ql-btn" title="{safe_title}: {safe_preview}" onclick='copyUrl({safe_url}, this, event)'>{btn_text}</button>
+                """
+
+            ql_sections_html += '</div>'
+
+        ql_full_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+            body {{
+                margin: 0;
+                padding: 2px 2px 6px 2px;
+                background: transparent;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                color: #F8FAFC;
+                overflow-x: hidden;
+            }}
+            .ql-category-title {{
+                font-size: 0.74rem;
+                font-weight: 700;
+                color: #94A3B8;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin: 10px 0 5px 0;
+                padding-bottom: 3px;
+                border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            }}
+            .ql-category-title:first-child {{
+                margin-top: 2px;
+            }}
+            .ql-grid {{
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+                margin-bottom: 6px;
+            }}
+            .ql-btn {{
+                background: #1E293B;
+                color: #E2E8F0;
+                border: 1px solid #334155;
+                border-radius: 6px;
+                padding: 6px 6px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                cursor: pointer;
+                text-align: center;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                transition: all 0.15s ease;
+                user-select: none;
+                width: 100%;
+                box-sizing: border-box;
+            }}
+            .ql-btn:hover {{
+                background: #334155;
+                color: #FFFFFF;
+                border-color: #60A5FA;
+            }}
+            .ql-btn:active {{
+                transform: scale(0.97);
+            }}
+        </style>
+        </head>
+        <body>
+            {ql_sections_html}
+            <script>
+            function copyUrl(text, btn, e) {{
+                if (e) {{
+                    e.preventDefault();
+                    e.stopPropagation();
+                }}
+                if (navigator.clipboard && navigator.clipboard.writeText) {{
+                    navigator.clipboard.writeText(text).then(() => onSuccess(btn)).catch(() => fallback(text, btn));
+                }} else {{
+                    fallback(text, btn);
+                }}
+            }}
+            function fallback(text, btn) {{
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try {{
+                    document.execCommand('copy');
+                    onSuccess(btn);
+                }} catch(e) {{
+                    console.error(e);
+                }}
+                document.body.removeChild(ta);
+            }}
+            function onSuccess(btn) {{
+                var orig = btn.innerText;
+                btn.innerText = '✓ Copied!';
+                btn.style.background = '#065F46';
+                btn.style.borderColor = '#10B981';
+                btn.style.color = '#A7F3D0';
+                setTimeout(() => {{
+                    btn.innerText = orig;
+                    btn.style.background = '#1E293B';
+                    btn.style.borderColor = '#334155';
+                    btn.style.color = '#E2E8F0';
+                }}, 1200);
+            }}
+            </script>
+        </body>
+        </html>
+        """
+        iframe_height = max(50, len(cat_order) * 28 + total_rows * 36 + 18)
+        if hasattr(st, "iframe"):
+            st.iframe(ql_full_html, height=iframe_height)
+        else:
+            import streamlit.components.v1 as components
+            components.html(ql_full_html, height=iframe_height, scrolling=False)
+
+    render_quicklinks_sidebar_view()
+
+    with st.expander("⚙️ Configure Quicklinks", expanded=False):
+        render_quicklinks_manager(context_key="sb")
+
+# 2. Pipeline Adapters & Shared Refresh
+@st.cache_resource
+def get_live_adapters():
+    storage = GoogleSheetsAdapter()
+    drive = GoogleDriveAdapter()
+    return storage, drive, drive, OpenAIEngineAdapter(), TwilioMessagingAdapter(), GmailIngestionAdapter()
+
+
+def get_adapters(is_demo: bool):
+    if is_demo:
+        return offline_adapters(st.session_state)
+    return get_live_adapters()
+
+
+def perform_pipeline_refresh(storage, log_func=None):
+    """Authoritative shared refresh operation for Google Sheets pipeline data."""
+    ok, msg, data = PipelineKPIService.refresh_pipeline_data(storage)
+    if ok:
+        st.session_state.crm_cached_opportunities = data.get("opportunities", [])
+        st.session_state.crm_cached_qa = data.get("qa", [])
+        st.session_state.crm_cached_requirements = data.get("requirements", [])
+        if log_func:
+            log_func("🔄 Live pipeline refresh completed from Google Sheets")
+    return ok, msg
+
+
+# Resolve demo mode state and initialize adapters
+demo_mode_state = os.environ.get("PRIVATE_OFFLINE", "false").lower() == "true"
+storage_adapter, drive_adapter, resume_repo, llm_adapter, twilio_adapter, gmail_adapter = get_adapters(demo_mode_state)
+demo_mode = demo_mode_state
+
+# 3. Quick Cloud Links (Sidebar)
+#st.sidebar.markdown("---")
+#st.sidebar.subheader("🔗 Quick Cloud Links")
+st.sidebar.subheader("Quick Cloud Links")
+sheet_id = os.environ.get("GOOGLE_SPREADSHEET_ID", "")
+drive_root_id = os.environ.get("GOOGLE_APPLICATIONS_ROOT_FOLDER_ID", "")
+resumes_folder_id = getattr(drive_adapter, "resumes_folder_id", "") or os.environ.get("GOOGLE_RESUMES_FOLDER_ID", "")
+
+if sheet_id:
+    st.sidebar.markdown(f"[📊 Open Pipeline Spreadsheet](https://docs.google.com/spreadsheets/d/{sheet_id}/edit)")
+if resumes_folder_id:
+    st.sidebar.markdown(f"[📄 Open Resumes Folder](https://drive.google.com/drive/folders/{resumes_folder_id})")
+else:
+    st.sidebar.caption("📄 Open Resumes Folder *(not configured)*")
+if drive_root_id:
+    st.sidebar.markdown(f"[📁 Open Applications Folder](https://drive.google.com/drive/folders/{drive_root_id})")
+
+# 4. Pipeline Controls (Sidebar)
+#st.sidebar.markdown("---")
+#st.sidebar.subheader("💼 Pipeline Controls")
+st.sidebar.subheader("Pipeline Controls")
+
+if st.sidebar.button("🔄 Refresh Pipeline Data", key="btn_sb_pipeline_refresh", use_container_width=True, help="Fetch fresh records from Google Sheets"):
+    ok, msg = perform_pipeline_refresh(storage_adapter, log_action)
+    if ok:
+        st.toast(msg, icon="✅")
+        st.session_state["crm_flash_message"] = msg
+        st.rerun()
+    else:
+        st.sidebar.error(msg)
+
+if st.sidebar.button("⚙️ Pipeline Settings", key="btn_sb_pipeline_settings", use_container_width=True, help="Manage guardrails, sources, priorities, and Job Signals"):
+    st.session_state["in_settings_view"] = True
+    st.rerun()
+
+# 4. Connection Status Expander
+st.sidebar.markdown("---")
+drive_auth_ctx = getattr(drive_adapter, "auth_context", None)
+google_auth_ok = (
+    (drive_auth_ctx.mode == "oauth" and not drive_auth_ctx.oauth_failed)
+    if drive_auth_ctx else drive_adapter.is_connected
+)
+sheets_ok = storage_adapter.is_connected
+drive_ok = drive_adapter.is_connected
+openai_ok = bool(getattr(llm_adapter, "api_key", None)) if not demo_mode else True
+
+all_connections_healthy = bool(google_auth_ok and sheets_ok and drive_ok and openai_ok)
+conn_status_icon = "🟢" if all_connections_healthy else "⚠️"
+conn_expander_label = f"🔌 Connection Status {conn_status_icon}"
+
+with st.sidebar.expander(conn_expander_label, expanded=not all_connections_healthy):
+    if drive_auth_ctx:
+        if drive_auth_ctx.mode == "oauth" and not drive_auth_ctx.oauth_failed:
+            st.write("**Google Auth**: 🟢 User OAuth (Full Access)")
+        elif drive_auth_ctx.mode == "service_account":
+            st.write("**Google Auth**: 🟡 Service Account (Reduced: Sheets only)")
+        else:
+            st.write("**Google Auth**: 🔴 Unavailable")
+    else:
+        st.write(f"**Google Auth**: {'🟢 Connected' if drive_adapter.is_connected else '🔴 Offline/Demo'}")
+
+    st.write(f"**Sheets API**: {'🟢 Connected' if storage_adapter.is_connected else '🔴 Offline/Demo'}")
+    st.write(f"**Drive API**:  {'🟢 Connected' if drive_adapter.is_connected else '🔴 Offline/Demo'}")
+    st.write(f"**OpenAI API**: {'🟢 Ready' if openai_ok else '🔴 No API Key'}")
+
+    if drive_auth_ctx and (drive_auth_ctx.oauth_failed or drive_auth_ctx.mode == "service_account"):
+        st.markdown("---")
+        st.caption("OAuth token expired or revoked. Re-authenticate to restore personal Google Drive doc creation:")
+        st.code("python -m pipeline.setup_oauth", language="bash")
+        if st.button("🔑 Re-authorize Google OAuth", key="btn_sb_reauth", type="primary", use_container_width=True):
+            with st.spinner("Initiating Google OAuth authorization flow..."):
+                try:
+                    from pipeline.setup_oauth import run_oauth_flow
+                    ok, msg, info = run_oauth_flow()
+                    if ok:
+                        st.success("Google OAuth successfully authorized!")
+                        st.cache_resource.clear()
+                        st.rerun()
+                    else:
+                        st.error(f"OAuth failed: {msg}")
+                except Exception as oa_err:
+                    st.error(f"OAuth error: {oa_err}. Please run 'python -m pipeline.setup_oauth' in terminal.")
+
+# 5. Sidebar Footer: Configured Instance Name & App Version
+#st.sidebar.markdown("---")
+st.sidebar.caption(f"**{instance_cfg.display_name}** · v{APP_VERSION}")
+
+
+# =====================================================================
+# MAIN DASHBOARD HEADER (Config-Driven)
+# =====================================================================
+logo_path = instance_cfg.logo_path
+if logo_path and Path(logo_path).is_file():
+    col_logo, col_title = st.columns([1, 8])
+    with col_logo:
+        st.image(logo_path, width=54)
+    with col_title:
+        st.markdown(f'<div class="main-title">{instance_cfg.page_title}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="sub-title">{instance_cfg.page_subtitle}</div>', unsafe_allow_html=True)
+else:
+    st.markdown(f'<div class="main-title">{instance_cfg.page_title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sub-title">{instance_cfg.page_subtitle}</div>', unsafe_allow_html=True)
+
+
+# Surface Google Auth Warning if operating under reduced capability with 1-click browser sign-in button
+if drive_auth_ctx and drive_auth_ctx.warning_message:
+    col_warn_msg, col_warn_btn = st.columns([3, 1])
+    with col_warn_msg:
+        st.warning(f"⚠️ **Google Authentication Notice**: {drive_auth_ctx.warning_message}")
+    with col_warn_btn:
+        st.write("")
+        if st.button("🔑 Re-authenticate Google", key="btn_main_reauth", type="primary", use_container_width=True, help="Opens Google Sign-in in your browser to authorize Drive & Sheets"):
+            with st.spinner("Opening Google sign-in in your default browser..."):
+                try:
+                    from pipeline.setup_oauth import run_oauth_flow
+                    ok, msg, info = run_oauth_flow()
+                    if ok:
+                        st.success("Google OAuth authorized successfully! Reloading...")
+                        st.cache_resource.clear()
+                        st.rerun()
+                    else:
+                        st.error(f"Sign-in failed: {msg}")
+                except Exception as oa_err:
+                    st.error(f"Authentication error: {oa_err}. You can also run 'python -m pipeline.setup_oauth' in terminal.")
+
+
+def trigger_role_intelligence_generation(opp_data: Dict[str, Any], show_toasts: bool = True) -> bool:
+    """Helper to run Role Intelligence for an existing opportunity, update storage, and handle errors."""
+    opp_id = str(opp_data.get("Opportunity ID") or opp_data.get("opportunity_id") or "").strip()
+    company = str(opp_data.get("Company Name") or opp_data.get("company_name") or "Target Company").strip()
+    title = str(opp_data.get("Job Title") or opp_data.get("job_title") or "Target Role").strip()
+    folder_link = (
+        opp_data.get("Drive Folder Link") or opp_data.get("drive_folder_link") or
+        opp_data.get("Folder Link") or opp_data.get("folder_link")
+    )
+    folder_id = opp_data.get("folder_id") or opp_data.get("Drive Folder ID") or opp_data.get("drive_folder_id")
+    raw_jd = opp_data.get("raw_description") or opp_data.get("description") or opp_data.get("raw_jd_text")
+    pay_bounds = {}
+    if "fit_eval" in opp_data and hasattr(opp_data["fit_eval"], "pay_bounds"):
+        pay_bounds = opp_data["fit_eval"].pay_bounds.model_dump()
+
+    try:
+        res = RoleIntelligenceService.generate_for_opportunity(
+            opportunity_id=opp_id,
+            company_name=company,
+            job_title=title,
+            raw_description=raw_jd,
+            drive_folder_id=folder_id,
+            drive_folder_link=folder_link,
+            target_pay_bounds=pay_bounds,
+            llm_adapter=llm_adapter,
+            drive_adapter=drive_adapter,
+            resume_repo=resume_repo,
+            storage_adapter=storage_adapter,
+            demo_mode=demo_mode
+        )
+        opp_data["Role Intelligence Status"] = ROLE_INTELLIGENCE_STATUS_GENERATED
+        opp_data["role_intelligence_status"] = ROLE_INTELLIGENCE_STATUS_GENERATED
+        if res.get("report_link"):
+            opp_data["Role Intelligence Link"] = res["report_link"]
+            opp_data["role_intelligence_link"] = res["report_link"]
+        if res.get("generated_at"):
+            opp_data["Role Intelligence Generated At"] = res["generated_at"]
+            opp_data["role_intelligence_generated_at"] = res["generated_at"]
+        if res.get("output_docx_path"):
+            opp_data["output_docx_path"] = res["output_docx_path"]
+        if show_toasts:
+            st.toast(f"✅ Role Intelligence generated for {company}!")
+        return True
+    except Exception as e:
+        log_error(f"Role Intelligence generation failed for {company}: {e}")
+        print(f"ERROR: Role Intelligence generation failed for '{company}': {e}", flush=True)
+        if storage_adapter and hasattr(storage_adapter, "update_role_intelligence_status") and opp_id:
+            try:
+                storage_adapter.update_role_intelligence_status(
+                    opportunity_id=opp_id,
+                    status=ROLE_INTELLIGENCE_STATUS_FAILED
+                )
+            except Exception:
+                pass
+        opp_data["Role Intelligence Status"] = ROLE_INTELLIGENCE_STATUS_FAILED
+        opp_data["role_intelligence_status"] = ROLE_INTELLIGENCE_STATUS_FAILED
+        if show_toasts:
+            st.error(f"Role Intelligence generation failed: {e}")
+        return False
+
+
+# Dedicated Analytics Dashboard View
+if st.session_state.get("in_dashboard_view", False):
+    from pipeline.adapters.primary.dashboard_data import dashboard_records
+    all_opps_for_dash, using_cache = dashboard_records(storage_adapter, st.session_state.get("crm_cached_opportunities", []))
+    if using_cache:
+        st.warning("Storage is unavailable. Showing the last data loaded in this session.")
+    render_analytics_dashboard_view(all_opps_for_dash, instance_cfg)
+    st.stop()
+
+
+# Dedicated Full-Width Settings View
+if st.session_state.get("in_settings_view", False):
+    col_back, col_title = st.columns([2.5, 7.5], vertical_alignment="center")
+    with col_back:
+        if st.button("⬅️ Return to Pipeline", key="btn_settings_back", type="primary", use_container_width=True):
+            st.session_state["in_settings_view"] = False
+            st.rerun()
+    with col_title:
+        st.markdown("<h2 style='margin:0; padding:0; color:#F8FAFC;'>Pipeline Settings</h2>", unsafe_allow_html=True)
+        st.caption("Manage ATS guardrails, application sources, priority tiers, and Job Signal heuristics.")
+
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+
+    # Section 1: Guardrail Rules & Limits
+    with st.expander("🛡️ Guardrail Rules & Limits", expanded=False):
+        st.caption("Industry ATS guardrails to prevent auto-rejection.")
+        g_c1, g_c2, g_c3 = st.columns(3)
+        with g_c1:
+            s_max_apps = st.slider(
+                "Max Concurrent Apps / Company",
+                min_value=1, max_value=5,
+                value=st.session_state.profile.max_company_applications_limit,
+                help="Recruiter standard is max 2 active roles simultaneously.",
+                key="settings_max_apps"
+            )
+        with g_c2:
+            s_window = st.slider(
+                "Company Concurrency Window (Days)",
+                min_value=15, max_value=180,
+                value=st.session_state.profile.company_application_window_days,
+                step=15,
+                help="Rolling time window to count active applications at the same company.",
+                key="settings_window_days"
+            )
+        with g_c3:
+            s_repost = st.slider(
+                "Repost Detection Window (Days)",
+                min_value=30, max_value=180,
+                value=st.session_state.profile.repost_detection_threshold_days,
+                step=15,
+                help="Applications older than this are treated as renewed reposts rather than duplicates.",
+                key="settings_repost_days"
+            )
+        st.session_state.profile.max_company_applications_limit = s_max_apps
+        st.session_state.profile.company_application_window_days = s_window
+        st.session_state.profile.repost_detection_threshold_days = s_repost
+
+    # Section 2: Sources & Priorities
+    pipeline_cfg = PipelineConfigService.load_config()
+    available_sources = pipeline_cfg.get("sources", DEFAULT_APPLICATION_SOURCES)
+    available_priorities = pipeline_cfg.get("priorities", DEFAULT_PRIORITIES)
+    with st.expander("🌐 Sources & Priorities", expanded=False):
+        st.caption("Customize where you apply from and your priority tiers.")
+        cfg_c1, cfg_c2 = st.columns(2)
+        with cfg_c1:
+            st.markdown("###### 🌐 Application Sources / Platforms")
+            st.caption(f"Current: {', '.join(available_sources)}")
+            with st.form("settings_add_source_form", clear_on_submit=True):
+                new_src_name = st.text_input("Add Source", placeholder="e.g. Wellfound, Otta, Referral...", autocomplete="off")
+                if st.form_submit_button("➕ Save New Source"):
+                    if new_src_name.strip():
+                        PipelineConfigService.add_source(new_src_name.strip())
+                        st.success(f"Added source: '{new_src_name.strip()}'")
+                        st.rerun()
+
+        with cfg_c2:
+            st.markdown("###### 🎯 Priority Tiers")
+            st.caption(f"Current: {', '.join(available_priorities)}")
+            with st.form("settings_add_priority_form", clear_on_submit=True):
+                new_pri_name = st.text_input("Add Priority Level", placeholder="e.g. Critical, Dream, Tier 1...", autocomplete="off")
+                if st.form_submit_button("➕ Save New Priority"):
+                    if new_pri_name.strip():
+                        PipelineConfigService.add_priority(new_pri_name.strip())
+                        st.success(f"Added priority: '{new_pri_name.strip()}'")
+                        st.rerun()
+
+    # Section 3: Job Signal Rules
+    active_rules_count = len(PipelineConfigService.get_active_warning_rules())
+    with st.expander(f"⚠️ Job Signal Rules ({active_rules_count} Active)", expanded=False):
+        if demo_mode:
+            st.caption("Demo mode evaluates Direct Match and Regex rules. Concept rules require a connected LLM.")
+        render_telemetry_warnings_manager(key_prefix="settings_view")
+
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+    st.markdown("##### Environment & System Controls")
+    col_demo, col_log = st.columns(2)
+    with col_demo:
+        st.caption("Private offline preview" if demo_mode else "Private Google-connected instance")
+        st.caption("Instance mode is selected at launch; restart to switch instances.")
+    with col_log:
+        curr_cli_logging = is_logging_enabled()
+        cli_logging_toggle = st.checkbox(
+            "CLI Action Logging",
+            value=curr_cli_logging,
+            key="cli_logging_cb",
+            help="Print background startup processes, network syncs, and actions to the terminal in real-time."
+        )
+        if cli_logging_toggle != curr_cli_logging:
+            PipelineConfigService.set_cli_logging(cli_logging_toggle)
+            set_logging_enabled(cli_logging_toggle)
+            st.toast(f"CLI Logging {'enabled' if cli_logging_toggle else 'disabled'}")
+
+    st.stop()
+
+
+# Main Navigation: render only the active section to avoid eager rendering of every view
+SECTION_INGEST = "⚡ Ingest & Apply"
+SECTION_CRM = "📊 Pipeline Tracker"
+SECTION_STORIES = "📖 Interview Intelligence"
+
+active_section = st.radio(
+    "Main Navigation",
+    [SECTION_INGEST, SECTION_CRM, SECTION_STORIES],
+    index=0,
+    horizontal=True,
+    key="active_main_section",
+    label_visibility="collapsed",
+)
+
+
+# =====================================================================
+# SECTION 1: INGEST & APPLY (ZERO FRICTION)
+# =====================================================================
+if active_section in (SECTION_INGEST, "⚡ Fast Ingestion & Apply Kit"):
+    # -------------------------------------------------------------
+    # Incomplete Ingestion Detection & Recovery Alert
+    # -------------------------------------------------------------
+    if "refresh_incomplete_workspaces" not in st.session_state:
+        st.session_state.refresh_incomplete_workspaces = True
+
+    if st.session_state.get("refresh_incomplete_workspaces", False) or "incomplete_workspaces" not in st.session_state:
+        try:
+            all_opps_for_rec = storage_adapter.fetch_all_opportunities(require_fresh=True)
+            completed_folder_ids = []
+            for o in all_opps_for_rec:
+                m = re.search(r"(?:folders/|[?&]id=)([\w-]+)", str(o.get("Drive Folder Link") or ""))
+                if m:
+                    completed_folder_ids.append(m.group(1))
+            st.session_state.incomplete_workspaces = drive_adapter.fetch_incomplete_workspaces(completed_folder_ids=completed_folder_ids)
+        except Exception as rec_err:
+            st.warning(f"Incomplete workspace reconciliation unavailable: {rec_err}. Discard requires a fresh successful check.")
+            st.session_state.setdefault("incomplete_workspaces", [])
+        st.session_state.refresh_incomplete_workspaces = False
+
+    incomplete_workspaces = st.session_state.get("incomplete_workspaces", [])
+
+    def resume_application_workflow(inc_ws: dict):
+        folder_id = inc_ws["folder_id"]
+        folder_link = inc_ws["folder_link"]
+        folder_name = inc_ws.get("folder_name", "")
+        st.session_state.latest_eval = None
+        try:
+            # Never trust cached preview text or a cached canonical reconciliation.
+            all_opps = storage_adapter.fetch_all_opportunities(require_fresh=True)
+            existing_record = IngestionRecoveryService.find_workspace_record(all_opps, folder_id)
+            existing_id = str((existing_record or {}).get("Opportunity ID") or "").strip() or None
+            opp_id = drive_adapter.ensure_workspace_opportunity_id(folder_id, existing_id)
+            existing_record = IngestionRecoveryService.find_workspace_record(all_opps, folder_id, opp_id)
+            checkpoint = drive_adapter.fetch_ingestion_checkpoint(folder_id)
+            if checkpoint and checkpoint.get("opportunity_id") != opp_id:
+                raise ValueError("Intake checkpoint identity conflicts with the workspace; manual review is required.")
+            raw_jd_text = drive_adapter.fetch_raw_job_description(folder_id)
+            if not raw_jd_text or len(raw_jd_text.strip()) < 20:
+                raise RuntimeError("This workspace's raw job description is missing or unreadable; restore it and retry.")
+            def _clean_text(t: str) -> str:
+                return re.sub(r'\s+', ' ', (t or "").lstrip("\ufeff")).strip()
+
+            if checkpoint.get("jd_text") and _clean_text(checkpoint["jd_text"]) != _clean_text(raw_jd_text):
+                raise ValueError("Workspace JD differs from the saved intake. Restore the original source before resuming.")
+            if checkpoint.get("jd_text"):
+                raw_jd_text = checkpoint["jd_text"]
+            screening_qa_list = [ScreeningQA(**q) for q in checkpoint.get("screening_qa", [])]
+            if not checkpoint and existing_record:
+                historical = storage_adapter.fetch_screening_qa(opp_id, force_refresh=True)
+                if int(existing_record.get("Screening QA Count") or 0) > len(historical):
+                    raise RuntimeError("Existing screening answers could not all be verified; retry when Sheets is available.")
+                screening_qa_list = [ScreeningQA(**dict(q, created_at=q.get("timestamp", ""))) for q in historical]
+        except Exception as source_err:
+            st.error(f"Cannot resume: {source_err}. The workspace remains available for recovery.")
+            return
+
+        company_name = inc_ws.get("company", "Target Company")
+        job_title = inc_ws.get("title", "Target Role")
+        log_action(f"⚡ Resuming incomplete ingestion workflow for '{company_name}' - '{job_title}'")
+
+        try:
+            with st.spinner(f"Resuming ingestion for '{company_name} — {job_title}'..."):
+                existing_files = drive_adapter.list_workspace_files(folder_id)
+                existing_names = {f.get("name", "").lower(): f for f in existing_files}
+
+                drive_jd_link = None
+                for fname, fmeta in existing_names.items():
+                    if "raw job description" in fname:
+                        drive_jd_link = fmeta.get("webViewLink") or (f"https://docs.google.com/document/d/{fmeta.get('id')}/edit" if fmeta.get("id") else None)
+                        break
+                if not drive_jd_link:
+                    res_jd = drive_adapter.upload_raw_job_description(folder_id, raw_jd_text, company_name=company_name, job_title=job_title)
+                    if isinstance(res_jd, dict):
+                        drive_jd_link = res_jd.get("file_link") or res_jd.get("webViewLink")
+
+                warning_rules = PipelineConfigService.get_active_telemetry_rules()
+                telemetry = None
+                extracted_company = company_name if company_name != "Target Company" else ""
+                extracted_title = job_title if job_title != "Target Role" else ""
+                extracted_family = "revenue_operations"
+                extracted_min = None
+                extracted_max = None
+                req_skills = []
+                pref_skills = []
+                pain_points = ""
+                is_remote = False
+                extracted_arrangement = "Employee"
+                extracted_worker_class = None
+                extracted_pay_basis = "Annual"
+                extracted_duration_raw = None
+                extracted_months = None
+                extracted_weeks = None
+                extracted_hours = None
+                extracted_ext = None
+                extracted_fte = None
+                extracted_agency = None
+                extracted_client = None
+                extracted_telemetry_warnings = []
+                extracted_telemetry_flags = []
+                extracted_telemetry_benefits = []
+
+                if not demo_mode and isinstance(llm_adapter, OpenAIEngineAdapter):
+                    try:
+                        telemetry = llm_adapter.extract_job_telemetry(raw_jd_text, warning_rules=warning_rules)
+                        extracted_company = telemetry.company_name or extracted_company
+                        extracted_title = telemetry.job_title or extracted_title
+                        extracted_family = telemetry.title_family
+                        extracted_min = telemetry.requirements.salary_min
+                        extracted_max = telemetry.requirements.salary_max
+                        req_skills = telemetry.requirements.required_tech_stack
+                        pref_skills = telemetry.requirements.preferred_tech_stack
+                        pain_points = telemetry.requirements.core_pain_points or ""
+                        is_remote = telemetry.requirements.is_remote
+                        extracted_arrangement = telemetry.requirements.employment_arrangement or "Employee"
+                        extracted_worker_class = telemetry.requirements.worker_classification
+                        extracted_pay_basis = telemetry.requirements.pay_basis or "Annual"
+                        extracted_duration_raw = telemetry.requirements.contract_length_raw
+                        extracted_months = telemetry.requirements.contract_length_months
+                        extracted_weeks = telemetry.requirements.contract_length_weeks
+                        extracted_hours = telemetry.requirements.expected_hours_per_week
+                        extracted_ext = telemetry.requirements.extension_possible
+                        extracted_fte = telemetry.requirements.fte_conversion_possible
+                        extracted_agency = telemetry.requirements.staffing_agency
+                        extracted_client = telemetry.requirements.client_company
+                        extracted_telemetry_warnings = telemetry.requirements.telemetry_warnings or []
+                        extracted_telemetry_flags = telemetry.requirements.telemetry_flags or []
+                        extracted_telemetry_benefits = getattr(telemetry.requirements, "telemetry_benefits", []) or []
+                    except Exception as t_err:
+                        raise RuntimeError("Recovery Job Signals extraction failed; retry when the provider is available.") from t_err
+
+                final_company = (extracted_company or company_name or "Target Company").strip()
+                final_title = (extracted_title or job_title or "Target Role").strip()
+                final_family = extracted_family or "revenue_operations"
+                final_min_pay = extracted_min
+                final_max_pay = extracted_max
+                final_pay_basis = extracted_pay_basis or ("Hourly" if (final_min_pay and final_min_pay < 500) else "Annual")
+
+                if checkpoint:
+                    final_company = checkpoint.get("company", final_company)
+                    final_title = checkpoint.get("title", final_title)
+                    final_family = checkpoint.get("family", final_family)
+                    final_min_pay, final_max_pay = checkpoint.get("min_pay"), checkpoint.get("max_pay")
+                    final_pay_basis = checkpoint.get("pay_basis", final_pay_basis)
+                    req_skills, pref_skills = checkpoint.get("req_skills", []), checkpoint.get("pref_skills", [])
+                    pain_points, is_remote = checkpoint.get("pain_points", ""), checkpoint.get("is_remote", False)
+                    extracted_arrangement = checkpoint.get("employment_arrangement", extracted_arrangement)
+                    extracted_worker_class = checkpoint.get("worker_classification")
+                    extracted_duration_raw = checkpoint.get("contract_length_raw")
+                    extracted_months, extracted_weeks = checkpoint.get("contract_length_months"), checkpoint.get("contract_length_weeks")
+                    extracted_hours = checkpoint.get("expected_hours_per_week")
+                    extracted_ext, extracted_fte = checkpoint.get("extension_possible"), checkpoint.get("fte_conversion_possible")
+                    extracted_agency, extracted_client = checkpoint.get("staffing_agency"), checkpoint.get("client_company")
+                if demo_mode:
+                    refreshed = llm_adapter.extract_job_telemetry(raw_jd_text, warning_rules=warning_rules)
+                    extracted_telemetry_flags = refreshed.requirements.telemetry_flags
+                    extracted_telemetry_warnings = refreshed.requirements.telemetry_warnings
+                    extracted_telemetry_benefits = refreshed.requirements.telemetry_benefits
+                recovery_category = checkpoint.get("category") or (existing_record or {}).get("Category") or "Target"
+                recovery_source = checkpoint.get("applied_via") or (existing_record or {}).get("Applied Via") or "LinkedIn"
+                recovery_priority = checkpoint.get("priority") or (existing_record or {}).get("Priority") or "High"
+                # Do not count the same application as its own duplicate during resume.
+                other_opps = [o for o in all_opps if str(o.get("Opportunity ID", "")) != opp_id]
+                fit_eval = JobQualificationService.evaluate(
+                    company_name=final_company,
+                    job_title=final_title,
+                    raw_description=raw_jd_text,
+                    required_skills=req_skills,
+                    preferred_skills=pref_skills,
+                    salary_min=final_min_pay,
+                    salary_max=final_max_pay,
+                    profile=st.session_state.profile,
+                    existing_company_titles=other_opps,
+                    pay_basis=final_pay_basis,
+                    expected_hours_per_week=extracted_hours,
+                    expected_hours_per_week_is_assumed=(extracted_hours is None),
+                    contract_length_months=extracted_months,
+                    contract_length_weeks=extracted_weeks,
+                    telemetry_warnings=extracted_telemetry_warnings,
+                    telemetry_flags=extracted_telemetry_flags,
+                    telemetry_benefits=extracted_telemetry_benefits
+                )
+
+                selected_resume = resume_repo.select_best_fit_resume(final_title, final_family)
+                resume_name = selected_resume.filename if selected_resume else "Default Resume"
+                resume_link = getattr(selected_resume, "web_link", None) if selected_resume else None
+                if not resume_link and selected_resume and selected_resume.doc_id and not selected_resume.doc_id.startswith("doc_"):
+                    resume_link = f"https://docs.google.com/document/d/{selected_resume.doc_id}/edit"
+
+                has_resume_file = any(resume_name.lower() in fname for fname in existing_names)
+                if not has_resume_file and selected_resume and selected_resume.doc_id:
+                    drive_adapter.export_resume_pdf(selected_resume.doc_id, folder_id, f"{resume_name}.pdf")
+
+                docx_filename = "Role_Intelligence_Report.docx"
+                output_docx_path = str(Path("output_reports") / uuid.uuid5(uuid.NAMESPACE_URL, opp_id).hex / docx_filename)
+                has_report_file = any("role_intelligence_report" in fname or "role intelligence report" in fname for fname in existing_names) or os.path.exists(output_docx_path)
+                report_saved = has_report_file
+
+                has_shortcut = any("pipeline tracker" in fname for fname in existing_names)
+                if not has_shortcut and hasattr(drive_adapter, "_drive_svc") and drive_adapter._drive_svc:
+                    sheet_id = os.environ.get("GOOGLE_SPREADSHEET_ID", "")
+                    if sheet_id:
+                        try:
+                            drive_adapter._drive_svc.files().create(
+                                body={
+                                    "name": "Pipeline Tracker (Master Sheet)",
+                                    "mimeType": "application/vnd.google-apps.shortcut",
+                                    "parents": [folder_id],
+                                    "shortcutDetails": {"targetId": sheet_id}
+                                },
+                                fields="id, webViewLink"
+                            ).execute()
+                        except Exception:
+                            pass
+
+                drive_screening_doc_link = (existing_record or {}).get("Screening Doc Link")
+                if screening_qa_list:
+                    screening_result = drive_adapter.create_screening_questions_doc(
+                        folder_id, final_company, final_title, screening_qa_list, opportunity_id=opp_id)
+                    if screening_result:
+                        drive_screening_doc_link = screening_result.get("file_link")
+                    else:
+                        st.warning("Screening document sync failed; answers will still be saved in Sheets.")
+
+                tot_tokens = getattr(llm_adapter, "last_telemetry_tokens", 0) + getattr(llm_adapter, "last_report_tokens", 0)
+                final_status = "Processed" if fit_eval.is_qualified else fit_eval.status
+                now_iso = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+                job_posting = JobPosting(
+                    opportunity_id=opp_id,
+                    company_name=final_company,
+                    job_title=final_title,
+                    title_family=final_family,
+                    raw_description=raw_jd_text,
+                    source_url=checkpoint.get("url") or (existing_record or {}).get("Source URL") or inc_ws.get("url") or (telemetry.source_url if telemetry else None),
+                    category=recovery_category,
+                    applied_via=recovery_source,
+                    priority=recovery_priority,
+                    salary_expectation=checkpoint.get("salary_expectation") or (existing_record or {}).get("Salary Expectation"),
+                    notes=checkpoint.get("notes") or (existing_record or {}).get("Notes"),
+                    employment_arrangement=extracted_arrangement,
+                    worker_classification=extracted_worker_class,
+                    pay_basis=final_pay_basis,
+                    expected_hours_per_week=fit_eval.pay_bounds.expected_hours_per_week,
+                    expected_hours_per_week_is_assumed=fit_eval.pay_bounds.expected_hours_per_week_is_assumed,
+                    contract_length_months=extracted_months,
+                    contract_length_weeks=extracted_weeks,
+                    contract_length_raw=extracted_duration_raw,
+                    contract_value_min=fit_eval.pay_bounds.contract_value_min,
+                    contract_value_max=fit_eval.pay_bounds.contract_value_max,
+                    contract_value_display=fit_eval.pay_bounds.contract_value_display,
+                    extension_possible=extracted_ext,
+                    fte_conversion_possible=extracted_fte,
+                    staffing_agency=extracted_agency,
+                    client_company=extracted_client,
+                    stage_history=[{"stage": final_status, "entered_at": now_iso}],
+                    required_skills=req_skills,
+                    preferred_skills=pref_skills,
+                    telemetry_warnings=extracted_telemetry_warnings,
+                    telemetry_flags=extracted_telemetry_flags,
+                    telemetry_benefits=extracted_telemetry_benefits,
+                    selected_resume_name=resume_name,
+                    drive_folder_link=folder_link,
+                    drive_jd_link=drive_jd_link,
+                    drive_screening_doc_link=drive_screening_doc_link,
+                    screening_qa=screening_qa_list,
+                    tokens_used=tot_tokens
+                )
+                canonical_saved = storage_adapter.save_opportunity(job_posting, fit_eval)
+                IngestionRecoveryService.require_completion(
+                    workspace_id=folder_id, raw_jd_saved=bool(drive_jd_link),
+                    report_saved=report_saved, canonical_saved=canonical_saved)
+
+                safe_c = "".join([c for c in final_company if c.isalnum() or c in (" ", "-", "_")]).strip().replace(" ", "_")
+                safe_t = "".join([c for c in final_title if c.isalnum() or c in (" ", "-", "_")]).strip().replace(" ", "_")
+                folder_date_match = re.search(r'\d{4}-\d{2}-\d{2}$', folder_name)
+                app_date = folder_date_match.group(0) if folder_date_match else datetime.now().strftime("%Y-%m-%d")
+                new_folder_name = f"{safe_c}_{safe_t}_{app_date}"
+                if folder_name != new_folder_name:
+                    drive_adapter.rename_application_workspace(folder_id, new_folder_name)
+
+                if not drive_adapter.mark_workspace_complete(folder_id):
+                    raise RuntimeError("Opportunity saved, but workspace completion could not be recorded. Resume to reconcile.")
+
+                st.session_state.latest_eval = {
+                    "company": final_company,
+                    "title": final_title,
+                    "family": final_family,
+                    "fit_eval": fit_eval,
+                    "category": recovery_category,
+                    "applied_via": recovery_source,
+                    "priority": recovery_priority,
+                    "employment_arrangement": extracted_arrangement,
+                    "worker_classification": extracted_worker_class,
+                    "pay_basis": final_pay_basis,
+                    "contract_length_raw": extracted_duration_raw,
+                    "contract_length_months": extracted_months,
+                    "contract_length_weeks": extracted_weeks,
+                    "contract_value_display": fit_eval.pay_bounds.contract_value_display,
+                    "extension_possible": extracted_ext,
+                    "fte_conversion_possible": extracted_fte,
+                    "staffing_agency": extracted_agency,
+                    "client_company": extracted_client,
+                    "stage_history": [{"stage": final_status, "entered_at": now_iso}],
+                    "selected_resume": selected_resume,
+                    "resume_name": resume_name,
+                    "resume_link": resume_link,
+                    "folder_link": folder_link,
+                    "drive_jd_link": drive_jd_link,
+                    "drive_screening_doc_link": drive_screening_doc_link,
+                    "screening_qa": screening_qa_list,
+                    "output_docx_path": output_docx_path,
+                    "docx_filename": docx_filename,
+                    "req_skills": req_skills,
+                    "pref_skills": pref_skills,
+                    "pain_points": pain_points,
+                    "is_remote": is_remote,
+                    "telemetry_warnings": extracted_telemetry_warnings,
+                    "telemetry_flags": extracted_telemetry_flags,
+                    "telemetry_benefits": extracted_telemetry_benefits,
+                    "opp_id": opp_id
+                }
+
+                st.session_state.refresh_incomplete_workspaces = True
+                st.success(f"🎉 Successfully completed ingestion for {final_company} — {final_title}!")
+                st.rerun()
+
+        except Exception as res_err:
+            log_warn(f"Error during ingestion recovery: {res_err}")
+            st.error(f"Processing failed: {res_err}. The workspace remains incomplete and recoverable.")
+
+    if incomplete_workspaces:
+        count = len(incomplete_workspaces)
+        s_sfx = "s" if count > 1 else ""
+        st.markdown(f"#### ⚠️ {count} incomplete ingestion{s_sfx} found")
+        for inc in incomplete_workspaces:
+            fid = inc["folder_id"]
+            comp = inc.get("company", "Unknown Company")
+            title = inc.get("title", "Unknown Role")
+            preview = inc.get("raw_jd_preview", "")
+            date_disp = inc.get("created_date_display", "")
+
+            with st.container():
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%); border: 1.5px solid #F59E0B; border-radius: 10px; padding: 1.2rem; margin-bottom: 0.8rem;">
+                    <div style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC; margin-bottom: 0.3rem;">
+                        {comp} — {title}
+                    </div>
+                    <div style="font-size: 0.95rem; font-style: italic; color: #CBD5E1; margin-bottom: 0.6rem;">
+                        “{preview}”
+                    </div>
+                    <div style="font-size: 0.82rem; color: #94A3B8;">
+                        Created {date_disp}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                col_r1, col_r2, _ = st.columns([1.5, 1, 4])
+                with col_r1:
+                    if st.button("▶️ Resume processing", key=f"btn_res_{fid}", type="primary"):
+                        resume_application_workflow(inc)
+                with col_r2:
+                    if st.button("🗑️ Discard", key=f"btn_disc_{fid}"):
+                        st.session_state[f"confirm_discard_{fid}"] = True
+                        st.rerun()
+
+                if st.session_state.get(f"confirm_discard_{fid}", False):
+                    st.error(f"⚠️ Are you sure you want to move the incomplete ingestion to Drive trash for **{comp} — {title}**? This will trash the workspace folder and its artifacts; it can be restored in Drive. Shared resources will not be affected.")
+                    col_c1, col_c2, _ = st.columns([1.5, 1, 4])
+                    with col_c1:
+                        if st.button("⚠️ Confirm Discard", key=f"btn_confirm_discard_{fid}", type="primary"):
+                            with st.spinner(f"Deleting incomplete workspace for {comp}..."):
+                                try:
+                                    canonical_snapshot = storage_adapter.fetch_all_opportunities(require_fresh=True)
+                                    discarded = drive_adapter.delete_application_workspace(fid, canonical_opportunities=canonical_snapshot)
+                                    if not discarded:
+                                        raise RuntimeError("Ownership, parent, or incomplete state could not be verified, or Drive cleanup failed. Review the folder manually; it was not reported as discarded.")
+                                except Exception as discard_err:
+                                    st.error(f"Discard refused: {discard_err}")
+                                else:
+                                    st.session_state[f"confirm_discard_{fid}"] = False
+                                    st.session_state.refresh_incomplete_workspaces = True
+                                    st.success(f"Moved {comp} ? {title} to Drive trash.")
+                                    st.rerun()
+                    with col_c2:
+                        if st.button("Cancel", key=f"btn_cancel_discard_{fid}"):
+                            st.session_state[f"confirm_discard_{fid}"] = False
+                            st.rerun()
+        st.markdown("---")
+
+    render_shared_intake(
+        storage_adapter=storage_adapter,
+        drive_adapter=drive_adapter,
+        llm_adapter=llm_adapter,
+        resume_repo=resume_repo,
+        demo_mode=demo_mode,
+        view_context="ingest"
+    )
+
+    # Render Apply Kit if evaluation exists
+    if st.session_state.latest_eval:
+        ev = st.session_state.latest_eval
+        st.markdown("---")
+        st.subheader("🎯 1-Tap Application Kit")
+
+        # Top Summary Metrics
+        t_status = getattr(ev["fit_eval"], "telemetry_status", None)
+        all_warnings = ev["fit_eval"].warnings or []
+        has_flag = any("FLAG" in w.upper() or "dealbreaker" in w.lower() or "floor" in w.lower() for w in all_warnings)
+
+        if not t_status:
+            t_status = "red" if has_flag else ("yellow" if all_warnings else "green")
+
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            if t_status == "red":
+                status_symbol = "🔴"
+            elif t_status == "yellow":
+                status_symbol = "🟡"
+            else:
+                status_symbol = "🟢"
+            st.metric("Fit Status", f"{status_symbol} {ev['fit_eval'].status.replace('FLAGGED_TELEMETRY', 'Job Signals: Flags')}")
+        with m2:
+            st.metric("Skill Match Score", f"{int(ev['fit_eval'].fit_score * 100)}%")
+        with m3:
+            st.metric("Company & Role", f"{ev['company']} — {ev['title']}")
+
+        signal_groups = TelemetryService.split_display_findings(
+            getattr(ev["fit_eval"], "telemetry_flags", []) or ev.get("telemetry_flags", []),
+            getattr(ev["fit_eval"], "telemetry_warnings", []) or ev.get("telemetry_warnings", []),
+            getattr(ev["fit_eval"], "telemetry_benefits", []) or ev.get("telemetry_benefits", [])
+        )
+        render_job_signals(*signal_groups)
+        signal_strings = set().union(*signal_groups)
+        fit_notes = [w for w in all_warnings if w not in signal_strings]
+        if fit_notes:
+            st.warning("**Fit Notes**\n\n" + "\n\n".join(fit_notes))
+
+        # Primary Action Bar (Buttons to open Resume, Drive Folder, Docs, Sheet)
+        st.markdown("#### ⚡ Immediate Application Actions:")
+        action_col1, action_col2, action_col3, action_col4 = st.columns(4)
+
+        with action_col1:
+            if ev.get("resume_link"):
+                st.link_button(
+                    "📄 Open Matched Resume",
+                    ev["resume_link"],
+                    type="primary",
+                    use_container_width=True,
+                    help="Opens your selected Google Doc resume in Google Drive"
+                )
+            else:
+                st.button("📄 Selected: " + ev["resume_name"][:20], disabled=True, use_container_width=True)
+
+        with action_col2:
+            if ev.get("folder_link"):
+                st.link_button(
+                    "📁 Drive Workspace Folder",
+                    ev["folder_link"],
+                    use_container_width=True,
+                    help="Opens the dedicated application workspace folder in Google Drive"
+                )
+            else:
+                st.button("📁 Drive Folder (Mock)", disabled=True, use_container_width=True)
+
+        with action_col3:
+            if ev.get("drive_jd_link"):
+                st.link_button(
+                    "📄 Raw JD Doc (Drive)",
+                    ev["drive_jd_link"],
+                    use_container_width=True,
+                    help="Opens the saved Job Description Google Doc in Drive"
+                )
+            else:
+                st.link_button(
+                    "📊 Open Google Sheet",
+                    f"https://docs.google.com/spreadsheets/d/{sheet_id}/edit",
+                    use_container_width=True,
+                    help="Opens the master Google Sheets pipeline tracker"
+                )
+
+        with action_col4:
+            if ev.get("drive_screening_doc_link"):
+                st.link_button(
+                    "📝 Screening Questions Doc",
+                    ev["drive_screening_doc_link"],
+                    use_container_width=True,
+                    help="Opens the Screening Questions Google Doc in Drive"
+                )
+            elif ev.get("role_intelligence_link") and str(ev["role_intelligence_link"]).startswith("http"):
+                st.link_button(
+                    "📄 Role Intelligence Doc",
+                    ev["role_intelligence_link"],
+                    use_container_width=True,
+                    help="Opens the Role Intelligence Report in Drive"
+                )
+            elif ev.get("output_docx_path") and os.path.exists(ev["output_docx_path"]):
+                with open(ev["output_docx_path"], "rb") as df:
+                    st.download_button(
+                        label="📥 Download .docx Brief",
+                        data=df,
+                        file_name=ev.get("docx_filename", "Role_Intelligence_Report.docx"),
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
+            else:
+                if st.button("🧠 Generate Role Intelligence", key="btn_apply_kit_gen_ri", use_container_width=True):
+                    with st.spinner("Generating Role Intelligence..."):
+                        trigger_role_intelligence_generation(ev, show_toasts=True)
+                        st.rerun()
+
+        # Target Compensation Negotiation Box
+        pb = ev["fit_eval"].pay_bounds
+        is_hourly = (pb.pay_basis == "Hourly")
+        if is_hourly:
+            if pb.hourly_min is not None and pb.hourly_max is not None:
+                form_advice = f"Propose hourly rate <b>${pb.hourly_min:,.0f} – ${pb.hourly_max:,.0f}/hr</b> (~${pb.annualized_min:,.0f} – ${pb.annualized_max:,.0f} annualized)."
+                comp_strategy = f"Target hourly rate: <b>${pb.hourly_min:,.0f} – ${pb.hourly_max:,.0f}/hr</b>."
+            elif pb.hourly_min is not None:
+                form_advice = f"Propose hourly rate <b>${pb.hourly_min:,.0f}+/hr</b> (~${pb.annualized_min:,.0f}+ annualized)."
+                comp_strategy = f"Target hourly rate: <b>${pb.hourly_min:,.0f}+/hr</b>."
+            else:
+                form_advice = "Hourly compensation undisclosed. Align with recruiter on screen."
+                comp_strategy = "Hourly rate undisclosed."
+
+            hours_label = f"{pb.expected_hours_per_week:.0f} hrs/week assumed" if pb.expected_hours_per_week_is_assumed else f"{pb.expected_hours_per_week:.0f} hrs/week stated"
+            contract_val_line = f"<p style='margin:4px 0 0 0; color:#FCD34D; font-size:1.05rem; font-weight:700;'>💰 {pb.contract_value_display}</p>" if pb.contract_value_display else ""
+
+            # Contract metadata summary pills
+            c_meta_pills = []
+            dur_val = ev.get("contract_length_raw")
+            if dur_val:
+                c_meta_pills.append(f"⏱️ {dur_val}")
+            wc_val = ev.get("worker_classification")
+            c_meta_pills.append(f"🏷️ Classification: {wc_val if wc_val else 'Not specified'}")
+            ext_val = ev.get("extension_possible")
+            ext_str = "Possible" if ext_val is True else ("No" if ext_val is False else "Not specified")
+            c_meta_pills.append(f"🔄 Extension: {ext_str}")
+            fte_val = ev.get("fte_conversion_possible")
+            fte_str = "Possible" if fte_val is True else ("No" if fte_val is False else "Not specified")
+            c_meta_pills.append(f"🚀 FTE Conversion: {fte_str}")
+            sa_val = ev.get("staffing_agency")
+            cc_val = ev.get("client_company")
+            if sa_val or cc_val:
+                c_meta_pills.append(f"🏢 Agency: {sa_val or 'Direct'} ➔ Client: {cc_val or 'Direct'}")
+
+            meta_html = " &nbsp;|&nbsp; ".join(f"<span style='color:#E2E8F0; font-size:0.84rem;'>{p}</span>" for p in c_meta_pills)
+
+            st.markdown(f"""
+            <div class="target-pay-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h4 style="margin:0; color:#C7D2FE;">💼 Hourly Compensation & Contract Terms</h4>
+                    <span style="background:#4338CA; color:#E0E7FF; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">{hours_label}</span>
+                </div>
+                <h2 style="margin:8px 0 4px 0; color:#FFFFFF; font-weight:800;">{pb.display_range}</h2>
+                {contract_val_line}
+                <div style="margin:8px 0; padding:6px 10px; background:#1E1B4B88; border-radius:6px; border:1px solid #4F46E544;">
+                    {meta_html}
+                </div>
+                <p style="margin:6px 0 0 0; font-size:0.92rem; color:#A5B4FC;">
+                    <b>For application form:</b> {form_advice}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            if pb.target_min is not None and pb.target_max is not None:
+                form_advice = f"Anchor at <b>${pb.target_min:,.0f}</b> or enter range <b>${pb.target_min:,.0f} – ${pb.target_max:,.0f}</b>."
+                if pb.posted_min is not None and pb.posted_max is not None:
+                    form_advice += f" (Calculated from posted base spread: ${pb.posted_min:,.0f} – ${pb.posted_max:,.0f})"
+                comp_strategy = f"Anchor base at <b>${pb.target_min:,.0f} – ${pb.target_max:,.0f}</b>."
+            elif pb.target_min is not None:
+                form_advice = f"Anchor at <b>${pb.target_min:,.0f}+</b>."
+                comp_strategy = f"Anchor base at <b>${pb.target_min:,.0f}+</b>."
+            elif pb.target_max is not None:
+                form_advice = f"Anchor up to <b>${pb.target_max:,.0f}</b>."
+                comp_strategy = f"Anchor base up to <b>${pb.target_max:,.0f}</b>."
+            else:
+                floor_val = st.session_state.profile.minimum_compensation_floor
+                form_advice = f"Base compensation undisclosed in job posting. Propose candidate floor <b>${floor_val:,.0f}+</b> or enter <i>'Competitive / Negotiable'</i>."
+                comp_strategy = f"Undisclosed (Target floor: <b>${floor_val:,.0f}+</b> or align with recruiter on screen)."
+
+            st.markdown(f"""
+            <div class="target-pay-box">
+                <h4 style="margin:0; color:#C7D2FE;">💰 Desired Salary Answer</h4>
+                <h2 style="margin:6px 0; color:#FFFFFF; font-weight:800;">{pb.display_range}</h2>
+                <p style="margin:0; font-size:0.92rem; color:#A5B4FC;">
+                    <b>For application form:</b> {form_advice}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Quick Candidate Profile Links for Application Form
+        with st.expander("⚡ Candidate Profile Quicklinks (1-Click Copy for ATS)", expanded=False):
+            st.caption("Quickly grab your profile links to paste into this application form:")
+            ak_cols = st.columns(min(len(st.session_state.quicklinks), 4) or 1)
+            for q_idx, q_link in enumerate(st.session_state.quicklinks):
+                with ak_cols[q_idx % len(ak_cols)]:
+                    st.markdown(f"**{q_link.icon} {q_link.title}**")
+                    st.code(q_link.url, language=None)
+                    st.link_button("↗ Open", q_link.url, use_container_width=True)
+
+        # Screening Q&A Display Box if submitted
+        if ev.get("screening_qa"):
+            with st.expander(f"📝 Submitted Screening Questions & Answers ({len(ev['screening_qa'])})", expanded=True):
+                st.caption("Copy answers directly into the ATS application form or review during phone screens.")
+                clipboard_text = ScreeningQAService.format_qa_clipboard_summary(ev["screening_qa"])
+                st.code(clipboard_text, language="text")
+                if ev.get("drive_screening_doc_link"):
+                    st.markdown(f"[↗ Open 'Screening Questions' Google Doc in Drive]({ev['drive_screening_doc_link']})")
+
+        # 10-Second Phone Screen Recall Card
+        st.markdown(f"""
+        <div class="recall-card">
+            <h3 style="margin:0 0 8px 0; color:#10B981;">📞 10-Second Phone Screen Recall Card</h3>
+            <p style="margin:4px 0;"><b>Target Role:</b> {ev['title']} at {ev['company']} {'(Remote)' if ev.get('is_remote') else ''}</p>
+            <p style="margin:4px 0;"><b>Matched Resume:</b> {ev['resume_name']}</p>
+            <p style="margin:4px 0;"><b>Compensation Strategy:</b> {comp_strategy}</p>
+            <p style="margin:4px 0;"><b>Core Pain Points:</b> {ev.get('pain_points') or 'Scaling revenue reporting, pipeline velocity, and cross-functional visibility.'}</p>
+            <p style="margin:4px 0;"><b>Required Skills Highlight:</b> {', '.join(ev.get('req_skills', [])[:5]) or 'Salesforce, SQL, RevOps, dbt'}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Targeted Interview Story Cue Cards for this Role
+        suggested_cues = StoryBankService.suggest_story_cue_cards(
+            job_text=ev.get("pain_points", "") + " " + " ".join(ev.get("req_skills", [])),
+            req_skills=ev.get("req_skills", []),
+            pain_points=ev.get("pain_points", ""),
+            role_family=ev.get("family", ""),
+            top_k=3
+        )
+        if suggested_cues:
+            with st.expander(f"📖 Targeted Behavioral Story Cue Cards for this Role ({len(suggested_cues)})", expanded=True):
+                st.caption("When behavioral questions arise during recruiter screens or interviews, anchor on these canonical stories:")
+                for sc in suggested_cues:
+                    st.markdown(f"""
+                    <div class="cue-card-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h4 style="margin:0; color:#818CF8;">📖 Story {sc.story_number}: {sc.title}</h4>
+                            <span class="badge-pill" style="background:#312E81; color:#C7D2FE; font-weight:700;">{sc.recommended_angle}</span>
+                        </div>
+                        <p style="margin:4px 0 8px 0; font-size:0.88rem; color:#94A3B8;"><b>Match Signal:</b> <i>{sc.relevance_reason}</i></p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if sc.active_breadcrumbs:
+                        render_breadcrumb_trail(sc.active_breadcrumbs)
+                    c_sc1, c_sc2 = st.columns(2)
+                    with c_sc1:
+                        st.markdown(f"**⚡ The Turning Point:** {sc.turning_point}")
+                    with c_sc2:
+                        st.markdown(f"**📊 Proven Result:** <span style='color:#34D399; font-weight:600;'>{sc.result}</span>", unsafe_allow_html=True)
+                    with st.expander(f"🎯 Questions Story {sc.story_number} Answers", expanded=False):
+                        for q_item in sc.target_question_types:
+                            st.write(f"• {q_item}")
+
+        # Extracted Tech Stack Badges
+        if ev.get("req_skills") or ev.get("pref_skills"):
+            st.markdown("<b>Tech Stack Extracted:</b>", unsafe_allow_html=True)
+            pills_html = ""
+            for s in ev.get("req_skills", []):
+                pills_html += f'<span class="badge-pill" style="background-color:#1E3A8A; color:#BFDBFE;">✓ {s}</span>'
+            for s in ev.get("pref_skills", []):
+                pills_html += f'<span class="badge-pill" style="background-color:#334155; color:#CBD5E1;">+ {s}</span>'
+            st.markdown(pills_html, unsafe_allow_html=True)
+
+
+def parse_skills_list(val) -> list[str]:
+    if not val:
+        return []
+    if isinstance(val, list):
+        return [str(s).strip() for s in val if str(s).strip()]
+    if isinstance(val, str):
+        v = val.strip()
+        if v.startswith("{") and v.endswith("}"):
+            v = v[1:-1]
+            items = []
+            for part in v.split(","):
+                p = part.strip().strip('"').strip("'")
+                if p:
+                    items.append(p)
+            return items
+        elif "," in v:
+            return [p.strip() for p in v.split(",") if p.strip()]
+        elif v:
+            return [v]
+    return []
+
+
+# =====================================================================
+# SECTION 2: PIPELINE TRACKER
+# =====================================================================
+if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
+    # Flash notification for saved updates
+    if "crm_flash_message" in st.session_state and st.session_state["crm_flash_message"]:
+        st.success(st.session_state.pop("crm_flash_message"), icon="✅")
+
+    opportunities = []
+    all_screening_qa = []
+    all_requirements = []
+    if storage_adapter.is_connected:
+        needs_fetch = (
+            "crm_cached_opportunities" not in st.session_state
+            or "crm_cached_qa" not in st.session_state
+            or "crm_cached_requirements" not in st.session_state
+        )
+        if needs_fetch:
+            try:
+                st.session_state.crm_cached_opportunities = storage_adapter.fetch_all_opportunities()
+                st.session_state.crm_cached_qa = storage_adapter.fetch_screening_qa()
+                st.session_state.crm_cached_requirements = storage_adapter.fetch_all_requirements_extractions()
+            except Exception as e:
+                st.warning(f"Could not load rows from Google Sheets: {e}")
+                if "crm_cached_opportunities" not in st.session_state:
+                    st.session_state.crm_cached_opportunities = []
+                if "crm_cached_qa" not in st.session_state:
+                    st.session_state.crm_cached_qa = []
+                if "crm_cached_requirements" not in st.session_state:
+                    st.session_state.crm_cached_requirements = []
+        opportunities = st.session_state.get("crm_cached_opportunities", [])
+        all_screening_qa = st.session_state.get("crm_cached_qa", [])
+        all_requirements = st.session_state.get("crm_cached_requirements", [])
+    else:
+        opportunities = [
+            {
+                "Opportunity ID": "demo-1",
+                "Company Name": "Larkfield Software",
+                "Job Title": "Sales Operations Analyst",
+                "Status": "Application Rejected",
+                "Category": "Target",
+                "Applied Via": "LinkedIn",
+                "Priority": "High",
+                "Salary Expectation": "$135,000",
+                "Stage History": [
+                    {"stage": "Processed", "entered_at": "2026-09-22T08:14:00"},
+                    {"stage": "Applied", "entered_at": "2026-09-22T08:31:00"},
+                    {"stage": "Application Rejected", "entered_at": "2026-09-24T14:07:00"}
+                ],
+                "stage_history": [
+                    {"stage": "Processed", "entered_at": "2026-09-22T08:14:00"},
+                    {"stage": "Applied", "entered_at": "2026-09-22T08:31:00"},
+                    {"stage": "Application Rejected", "entered_at": "2026-09-24T14:07:00"}
+                ],
+                "Target Pay Range": "$125,000 - $130,000",
+                "Date Created": "2026-09-22",
+                "Employment Arrangement": "Employee",
+                "Worker Classification": "",
+                "Pay Basis": "Annual",
+                "Contract Duration": "",
+                "Contract Value": "",
+                "Staffing Agency": "",
+                "Client Company": "",
+                "Extension Possible": "",
+                "FTE Conversion": "",
+                "Selected Resume": "Revenue Operations Analyst Resume",
+                "Drive Folder Link": "https://drive.google.com",
+                "Notes": "Sarah Jenkins (Recruiter) - Position closed internally; stay in touch for Q4 headcount."
+            },
+            {
+                "Opportunity ID": "demo-2",
+                "Company Name": "Vantor Cloud",
+                "Job Title": "Senior GTM Systems Architect",
+                "Status": "Recruiter Screen",
+                "Category": "Stretch",
+                "Applied Via": "Company Website",
+                "Priority": "Medium",
+                "Salary Expectation": "$85/hr",
+                "Employment Arrangement": "Contract",
+                "Worker Classification": "W2",
+                "Pay Basis": "Hourly",
+                "Contract Duration": "6-month contract",
+                "Contract Value": "$78,000 - $83,200",
+                "Staffing Agency": "Summit Talent Group",
+                "Client Company": "Vantor Cloud",
+                "Extension Possible": "Yes",
+                "FTE Conversion": "Yes",
+                "Stage History": [
+                    {"stage": "Processed", "entered_at": "2026-09-23T10:00:00"},
+                    {"stage": "Applied", "entered_at": "2026-09-23T11:15:00"},
+                    {"stage": "Recruiter Screen", "entered_at": "2026-09-26T09:30:00"}
+                ],
+                "stage_history": [
+                    {"stage": "Processed", "entered_at": "2026-09-23T10:00:00"},
+                    {"stage": "Applied", "entered_at": "2026-09-23T11:15:00"},
+                    {"stage": "Recruiter Screen", "entered_at": "2026-09-26T09:30:00"}
+                ],
+                "Target Pay Range": "$75.00 – $80.00 / hr ($156,000 – $166,400/yr)",
+                "Date Created": "2026-09-23",
+                "Selected Resume": "GTM Engineer Resume",
+                "Drive Folder Link": "https://drive.google.com",
+                "Notes": "Screening with talent partner Alex. Highlight multi-cloud pipeline architectures."
+            }
+        ]
+        all_screening_qa = []
+        all_requirements = [
+            {
+                "opportunity_id": "demo-1",
+                "required_tech_stack": "{Salesforce,SQL,Excel,Looker}",
+                "preferred_tech_stack": "{dbt,Python,Snowflake}",
+                "core_pain_points": "Legacy manual spreadsheets and inconsistent ARR reporting across sales and finance.",
+                "years_experience_required": "3-5 years",
+                "is_remote": "TRUE",
+                "salary_min": "125000",
+                "salary_max": "130000"
+            },
+            {
+                "opportunity_id": "demo-2",
+                "required_tech_stack": "{Workato,HubSpot,Salesforce,Zapier,APIs}",
+                "preferred_tech_stack": "{Python,BigQuery,Segment}",
+                "core_pain_points": "Scaling integration throughput and automating lead routing without dropped payloads.",
+                "years_experience_required": "5+ years",
+                "is_remote": "TRUE",
+                "salary_min": "156000",
+                "salary_max": "166400"
+            }
+        ]
+
+    # Load dynamic pipeline configuration (Sources & Priorities)
+    pipeline_cfg = PipelineConfigService.load_config()
+    available_sources = pipeline_cfg.get("sources", DEFAULT_APPLICATION_SOURCES)
+    available_priorities = pipeline_cfg.get("priorities", DEFAULT_PRIORITIES)
+
+    # Map screening QA by opportunity_id in-memory (0 extra Sheets API calls)
+    opp_qa_map = {}
+    for item in all_screening_qa:
+        oid = str(item.get("opportunity_id", "")).strip()
+        if oid:
+            opp_qa_map.setdefault(oid, []).append(item)
+
+    # Map requirements extraction by opportunity_id in-memory (0 extra Sheets API calls)
+    opp_req_map = {}
+    for item in all_requirements:
+        oid = str(item.get("opportunity_id", "") or item.get("Opportunity ID", "")).strip()
+        if oid:
+            opp_req_map[oid] = item
+
+    if opportunities:
+        # High Level Pipeline Metrics: Six Unified Headline KPIs
+        stale_threshold = getattr(instance_cfg, "stale_threshold_days", 28) or 28
+        try:
+            pipeline_kpis = PipelineKPIService.calculate_kpis(opportunities, stale_threshold_days=stale_threshold)
+        except TypeError:
+            pipeline_kpis = PipelineKPIService.calculate_kpis(opportunities)
+        total_apps = pipeline_kpis["total_tracked"]
+        applied_count = pipeline_kpis["total_applied"]
+        active_count = pipeline_kpis.get("total_active_opportunities")
+        if active_count is None:
+            active_count = sum(1 for o in opportunities if str(o.get("Status") or o.get("status") or "").strip() in ACTIVE_OPPORTUNITY_STAGES)
+        apps_per_interest = pipeline_kpis.get("apps_per_interest", "—")
+        apps_per_interview = pipeline_kpis.get("apps_per_interview", "—")
+        stale_count = pipeline_kpis.get("total_stale", 0)
+
+        stat_col1, stat_col2, stat_col3, stat_col4, stat_col5 = st.columns(5)
+        stat_col1.metric("Total Tracked", total_apps)
+        stat_col2.metric("Applied", applied_count)
+        stat_col3.metric("Active", active_count)
+        stat_col4.metric("Stale", stale_count)
+        with stat_col5:
+            st.markdown('<div class="dash-kpi-btn-wrapper">', unsafe_allow_html=True)
+            if st.button("📊 Analytics Dashboard ➔", key="btn_nav_to_dash", use_container_width=True, help="Open comprehensive conversion metrics, funnel progression, and health diagnostics"):
+                st.session_state["in_dashboard_view"] = True
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Submitted Applications by Strategy (Counts submitted applications only)
+        sub_cats = pipeline_kpis.get("submitted_categories")
+        if not sub_cats:
+            sub_opps = [o for o in opportunities if PipelineKPIService.is_submitted(o)]
+            sub_cats = {"Target": 0, "Stretch": 0, "Opportunistic": 0, "Practice": 0, "Fallback": 0, "Unassigned": 0}
+            for o in sub_opps:
+                c = str(o.get("Category") or o.get("category") or "").strip()
+                if c in sub_cats and c != "Unassigned":
+                    sub_cats[c] += 1
+                else:
+                    sub_cats["Unassigned"] += 1
+
+        st.markdown(
+            f"<div style='margin-top: 4px; margin-bottom: 10px; font-size: 0.82rem; color: #94A3B8; background: #0F172A; padding: 6px 14px; border-radius: 6px; border: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;'>"
+            f"<div><span style='color: #F8FAFC; font-weight: 600;'>Application Strategy:</span> &nbsp; "
+            f"<span style='color: #94A3B8;'>Target:</span> <b style='color: #F8FAFC;'>{sub_cats['Target']}</b> &nbsp;·&nbsp; "
+            f"<span style='color: #94A3B8;'>Stretch:</span> <b style='color: #F8FAFC;'>{sub_cats['Stretch']}</b> &nbsp;·&nbsp; "
+            f"<span style='color: #94A3B8;'>Opportunistic:</span> <b style='color: #F8FAFC;'>{sub_cats['Opportunistic']}</b> &nbsp;·&nbsp; "
+            f"<span style='color: #94A3B8;'>Practice:</span> <b style='color: #F8FAFC;'>{sub_cats['Practice']}</b> &nbsp;·&nbsp; "
+            f"<span style='color: #94A3B8;'>Fallback:</span> <b style='color: #F8FAFC;'>{sub_cats['Fallback']}</b> &nbsp;·&nbsp; "
+            f"<span style='color: #94A3B8;'>Unassigned:</span> <b style='color: #F8FAFC;'>{sub_cats['Unassigned']}</b></div>"
+            f"<div style='color: #64748B; font-size: 0.78rem;'>Total: {applied_count}</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+
+        # Reusable Shared Intake in Pipeline Tracker (+ Add Opportunity)
+        with st.expander("➕ Add Opportunity", expanded=False):
+            render_shared_intake(
+                storage_adapter=storage_adapter,
+                drive_adapter=drive_adapter,
+                llm_adapter=llm_adapter,
+                resume_repo=resume_repo,
+                demo_mode=demo_mode,
+                view_context="crm_add"
+            )
+
+        t_crm_start = time.perf_counter()
+
+        # Count active filters for button label
+        active_filt_count = 0
+        if st.session_state.get("crm_filter_opp_src", "All") not in ("All", "All Sources"):
+            active_filt_count += 1
+        if st.session_state.get("crm_filter_arr", "All Types") != "All Types":
+            active_filt_count += 1
+        if st.session_state.get("crm_filter_cat", "All Categories") != "All Categories":
+            active_filt_count += 1
+        if st.session_state.get("crm_filter_pri", "All Priorities") != "All Priorities":
+            active_filt_count += 1
+        if st.session_state.get("crm_filter_src", "All Sources") != "All Sources":
+            active_filt_count += 1
+        if st.session_state.get("crm_filter_fresh", "All Freshness") != "All Freshness":
+            active_filt_count += 1
+
+        # Multi-attribute Search & Filter Controls Row: Search (~2/3), Filters (flexible), Sync (compact)
+        col_search, col_filt_btn, col_inline_refresh = st.columns([10, 4, 1])
+        with col_search:
+            search_query = st.text_input(
+                "🔍 Search Applications",
+                placeholder="Search company, role, or contact...",
+                autocomplete="off",
+                key="crm_search_input",
+                label_visibility="collapsed"
+            )
+        with col_filt_btn:
+            is_filt_open = st.session_state.get("crm_filters_open", False)
+            btn_filt_icon = "🔼" if is_filt_open else "🔽"
+            btn_filt_text = f"{btn_filt_icon} Filters ({active_filt_count})" if active_filt_count > 0 else f"{btn_filt_icon} Filters"
+            if st.button(btn_filt_text, key="btn_toggle_crm_filters", help="Toggle Search Filter Panel", use_container_width=True):
+                st.session_state["crm_filters_open"] = not is_filt_open
+                st.rerun()
+        with col_inline_refresh:
+            if st.button("🔄", key="btn_inline_crm_refresh", help="Refresh Pipeline Data from Google Sheets", use_container_width=True):
+                ok, msg = perform_pipeline_refresh(storage_adapter, log_action)
+                if ok:
+                    st.session_state["crm_flash_message"] = msg
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+        # Full-width Filter Panel immediately below search row when toggled open
+        if st.session_state.get("crm_filters_open", False):
+            with st.container():
+                st.markdown(
+                    "<div style='background: #0B1120; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px 4px 14px; margin-top: 4px; margin-bottom: 8px;'>"
+                    "<div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>"
+                    "<span style='font-size: 0.80rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;'>Filter Opportunities</span>"
+                    "</div>",
+                    unsafe_allow_html=True
+                )
+                col_opp_src_filt, col_arr_filt, col_cat_filt, col_pri_filt, col_src_filt, col_fresh_filt = st.columns(6)
+                with col_opp_src_filt:
+                    opp_src_options = ["All", "Outbound", "Inbound"]
+                    curr_opp_src = st.session_state.get("crm_filter_opp_src", "All")
+                    opp_src_idx = opp_src_options.index(curr_opp_src) if curr_opp_src in opp_src_options else 0
+                    opp_src_filter = st.selectbox(
+                        "Opportunity Source",
+                        opp_src_options,
+                        index=opp_src_idx,
+                        key="crm_filter_opp_src"
+                    )
+                with col_arr_filt:
+                    arr_options = ["All Types", "Employee", "Contract"]
+                    curr_arr = st.session_state.get("crm_filter_arr", "All Types")
+                    arr_idx = arr_options.index(curr_arr) if curr_arr in arr_options else 0
+                    arr_filter = st.selectbox(
+                        "Filter Type",
+                        arr_options,
+                        index=arr_idx,
+                        key="crm_filter_arr"
+                    )
+                with col_cat_filt:
+                    cat_options = ["All Categories", "Target", "Stretch", "Opportunistic", "Practice", "Fallback", "Unassigned"]
+                    curr_cat = st.session_state.get("crm_filter_cat", "All Categories")
+                    cat_idx = cat_options.index(curr_cat) if curr_cat in cat_options else 0
+                    cat_filter = st.selectbox(
+                        "Filter Category",
+                        cat_options,
+                        index=cat_idx,
+                        key="crm_filter_cat"
+                    )
+                with col_pri_filt:
+                    pri_options = ["All Priorities"] + list(available_priorities) + ["Unspecified"]
+                    curr_pri = st.session_state.get("crm_filter_pri", "All Priorities")
+                    pri_idx = pri_options.index(curr_pri) if curr_pri in pri_options else 0
+                    pri_filter = st.selectbox(
+                        "Filter Priority",
+                        pri_options,
+                        index=pri_idx,
+                        key="crm_filter_pri"
+                    )
+                with col_src_filt:
+                    src_options = ["All Sources"] + list(available_sources) + ["Unspecified"]
+                    curr_src = st.session_state.get("crm_filter_src", "All Sources")
+                    src_idx = src_options.index(curr_src) if curr_src in src_options else 0
+                    src_filter = st.selectbox(
+                        "Filter Platform",
+                        src_options,
+                        index=src_idx,
+                        key="crm_filter_src"
+                    )
+                with col_fresh_filt:
+                    fresh_options = ["All Freshness", "Fresh Only (<28d)", "Stale Only (≥28d)"]
+                    curr_fresh = st.session_state.get("crm_filter_fresh", "All Freshness")
+                    fresh_idx = fresh_options.index(curr_fresh) if curr_fresh in fresh_options else 0
+                    fresh_filter = st.selectbox(
+                        "Filter Freshness",
+                        fresh_options,
+                        index=fresh_idx,
+                        key="crm_filter_fresh"
+                    )
+                st.markdown("</div>", unsafe_allow_html=True)
+        else:
+            opp_src_filter = st.session_state.get("crm_filter_opp_src", "All")
+            arr_filter = st.session_state.get("crm_filter_arr", "All Types")
+            cat_filter = st.session_state.get("crm_filter_cat", "All Categories")
+            pri_filter = st.session_state.get("crm_filter_pri", "All Priorities")
+            src_filter = st.session_state.get("crm_filter_src", "All Sources")
+            fresh_filter = st.session_state.get("crm_filter_fresh", "All Freshness")
+
+        # Track filter and search changes: entering new search or clearing search resets to page 1
+        current_filters = (search_query.strip(), opp_src_filter, arr_filter, cat_filter, pri_filter, src_filter, fresh_filter)
+        prev_filters = st.session_state.get("_prev_crm_filters")
+        if prev_filters is not None and prev_filters != current_filters:
+            st.session_state.crm_page = 1
+            st.session_state.active_opp_card = None
+        st.session_state._prev_crm_filters = current_filters
+
+        try:
+            filtered_opps = PipelineSearchPaginationService.filter_opportunities(
+                opportunities=opportunities,
+                search_query=search_query,
+                opportunity_source_filter=opp_src_filter,
+                arrangement_filter=arr_filter,
+                category_filter=cat_filter,
+                priority_filter=pri_filter,
+                source_filter=src_filter,
+                freshness_filter=fresh_filter,
+                stale_threshold_days=stale_threshold,
+                application_categories=list(APPLICATION_CATEGORIES.keys())
+            )
+        except TypeError:
+            filtered_opps = PipelineSearchPaginationService.filter_opportunities(
+                opportunities=opportunities,
+                search_query=search_query,
+                opportunity_source_filter=opp_src_filter,
+                arrangement_filter=arr_filter,
+                category_filter=cat_filter,
+                priority_filter=pri_filter,
+                source_filter=src_filter,
+                application_categories=list(APPLICATION_CATEGORIES.keys())
+            )
+
+        total_filtered = len(filtered_opps)
+        PAGE_SIZE_OPTIONS = PipelineSearchPaginationService.PAGE_SIZE_OPTIONS
+        if "crm_page_size" not in st.session_state:
+            st.session_state.crm_page_size = PipelineSearchPaginationService.DEFAULT_PAGE_SIZE
+
+        items_per_page = st.session_state.crm_page_size
+        reversed_list = list(reversed(filtered_opps))
+
+        # Jump to card page ONLY upon explicit action (consumed immediately)
+        jump_target_id = st.session_state.pop("crm_jump_to_card", None)
+        if jump_target_id:
+            card_pg = PipelineSearchPaginationService.find_card_page(
+                card_id=jump_target_id,
+                ordered_records=reversed_list,
+                items_per_page=items_per_page
+            )
+            if card_pg:
+                st.session_state.crm_page = card_pg
+
+        if "crm_page" not in st.session_state:
+            st.session_state.crm_page = 1
+
+        pagination = PipelineSearchPaginationService.calculate_pagination(
+            total_items=total_filtered,
+            items_per_page=items_per_page,
+            current_page=st.session_state.crm_page
+        )
+        st.session_state.crm_page = pagination["current_page"]
+        total_pages = pagination["total_pages"]
+
+        col_hdr_info, col_sz, col_p_prev, col_p_info, col_p_next = st.columns([2.5, 1.2, 1, 1.2, 1])
+        with col_hdr_info:
+            st.markdown(f"Showing **{total_filtered}** opportunities ({items_per_page}/page):")
+        with col_sz:
+            sz_idx = PAGE_SIZE_OPTIONS.index(st.session_state.crm_page_size) if st.session_state.crm_page_size in PAGE_SIZE_OPTIONS else 0
+            new_sz = st.selectbox(
+                "Per Page",
+                PAGE_SIZE_OPTIONS,
+                index=sz_idx,
+                key="crm_page_size_selector",
+                label_visibility="collapsed",
+                help="Opportunities per page"
+            )
+            if new_sz != st.session_state.crm_page_size:
+                st.session_state.crm_page_size = new_sz
+                st.session_state.crm_page = 1
+                st.rerun()
+        with col_p_prev:
+            if st.button("⬅️", key="crm_prev_pg", disabled=(st.session_state.crm_page <= 1), use_container_width=True):
+                st.session_state.crm_page = max(1, st.session_state.crm_page - 1)
+                st.rerun()
+        with col_p_info:
+            st.markdown(f"<div style='text-align:center; padding-top:6px; font-weight:600; color:#94A3B8;'>Page {st.session_state.crm_page} of {total_pages}</div>", unsafe_allow_html=True)
+        with col_p_next:
+            if st.button("➡️", key="crm_next_pg", disabled=(st.session_state.crm_page >= total_pages), use_container_width=True):
+                st.session_state.crm_page = min(total_pages, st.session_state.crm_page + 1)
+                st.rerun()
+
+        start_offset = pagination["start_offset"]
+        end_offset = pagination["end_offset"]
+        current_page_opps = reversed_list[start_offset:end_offset]
+        if is_logging_enabled():
+            crm_elapsed = (time.perf_counter() - t_crm_start) * 1000
+            log_cli("PERF", f"CRM Pipeline Tracker rendered ({total_filtered} opportunities, page {st.session_state.crm_page}/{total_pages}) in {crm_elapsed:.1f}ms")
+
+        # Render each application card
+        for idx, opp in enumerate(current_page_opps):
+            raw_comp = str(opp.get("Company Name") or opp.get("company_name") or "").strip()
+            raw_title = str(opp.get("Job Title") or opp.get("job_title") or "").strip()
+            contact = str(opp.get("Contact Name") or opp.get("contact_name") or "").strip()
+            opp_source = str(opp.get("Opportunity Source") or opp.get("opportunity_source") or "Outbound").strip()
+            if not opp_source:
+                opp_source = "Outbound"
+
+            # Derive meaningful card header for contact-only, company-only, or full records
+            if raw_comp and raw_title:
+                comp = raw_comp
+                title = raw_title
+                header_text = f"**{comp}** — {title}"
+            elif raw_comp:
+                comp = raw_comp
+                title = raw_title
+                header_text = f"**{comp}**" if not contact else f"**{comp}** ({contact})"
+            elif raw_title:
+                comp = raw_comp
+                title = raw_title
+                header_text = f"{title}" if not contact else f"{title} ({contact})"
+            elif contact:
+                comp = ""
+                title = ""
+                header_text = f"**{contact}** (Inbound Lead)"
+            else:
+                comp = "Unknown Company"
+                title = "Unknown Role"
+                header_text = f"**{comp}** — {title}"
+
+            has_signal_flags = PipelineKPIService.has_job_signal_flags(opp)
+
+            curr_status = opp.get("Status", "Pending")
+
+            curr_cat = str(opp.get("Category") or "").strip()
+            cat_display = curr_cat if curr_cat in APPLICATION_CATEGORIES else "Unassigned"
+            cat_ico = CATEGORY_ICONS.get(cat_display, "⚪")
+
+            curr_pri = str(opp.get("Priority") or opp.get("priority") or "").strip()
+            pri_ico = PRIORITY_ICONS.get(curr_pri, "⚡")
+
+            curr_src = str(opp.get("Applied Via") or opp.get("applied_via") or "").strip()
+            src_ico = SOURCE_ICONS.get(curr_src, "🌐")
+
+            # Contract & Arrangement attributes
+            curr_arr = str(opp.get("Employment Arrangement") or opp.get("employment_arrangement") or "").strip()
+            curr_wc = str(opp.get("Worker Classification") or opp.get("worker_classification") or "").strip()
+            curr_pb = str(opp.get("Pay Basis") or opp.get("pay_basis") or "").strip()
+            curr_cd = str(opp.get("Contract Duration") or opp.get("contract_duration") or opp.get("contract_length_raw") or "").strip()
+            curr_cv = str(opp.get("Contract Value") or opp.get("contract_value") or opp.get("contract_value_display") or "").strip()
+            curr_sa = str(opp.get("Staffing Agency") or opp.get("staffing_agency") or "").strip()
+            curr_cc = str(opp.get("Client Company") or opp.get("client_company") or "").strip()
+            curr_ext = opp.get("Extension Possible") if opp.get("Extension Possible") is not None else opp.get("extension_possible")
+            curr_fte = opp.get("FTE Conversion") if opp.get("FTE Conversion") is not None else opp.get("fte_conversion_possible")
+            curr_url = str(opp.get("Source URL") or opp.get("source_url") or "").strip()
+
+            curr_sal_exp = str(opp.get("Salary Expectation") or opp.get("salary_expectation") or "").strip()
+
+            target_pay = opp.get("Target Pay Range", "N/A")
+            opp_id = opp.get("Opportunity ID", f"row-{idx}")
+            drive_link = opp.get("Drive Folder Link", "")
+            notes = opp.get("Notes", "")
+            date_added = opp.get("Date Created", "")
+
+            # Parse stage history from opp
+            raw_sh = opp.get("stage_history") or opp.get("Stage History") or []
+            if isinstance(raw_sh, str) and raw_sh.strip():
+                try:
+                    stage_hist = json.loads(raw_sh)
+                except Exception:
+                    stage_hist = []
+            elif isinstance(raw_sh, list):
+                stage_hist = raw_sh
+            else:
+                stage_hist = []
+
+            # If legacy record has empty history, seed initial entry
+            if not stage_hist and curr_status:
+                stage_hist = [{"stage": curr_status, "entered_at": date_added or datetime.now().strftime("%Y-%m-%d")}]
+
+            # Status Icon
+            if "Offer" in curr_status:
+                s_icon = "🎉"
+            elif "Interview" in curr_status or "Screen" in curr_status or "Manager" in curr_status:
+                s_icon = "📞"
+            elif curr_status == "Applied":
+                s_icon = "📤"
+            elif curr_status == "FLAGGED_TELEMETRY" or "Flagged" in curr_status:
+                s_icon = "⚠️"
+            else:
+                s_icon = "📋"
+
+            if hasattr(PipelineKPIService, "get_staleness_info"):
+                stale_info = PipelineKPIService.get_staleness_info(opp, threshold_days=stale_threshold)
+            else:
+                stale_info = {"is_stale": False}
+
+            # Two-line CRM summary visible while collapsed
+            # Line 1: Header (Company — Title / Contact fallback)
+            # Line 2: Stage · Source Pill · Strategic Category · Priority · Platform · Compensation
+            stage_pill_summary = ":red[Flagged]" if curr_status == "FLAGGED_TELEMETRY" else f"`{curr_status}`"
+            line2_items = [stage_pill_summary]
+            if opp_source.lower() == "inbound":
+                line2_items.append("`📥 Inbound`")
+            if stale_info.get("is_stale"):
+                elapsed_d = int(stale_info["days_elapsed"]) if stale_info.get("days_elapsed") is not None else stale_threshold
+                line2_items.append(f"`⏳ Stale ({elapsed_d}d)`")
+            if cat_display != "Unassigned":
+                line2_items.append(f"`{cat_display}`")
+            if curr_pri and curr_pri not in ("Not Specified", "Unspecified"):
+                line2_items.append(f"`{curr_pri}`")
+            if curr_src and curr_src not in ("Not Specified", "Unspecified"):
+                line2_items.append(f"`{curr_src}`")
+
+            # Standardized compensation display with strict precedence:
+            # 1. Salary Submitted: $X
+            # 2. Suggested Range: $X–$Y
+            # 3. Salary Unspecified
+            comp_display = PipelineKPIService.format_compensation_display(curr_sal_exp, target_pay)
+            line2_items.append(comp_display)
+
+            line2_str = " · ".join(line2_items)
+            expander_header = f"{header_text} :red[Flag]" if has_signal_flags else header_text
+            expander_title = f"{s_icon} {expander_header}\n\n{line2_str}"
+
+            is_card_open = (st.session_state.get("active_opp_card") == opp_id)
+            with st.expander(expander_title, expanded=is_card_open):
+                # Structured Application Summary Card
+                if curr_status == "FLAGGED_TELEMETRY":
+                    st_bg, st_fg, st_bd = "#7F1D1D33", "#FCA5A5", "#DC262644"
+                elif "Offer" in curr_status:
+                    st_bg, st_fg, st_bd = "#064E3B44", "#6EE7B7", "#05966955"
+                elif any(s in curr_status for s in ["Screen", "Manager", "Technical", "Final", "Interview"]):
+                    st_bg, st_fg, st_bd = "#312E8144", "#A5B4FC", "#6366F155"
+                elif "Employer Interest" in curr_status:
+                    st_bg, st_fg, st_bd = "#0E749033", "#67E8F9", "#0891B255"
+                elif curr_status in ("Application Rejected", "Rejected"):
+                    st_bg, st_fg, st_bd = "#7F1D1D33", "#FCA5A5", "#DC262644"
+                elif curr_status in ("Declined to Apply", "Withdrawn", "Archived"):
+                    st_bg, st_fg, st_bd = "#1E293B", "#94A3B8", "#334155"
+                elif "Flagged" in curr_status:
+                    st_bg, st_fg, st_bd = "#78350F33", "#FCD34D", "#D9770644"
+                else:
+                    st_bg, st_fg, st_bd = "#1E293B", "#CBD5E1", "#475569"
+
+                status_display = "Flagged" if curr_status == "FLAGGED_TELEMETRY" else curr_status
+
+                pills_html_list = [
+                    f'<span style="background:{st_bg}; color:{st_fg}; border:1px solid {st_bd}; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;">{status_display}</span>'
+                ]
+                if opp_source.lower() == "inbound":
+                    pills_html_list.append(
+                        '<span style="background:#0F172A; color:#67E8F9; border:1px solid #0891B266; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;">📥 Inbound</span>'
+                    )
+                if stale_info.get("is_stale"):
+                    elapsed_d = int(stale_info["days_elapsed"]) if stale_info.get("days_elapsed") is not None else stale_threshold
+                    pills_html_list.append(
+                        f'<span style="background:#451A0344; color:#FDBA74; border:1px solid #D9770655; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;">⏳ Stale ({elapsed_d}d)</span>'
+                    )
+                if cat_display != "Unassigned":
+                    pills_html_list.append(
+                        f'<span style="background:#0F172A; color:#E2E8F0; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;">{cat_ico} {cat_display}</span>'
+                    )
+                if curr_pri and curr_pri != "Not Specified":
+                    pills_html_list.append(
+                        f'<span style="background:#0F172A; color:#E2E8F0; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;">{pri_ico} {curr_pri}</span>'
+                    )
+                if curr_src and curr_src != "Not Specified":
+                    pills_html_list.append(
+                        f'<span style="background:#0F172A; color:#94A3B8; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;">{src_ico} {curr_src}</span>'
+                    )
+                if target_pay and target_pay != "N/A":
+                    pills_html_list.append(
+                        f'<span style="background:#0F172A; color:#E2E8F0; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;">💰 {target_pay}</span>'
+                    )
+                if curr_arr == "Contract":
+                    c_parts = ["Contract"]
+                    if curr_wc:
+                        c_parts.append(curr_wc)
+                    pills_html_list.append(
+                        f'<span style="background:#1E1B4B55; color:#C7D2FE; border:1px solid #4F46E544; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;">💼 {" · ".join(c_parts)}</span>'
+                    )
+
+                secondary_pills_html = " ".join(pills_html_list)
+
+                clean_heading = header_text.replace("**", "")
+                if has_signal_flags:
+                    card_title_html = (
+                        f'<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">'
+                        f'<span style="font-size:1.08rem; font-weight:700; color:#F8FAFC; line-height:1.35; word-break:break-word;">'
+                        f'{clean_heading}'
+                        f'</span>'
+                        f'<span style="background:#7F1D1D33; color:#FCA5A5; border:1px solid #DC262644; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600; letter-spacing:0.3px; line-height:1.2;">Flag</span>'
+                        f'</div>'
+                    )
+                else:
+                    card_title_html = (
+                        f'<div style="font-size:1.08rem; font-weight:700; color:#F8FAFC; margin-bottom:6px; line-height:1.35; word-break:break-word;">'
+                        f'{clean_heading}'
+                        f'</div>'
+                    )
+                st.markdown(
+                    f"""
+                    <div style="background:#0F172A; border:1px solid #334155; border-radius:8px; padding:10px 14px; margin-bottom:14px;">
+                        {card_title_html}
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                            {secondary_pills_html}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                c_card1, c_card2 = st.columns([1, 1])
+
+                with c_card1:
+                    st.write(f"**Date Created**: {date_added or 'Recent'}")
+                    st.markdown(f"**Opportunity Source**: `{opp_source}`")
+                    if contact:
+                        st.markdown(f"**Contact Name**: `{contact}`")
+                    st.markdown(f"**Target Pay**: `{target_pay or 'Not calculated'}`")
+                    if curr_sal_exp:
+                        st.markdown(f"**Salary Expectation**: `{curr_sal_exp}`")
+                    else:
+                        st.markdown("**Salary Expectation**: *⚪ Not specified*")
+                    st.write(f"**Selected Resume**: {opp.get('Selected Resume') or 'None'}")
+                    if cat_display != "Unassigned":
+                        st.markdown(f"**Strategic Category**: {cat_ico} **{cat_display}**")
+                    else:
+                        st.markdown("**Strategic Category**: *⚪ Unassigned*")
+
+                    if curr_pri and curr_pri != "Not Specified":
+                        st.markdown(f"**Priority**: {pri_ico} **{curr_pri}**")
+                    else:
+                        st.markdown("**Priority**: *⚪ Not Specified*")
+
+                    if curr_src and curr_src != "Not Specified":
+                        st.markdown(f"**Applied Via**: {src_ico} `{curr_src}`")
+                    else:
+                        st.markdown("**Applied Via**: *⚪ Not Specified*")
+
+                    if curr_arr == "Contract":
+                        st.markdown("###### 💼 Contract & Engagement Details")
+                        contract_pills = []
+                        contract_pills.append("**Type:** Contract")
+                        if curr_wc:
+                            contract_pills.append(f"**Classification:** `{curr_wc}`")
+                        if curr_pb:
+                            contract_pills.append(f"**Basis:** `{curr_pb}`")
+                        if curr_cd:
+                            contract_pills.append(f"**Duration:** `{curr_cd}`")
+                        if curr_cv:
+                            contract_pills.append(f"**Est. Value:** `{curr_cv}`")
+                        if curr_sa or curr_cc:
+                            contract_pills.append(f"**Agency ➔ Client:** {curr_sa or 'Direct'} ➔ {curr_cc or 'Direct'}")
+
+                        ext_str = "Yes" if (curr_ext is True or str(curr_ext).lower() in ["yes", "true"]) else ("No" if (curr_ext is False or str(curr_ext).lower() in ["no", "false"]) else "Not specified")
+                        fte_str = "Yes" if (curr_fte is True or str(curr_fte).lower() in ["yes", "true"]) else ("No" if (curr_fte is False or str(curr_fte).lower() in ["no", "false"]) else "Not specified")
+                        contract_pills.append(f"**Extension:** {ext_str}")
+                        contract_pills.append(f"**FTE Conversion:** {fte_str}")
+
+                        c_pills_html = " &nbsp;|&nbsp; ".join(f"<span style='color:#E2E8F0; font-size:0.83rem;'>{p}</span>" for p in contract_pills)
+                        st.markdown(f"<div style='margin-bottom:8px; padding:6px 10px; background:#1E1B4B55; border-radius:6px; border:1px solid #4F46E544;'>{c_pills_html}</div>", unsafe_allow_html=True)
+
+                    if curr_url:
+                        st.markdown(f"[🔗 Open Job Posting Link]({curr_url})")
+                    if drive_link:
+                        st.markdown(f"[📁 Open Application Drive Folder]({drive_link})")
+                        m_fid = re.search(r"(?:folders/|[?&]id=)([\w-]+)", str(drive_link))
+                        folder_id_val = m_fid.group(1) if m_fid else None
+                        if folder_id_val:
+                            if st.button("📋 Copy Raw JD from Drive", key=f"btn_copy_jd_{opp_id}_{idx}", use_container_width=True):
+                                try:
+                                    with st.spinner("Fetching Raw Job Description from Drive..."):
+                                        raw_jd = drive_adapter.fetch_raw_job_description(folder_id_val)
+                                    if raw_jd and raw_jd.strip():
+                                        pyperclip.copy(raw_jd)
+                                        st.toast("✅ Raw Job Description copied to clipboard!")
+                                        st.session_state[f"show_raw_jd_{opp_id}"] = raw_jd
+                                    else:
+                                        st.warning("Raw Job Description is empty or could not be found.")
+                                except Exception as jd_err:
+                                    st.error(f"Could not fetch Raw Job Description: {jd_err}")
+                            if st.session_state.get(f"show_raw_jd_{opp_id}"):
+                                with st.expander("📄 Raw Job Description Text", expanded=False):
+                                    st.text_area("Job Description", value=st.session_state[f"show_raw_jd_{opp_id}"], height=200, key=f"ta_raw_jd_{opp_id}_{idx}", disabled=True)
+
+                    screening_doc = opp.get("Screening Doc Link")
+                    if screening_doc:
+                        st.markdown(f"[📝 Open Screening Questions Doc]({screening_doc})")
+
+                    # Role Intelligence Status & On-demand Actions
+                    ri_status = get_role_intelligence_status(opp)
+                    ri_link = opp.get("Role Intelligence Link") or opp.get("role_intelligence_link")
+                    local_docx = get_local_report_path(opp_id, comp)
+                    has_local_docx = local_docx.exists()
+
+                    st.markdown("---")
+                    st.markdown("###### 🧠 Role Intelligence")
+
+                    if ri_status == ROLE_INTELLIGENCE_STATUS_GENERATED or (has_local_docx and ri_status != ROLE_INTELLIGENCE_STATUS_FAILED):
+                        badge = '<span style="background:#065F46; color:#A7F3D0; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">Generated</span>'
+                        st.markdown(f"**Status:** {badge}", unsafe_allow_html=True)
+                        if ri_link and str(ri_link).startswith("http"):
+                            st.markdown(f"[📄 Open Role Intelligence Report (Drive)]({ri_link})")
+                        elif has_local_docx:
+                            with open(local_docx, "rb") as f_docx:
+                                st.download_button(
+                                    "📥 Download Role Intelligence (.docx)",
+                                    data=f_docx,
+                                    file_name=f"{comp.replace(' ', '_')}_Role_Intelligence_Report.docx",
+                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    key=f"dl_ri_docx_{opp_id}_{idx}",
+                                    use_container_width=True
+                                )
+                        if st.button("🔄 Regenerate Role Intelligence", key=f"btn_regen_ri_{opp_id}_{idx}", use_container_width=True):
+                            with st.spinner(f"Regenerating Role Intelligence for {comp}..."):
+                                trigger_role_intelligence_generation(opp, show_toasts=True)
+                                st.session_state.pop("crm_cached_opportunities", None)
+                                st.rerun()
+                    elif ri_status == ROLE_INTELLIGENCE_STATUS_FAILED:
+                        badge = '<span style="background:#7F1D1D; color:#FCA5A5; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">Failed</span>'
+                        st.markdown(f"**Status:** {badge}", unsafe_allow_html=True)
+                        st.caption("Generation failed during stage transition or request. Status was preserved.")
+                        if st.button("🔄 Retry Role Intelligence", key=f"btn_retry_ri_{opp_id}_{idx}", use_container_width=True):
+                            with st.spinner(f"Retrying Role Intelligence for {comp}..."):
+                                trigger_role_intelligence_generation(opp, show_toasts=True)
+                                st.session_state.pop("crm_cached_opportunities", None)
+                                st.rerun()
+                    else:
+                        badge = '<span style="background:#1F2937; color:#9CA3AF; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600;">Not Generated</span>'
+                        st.markdown(f"**Status:** {badge}", unsafe_allow_html=True)
+                        st.caption("Deferred until interview stage or manual request.")
+                        if st.button("🧠 Generate Role Intelligence", key=f"btn_gen_ri_{opp_id}_{idx}", use_container_width=True):
+                            with st.spinner(f"Generating Role Intelligence for {comp}..."):
+                                trigger_role_intelligence_generation(opp, show_toasts=True)
+                                st.session_state.pop("crm_cached_opportunities", None)
+                                st.rerun()
+
+                    # Extracted Requirements from Requirements Extraction worksheet
+                    req_data = opp_req_map.get(str(opp_id).strip())
+                    if req_data:
+                        st.markdown("---")
+                        st.markdown("###### 🎯 Extracted Requirements")
+                        req_skills = parse_skills_list(req_data.get("required_tech_stack"))
+                        pref_skills = parse_skills_list(req_data.get("preferred_tech_stack"))
+                        years_exp = str(req_data.get("years_experience_required") or "").strip()
+                        core_pain = str(req_data.get("core_pain_points") or "").strip()
+                        is_rem = str(req_data.get("is_remote") or "").lower() in ["true", "yes", "1"]
+
+                        if req_skills:
+                            pills_html = " ".join(f"<span style='background:#1E3A8A; color:#93C5FD; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-right:4px;'>{s}</span>" for s in req_skills)
+                            st.markdown(f"**Required Stack:** {pills_html}", unsafe_allow_html=True)
+                        if pref_skills:
+                            pref_html = " ".join(f"<span style='background:#1F2937; color:#D1D5DB; padding:2px 8px; border-radius:4px; font-size:0.8rem; margin-right:4px;'>{s}</span>" for s in pref_skills)
+                            st.markdown(f"**Preferred Stack:** {pref_html}", unsafe_allow_html=True)
+                        if years_exp:
+                            st.markdown(f"**Experience:** `{years_exp}`" + ("  |  `Remote`" if is_rem else ""))
+                        elif is_rem:
+                            st.markdown("**Work Location:** `Remote`")
+                        if core_pain:
+                            st.caption(f"**Key Pain Points:** {core_pain}")
+
+                    if notes and str(notes).strip():
+                        st.markdown("---")
+                        st.markdown(f"###### 📝 Application Notes\n> {notes}")
+
+                    saved_signals = TelemetryService.load_display_findings(
+                        opp.get("Job Signals"), opp.get("Fit Warning", "")
+                    )
+                    render_job_signals(*saved_signals)
+                    fit_note = str(opp.get("Fit Warning") or "")
+                    if any(saved_signals):
+                        fit_note = re.split(r" \| (?:Telemetry Warnings|Job Signals):", fit_note)[0]
+                        if fit_note.startswith(("Flagged Telemetry:", "Passed with telemetry warning", "Job Signals")):
+                            fit_note = ""
+                    if fit_note:
+                        st.caption(fit_note.replace("Telemetry", "Job Signals").replace("telemetry", "Job Signals"))
+
+                    # Stage Progression History Timeline
+                    st.markdown("---")
+                    st.markdown("###### ⏱️ Application Stage History")
+                    if stage_hist:
+                        timeline_html = '<div style="margin-top: 6px; padding-left: 2px;">'
+                        for h_idx, h in enumerate(stage_hist):
+                            s_name = h.get("stage", "")
+                            e_time = h.get("entered_at", "")
+                            disp_time = e_time.replace("T", " ") if e_time else ""
+                            is_latest = (h_idx == len(stage_hist) - 1)
+                            bullet = "🟢" if is_latest else "⚪"
+                            disp_s_name = "Flagged" if s_name == "FLAGGED_TELEMETRY" else s_name
+                            if s_name == "FLAGGED_TELEMETRY":
+                                badge_style = "background: #7F1D1D33; color: #FCA5A5; border: 1px solid #DC262644; font-weight: 600;" if is_latest else "background: #7F1D1D22; color: #FCA5A5; border: 1px solid #DC262633;"
+                            elif is_latest:
+                                badge_style = "background: #065F46; color: #A7F3D0; font-weight: 600;"
+                            else:
+                                badge_style = "background: #1E293B; color: #94A3B8;"
+                            badge = f'<span style="{badge_style} padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 6px;">{disp_s_name}</span>'
+                            timeline_html += f'<div style="margin-bottom: 6px; display: flex; align-items: center;">{bullet} &nbsp;<span style="font-family: monospace; font-size: 0.78rem; color: #94A3B8; margin-right: 8px;">{disp_time}</span> {badge}</div>'
+                        timeline_html += '</div>'
+                        st.markdown(timeline_html, unsafe_allow_html=True)
+                    else:
+                        st.caption("No prior stage transitions recorded.")
+
+                    if stale_info.get("is_stale"):
+                        days_s = int(stale_info["days_elapsed"]) if stale_info.get("days_elapsed") is not None else stale_threshold
+                        st.caption(f"⏳ **Staleness Notice**: No pipeline stage transitions recorded for {days_s} days (threshold: {stale_threshold}d).")
+
+                with c_card2:
+                    st.markdown("##### Update Application Details & Recruiter Notes:")
+                    stage_options = ([curr_status] + [s for s in AUTHORITATIVE_PIPELINE_STAGES if s != curr_status]) if curr_status and curr_status not in AUTHORITATIVE_PIPELINE_STAGES else list(AUTHORITATIVE_PIPELINE_STAGES)
+                    current_idx = stage_options.index(curr_status) if curr_status in stage_options else 0
+
+                    with st.form(key=f"edit_card_form_{opp_id}"):
+                        col_comp_edit, col_title_edit = st.columns([1, 1])
+                        with col_comp_edit:
+                            edit_comp = st.text_input("Company Name", value=raw_comp, key=f"comp_in_{opp_id}", autocomplete="off")
+                        with col_title_edit:
+                            edit_title = st.text_input("Job Title", value=raw_title, key=f"title_in_{opp_id}", autocomplete="off")
+
+                        col_contact_edit, col_opp_src_edit = st.columns([1, 1])
+                        with col_contact_edit:
+                            edit_contact = st.text_input("Contact Name (Recruiter / HM)", value=contact, placeholder="e.g. Sarah Jenkins", key=f"contact_in_{opp_id}", autocomplete="off")
+                        with col_opp_src_edit:
+                            opp_src_options = ["Outbound", "Inbound"]
+                            cur_opp_src_idx = opp_src_options.index(opp_source) if opp_source in opp_src_options else 0
+                            edit_opp_src = st.selectbox("Opportunity Source", opp_src_options, index=cur_opp_src_idx, key=f"opp_src_in_{opp_id}")
+
+                        col_pay_edit, col_sal_exp_edit, col_pb_edit = st.columns([1.5, 1.5, 1])
+                        with col_pay_edit:
+                            edit_pay = st.text_input("Target / Posted Pay Range", value="" if target_pay == "N/A" else target_pay, placeholder="e.g. $130,000 - $160,000", key=f"pay_in_{opp_id}", autocomplete="off")
+                        with col_sal_exp_edit:
+                            edit_sal_exp = st.text_input("Salary Expectation", value=curr_sal_exp, placeholder="e.g. $140,000 or $75/hr", key=f"sal_exp_in_{opp_id}", autocomplete="off")
+                        with col_pb_edit:
+                            pb_options = ["Annual", "Hourly"]
+                            pb_cur_idx = 1 if curr_pb == "Hourly" else 0
+                            edit_pb = st.selectbox("Pay Basis", pb_options, index=pb_cur_idx, key=f"pb_sel_{opp_id}")
+
+                        edit_url = st.text_input("Job / Application URL", value=curr_url, placeholder="https://...", key=f"url_in_{opp_id}", autocomplete="off")
+
+                        col_stage_sel, col_cat_sel = st.columns([1, 1])
+                        with col_stage_sel:
+                            new_stage = st.selectbox(
+                                "Interview Stage",
+                                stage_options,
+                                index=current_idx,
+                                format_func=lambda s: "Flagged" if s == "FLAGGED_TELEMETRY" else s,
+                                key=f"stage_sel_{opp_id}"
+                            )
+                        with col_cat_sel:
+                            cat_options = ["Unassigned", "Target", "Stretch", "Opportunistic", "Practice", "Fallback"]
+                            current_cat_idx = cat_options.index(cat_display) if cat_display in cat_options else 0
+                            new_cat = st.selectbox(
+                                "Application Category",
+                                cat_options,
+                                index=current_cat_idx,
+                                key=f"cat_sel_{opp_id}",
+                                help="Primary strategic category for this role."
+                            )
+
+                        col_src_sel, col_pri_sel = st.columns([1, 1])
+                        with col_src_sel:
+                            src_options = ["Not Specified"] + [s for s in available_sources if s != "Not Specified"]
+                            src_cur_idx = src_options.index(curr_src) if curr_src in src_options else 0
+                            sel_src = st.selectbox(
+                                "Applied Via / Platform",
+                                src_options,
+                                index=src_cur_idx,
+                                key=f"src_sel_{opp_id}",
+                                help="Platform where you submitted your application."
+                            )
+                            custom_src_input = st.text_input(
+                                "Or Add New Source",
+                                placeholder="e.g. Wellfound, Otta...",
+                                key=f"c_src_{opp_id}",
+                                help="Leave blank if selecting from dropdown above.",
+                                autocomplete="off"
+                            )
+
+                        with col_pri_sel:
+                            pri_options = ["Not Specified"] + [p for p in available_priorities if p != "Not Specified"]
+                            pri_cur_idx = pri_options.index(curr_pri) if curr_pri in pri_options else 0
+                            sel_pri = st.selectbox(
+                                "Priority Level",
+                                pri_options,
+                                index=pri_cur_idx,
+                                key=f"pri_sel_{opp_id}",
+                                help="Priority level for this application."
+                            )
+                            custom_pri_input = st.text_input(
+                                "Or Add New Priority",
+                                placeholder="e.g. Critical, Dream...",
+                                key=f"c_pri_{opp_id}",
+                                help="Leave blank if selecting from dropdown above.",
+                                autocomplete="off"
+                            )
+
+                        # Contract & Arrangement editable fields
+                        col_arr_sel, col_wc_sel = st.columns([1, 1])
+                        with col_arr_sel:
+                            arr_options = ["Employee", "Contract"]
+                            arr_idx = arr_options.index(curr_arr) if curr_arr in arr_options else 0
+                            new_arr = st.selectbox("Employment Arrangement", arr_options, index=arr_idx, key=f"arr_sel_{opp_id}")
+                        with col_wc_sel:
+                            wc_options = ["Not Specified", "W2", "1099", "C2C"]
+                            wc_idx = wc_options.index(curr_wc) if curr_wc in wc_options else 0
+                            new_wc = st.selectbox("Worker Classification", wc_options, index=wc_idx, key=f"wc_sel_{opp_id}")
+
+                        col_cd_in, col_cv_in = st.columns([1, 1])
+                        with col_cd_in:
+                            new_cd = st.text_input("Contract Duration", value=curr_cd, placeholder="e.g. 6-month contract", key=f"cd_in_{opp_id}", autocomplete="off")
+                        with col_cv_in:
+                            new_cv = st.text_input("Estimated Contract Value", value=curr_cv, placeholder="e.g. $62,400 - $72,800", key=f"cv_in_{opp_id}", autocomplete="off")
+
+                        col_sa_in, col_cc_in = st.columns([1, 1])
+                        with col_sa_in:
+                            new_sa = st.text_input("Staffing Agency", value=curr_sa, placeholder="e.g. Summit Talent Group, Insight Global...", key=f"sa_in_{opp_id}", autocomplete="off")
+                        with col_cc_in:
+                            new_cc = st.text_input("End-Client Company", value=curr_cc, placeholder="e.g. Vantor Cloud, Larkfield Software...", key=f"cc_in_{opp_id}", autocomplete="off")
+
+                        col_ext_sel, col_fte_sel = st.columns([1, 1])
+                        ext_opts = ["Not Specified", "Yes", "No"]
+                        ext_current_str = "Yes" if (curr_ext is True or str(curr_ext).lower() in ["yes", "true"]) else ("No" if (curr_ext is False or str(curr_ext).lower() in ["no", "false"]) else "Not Specified")
+                        fte_current_str = "Yes" if (curr_fte is True or str(curr_fte).lower() in ["yes", "true"]) else ("No" if (curr_fte is False or str(curr_fte).lower() in ["no", "false"]) else "Not Specified")
+
+                        with col_ext_sel:
+                            new_ext_str = st.selectbox("Extension Possible?", ext_opts, index=ext_opts.index(ext_current_str), key=f"ext_sel_{opp_id}")
+                        with col_fte_sel:
+                            new_fte_str = st.selectbox("FTE Conversion Possible?", ext_opts, index=ext_opts.index(fte_current_str), key=f"fte_sel_{opp_id}")
+
+                        new_notes = st.text_area(
+                            "Application Notes & Recruiter Contacts",
+                            value=notes,
+                            height=75,
+                            placeholder="e.g. Recruiter Sarah (sjenkins@larkfield.example.com). Focus on ARR metrics. Salary discussed: $140k.",
+                            key=f"notes_ta_{opp_id}"
+                        )
+
+                        st.caption("💡 *Click 'Save Application Details' below to persist changes to Google Sheets.*")
+                        btn_save_details = st.form_submit_button("💾 Save Application Details", use_container_width=True, type="primary")
+
+                    if btn_save_details:
+                        final_comp = edit_comp.strip() or comp
+                        final_title = edit_title.strip() or title
+                        final_contact = edit_contact.strip()
+                        final_opp_source = edit_opp_src
+                        final_pay = edit_pay.strip()
+                        final_sal_exp = edit_sal_exp.strip()
+                        final_url = edit_url.strip()
+                        final_pb = "Hourly" if new_arr == "Contract" else edit_pb
+
+                        log_crm(f"Updating opportunity '{final_comp or final_contact}' ({opp_id}): Title='{final_title}', Stage='{new_stage}', Pay='{final_pay}', SalExp='{final_sal_exp}', Arrangement='{new_arr}'")
+                        st.session_state.active_opp_card = opp_id
+                        st.session_state.crm_jump_to_card = opp_id
+                        st.session_state.active_sub_card = None
+
+                        # Resolve Source
+                        if custom_src_input and custom_src_input.strip():
+                            final_src = custom_src_input.strip()
+                            PipelineConfigService.add_source(final_src)
+                        elif sel_src != "Not Specified":
+                            final_src = sel_src
+                        else:
+                            final_src = ""
+
+                        # Resolve Priority
+                        if custom_pri_input and custom_pri_input.strip():
+                            final_pri = custom_pri_input.strip()
+                            PipelineConfigService.add_priority(final_pri)
+                        elif sel_pri != "Not Specified":
+                            final_pri = sel_pri
+                        else:
+                            final_pri = ""
+
+                        # Resolve Category
+                        saved_cat = new_cat if new_cat != "Unassigned" else ""
+
+                        # Resolve Contract Attributes
+                        new_ext_val = True if new_ext_str == "Yes" else (False if new_ext_str == "No" else None)
+                        new_fte_val = True if new_fte_str == "Yes" else (False if new_fte_str == "No" else None)
+                        new_wc_val = new_wc if new_wc != "Not Specified" else ""
+
+                        # Check if stage changed to record in stage_history
+                        now_iso = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                        updated_stage_hist = [dict(h) for h in stage_hist]
+                        if not updated_stage_hist:
+                            if curr_status:
+                                updated_stage_hist.append({"stage": curr_status, "entered_at": date_added or now_iso})
+                            if new_stage != curr_status:
+                                updated_stage_hist.append({"stage": new_stage, "entered_at": now_iso})
+                        elif new_stage != curr_status:
+                            updated_stage_hist.append({"stage": new_stage, "entered_at": now_iso})
+
+                        # Update Google Drive folder name and properties if company name was updated
+                        if final_comp and final_comp != comp and drive_link:
+                            m_fold = re.search(r"(?:folders/|[?&]id=)([\w-]+)", str(drive_link))
+                            if m_fold:
+                                f_id = m_fold.group(1)
+                                new_folder_name = f"{final_comp} - {final_title}"
+                                try:
+                                    rename_ok = drive_adapter.rename_application_workspace(f_id, new_folder_name, company_name=final_comp)
+                                    if rename_ok:
+                                        log_action(f"📁 Renamed Google Drive folder to '{new_folder_name}' with company property '{final_comp}'")
+                                    else:
+                                        log_warn(f"Failed to rename Google Drive folder '{f_id}' to '{new_folder_name}'")
+                                except Exception as ren_err:
+                                    log_warn(f"Error renaming Google Drive folder: {ren_err}")
+
+                        with st.spinner(f"Saving updates for {final_comp or final_contact} to Google Sheets..."):
+                            if storage_adapter.is_connected:
+                                success = storage_adapter.update_opportunity_status(
+                                    opportunity_id=opp_id,
+                                    status=new_stage,
+                                    notes=new_notes,
+                                    salary_expectation=final_sal_exp,
+                                    stage_history=updated_stage_hist,
+                                    category=saved_cat,
+                                    applied_via=final_src,
+                                    priority=final_pri,
+                                    employment_arrangement=new_arr,
+                                    worker_classification=new_wc_val,
+                                    pay_basis=final_pb,
+                                    contract_length_raw=new_cd,
+                                    contract_value_display=new_cv,
+                                    staffing_agency=new_sa,
+                                    client_company=new_cc,
+                                    extension_possible=new_ext_val,
+                                    fte_conversion_possible=new_fte_val,
+                                    company_name=final_comp,
+                                    job_title=final_title,
+                                    target_pay_range=final_pay,
+                                    source_url=final_url,
+                                    opportunity_source=final_opp_source,
+                                    contact_name=final_contact
+                                )
+                                if success:
+                                    log_success(f"Successfully saved '{final_comp or final_contact}' updates to Google Sheets!")
+                                    opp["Company Name"] = final_comp
+                                    opp["company_name"] = final_comp
+                                    opp["Job Title"] = final_title
+                                    opp["job_title"] = final_title
+                                    opp["Contact Name"] = final_contact
+                                    opp["contact_name"] = final_contact
+                                    opp["Opportunity Source"] = final_opp_source
+                                    opp["opportunity_source"] = final_opp_source
+                                    opp["Target Pay Range"] = final_pay
+                                    opp["target_pay_range"] = final_pay
+                                    opp["Salary Expectation"] = final_sal_exp
+                                    opp["salary_expectation"] = final_sal_exp
+                                    opp["Pay Basis"] = final_pb
+                                    opp["pay_basis"] = final_pb
+                                    opp["Source URL"] = final_url
+                                    opp["source_url"] = final_url
+                                    opp["Notes"] = new_notes
+                                    if new_notes.strip() != str(notes or "").strip():
+                                        opp["notes_updated_at"] = now_iso
+                                        opp["notes_modified_at"] = now_iso
+                                    opp["Category"] = saved_cat
+                                    opp["Applied Via"] = final_src
+                                    opp["applied_via"] = final_src
+                                    opp["Priority"] = final_pri
+                                    opp["priority"] = final_pri
+                                    opp["Employment Arrangement"] = new_arr
+                                    opp["employment_arrangement"] = new_arr
+                                    opp["Worker Classification"] = new_wc_val
+                                    opp["worker_classification"] = new_wc_val
+                                    opp["Contract Duration"] = new_cd
+                                    opp["contract_length_raw"] = new_cd
+                                    opp["Contract Value"] = new_cv
+                                    opp["contract_value_display"] = new_cv
+                                    opp["Staffing Agency"] = new_sa
+                                    opp["staffing_agency"] = new_sa
+                                    opp["Client Company"] = new_cc
+                                    opp["client_company"] = new_cc
+                                    opp["Extension Possible"] = "Yes" if new_ext_val is True else ("No" if new_ext_val is False else "")
+                                    opp["extension_possible"] = new_ext_val
+                                    opp["FTE Conversion"] = "Yes" if new_fte_val is True else ("No" if new_fte_val is False else "")
+                                    opp["fte_conversion_possible"] = new_fte_val
+                                    opp["Stage History"] = updated_stage_hist
+                                    opp["stage_history"] = updated_stage_hist
+
+                                    if should_trigger_role_intelligence(curr_status, new_stage, opp):
+                                        log_info(f"Automatic Role Intelligence trigger activated for '{final_comp}' on transition '{curr_status}' -> '{new_stage}'.")
+                                        ri_success = trigger_role_intelligence_generation(opp, show_toasts=False)
+                                        if ri_success:
+                                            st.session_state["crm_flash_message"] = f"Successfully updated **{final_comp}** to **{new_stage}** and generated Role Intelligence report!"
+                                        else:
+                                            st.session_state["crm_flash_message"] = f"Stage updated to **{new_stage}** successfully. Role Intelligence generation failed (retry available on card)."
+                                    else:
+                                        st.session_state["crm_flash_message"] = f"Successfully updated **{final_comp}** — {final_title} ({new_stage})!"
+                                    st.rerun()
+                                else:
+                                    print(f"ERROR: [CRM Form Submit] Failed to update '{final_comp}' in Google Sheets.", flush=True)
+                                    st.error("Failed to update status in Google Sheets.")
+                            else:
+                                print(f"INFO: [CRM Form Submit] Simulated save for '{final_comp}' (Demo Mode).", flush=True)
+                                opp["Company Name"] = final_comp
+                                opp["company_name"] = final_comp
+                                opp["Job Title"] = final_title
+                                opp["job_title"] = final_title
+                                opp["Target Pay Range"] = final_pay
+                                opp["target_pay_range"] = final_pay
+                                opp["Salary Expectation"] = final_sal_exp
+                                opp["salary_expectation"] = final_sal_exp
+                                opp["Pay Basis"] = final_pb
+                                opp["pay_basis"] = final_pb
+                                opp["Source URL"] = final_url
+                                opp["source_url"] = final_url
+                                opp["Status"] = new_stage
+                                opp["Notes"] = new_notes
+                                if new_notes.strip() != str(notes or "").strip():
+                                    opp["notes_updated_at"] = now_iso
+                                    opp["notes_modified_at"] = now_iso
+                                opp["Category"] = saved_cat
+                                opp["Applied Via"] = final_src
+                                opp["applied_via"] = final_src
+                                opp["Priority"] = final_pri
+                                opp["priority"] = final_pri
+                                opp["Employment Arrangement"] = new_arr
+                                opp["employment_arrangement"] = new_arr
+                                opp["Worker Classification"] = new_wc_val
+                                opp["worker_classification"] = new_wc_val
+                                opp["Contract Duration"] = new_cd
+                                opp["contract_length_raw"] = new_cd
+                                opp["Contract Value"] = new_cv
+                                opp["contract_value_display"] = new_cv
+                                opp["Staffing Agency"] = new_sa
+                                opp["staffing_agency"] = new_sa
+                                opp["Client Company"] = new_cc
+                                opp["client_company"] = new_cc
+                                opp["Extension Possible"] = "Yes" if new_ext_val is True else ("No" if new_ext_val is False else "")
+                                opp["extension_possible"] = new_ext_val
+                                opp["FTE Conversion"] = "Yes" if new_fte_val is True else ("No" if new_fte_val is False else "")
+                                opp["fte_conversion_possible"] = new_fte_val
+                                opp["Stage History"] = updated_stage_hist
+                                opp["stage_history"] = updated_stage_hist
+
+                                if should_trigger_role_intelligence(curr_status, new_stage, opp):
+                                    log_info(f"Automatic Role Intelligence trigger activated for '{final_comp}' on transition '{curr_status}' -> '{new_stage}'.")
+                                    ri_success = trigger_role_intelligence_generation(opp, show_toasts=False)
+                                    if ri_success:
+                                        st.session_state["crm_flash_message"] = f"Simulated update for **{final_comp}** to **{new_stage}** and generated Role Intelligence report!"
+                                    else:
+                                        st.session_state["crm_flash_message"] = f"Simulated update for **{final_comp}** to **{new_stage}**. Role Intelligence generation failed."
+                                else:
+                                    st.session_state["crm_flash_message"] = f"Simulated update for **{final_comp}** — {final_title} (Demo Mode)."
+                                st.rerun()
+
+                # Section: Targeted Behavioral Story Cue Cards for this Role
+                app_cues = StoryBankService.suggest_story_cue_cards(
+                    job_text=f"{comp} {title} {notes}",
+                    req_skills=[title],
+                    pain_points=notes,
+                    top_k=2
+                )
+                if app_cues:
+                    with st.expander("📖 Interview Story Cue Cards for this Role", expanded=False):
+                        st.caption("Anchor phone screens and interview answers on these canonical stories:")
+                        for ac in app_cues:
+                            st.markdown(f"**Story {ac.story_number}: {ac.title}** (`{ac.recommended_angle}`)")
+                            st.caption(f"⚡ *Turning Point:* {ac.turning_point}")
+                            st.caption(f"📊 *Result:* {ac.result}")
+
+                # Section A: Structured Call & Interview Logger
+                is_call_open = (st.session_state.get("active_opp_card") == opp_id and st.session_state.get("active_sub_card") == f"call_{opp_id}")
+                with st.expander("📞 Log Call / Interview Notes", expanded=is_call_open):
+                    st.caption("Record phone screen or interview discussion points. Submits on button click or Enter.")
+                    with st.form(key=f"call_form_{opp_id}_{idx}", clear_on_submit=True):
+                        c_call1, c_call2 = st.columns([1, 1])
+                        with c_call1:
+                            call_type = st.selectbox(
+                                "Call / Interview Stage",
+                                ["Recruiter Screen", "Hiring Manager", "Technical Interview", "Final Round", "Offer Negotiation", "Ad-hoc Catchup"],
+                                key=f"call_type_{opp_id}_{idx}"
+                            )
+                        with c_call2:
+                            interviewer = st.text_input(
+                                "Interviewer Name & Role",
+                                placeholder="e.g. Sarah Jenkins (VP of RevOps)",
+                                key=f"interviewer_{opp_id}_{idx}"
+                            )
+                        call_takeaway = st.text_area(
+                            "Key Discussion Notes & Next Steps",
+                            placeholder="e.g. Discussed data stack (dbt + Snowflake). Excited about automated pipeline project. Follow up by Friday with case study.",
+                            height=75,
+                            key=f"call_notes_{opp_id}_{idx}"
+                        )
+                        btn_call_submitted = st.form_submit_button("➕ Append Call Note to Tracker")
+                        if btn_call_submitted:
+                            st.session_state.active_opp_card = opp_id
+                            st.session_state.crm_jump_to_card = opp_id
+                            st.session_state.active_sub_card = f"call_{opp_id}"
+                            if call_takeaway.strip():
+                                if storage_adapter.is_connected and hasattr(storage_adapter, "append_call_note"):
+                                    success = storage_adapter.append_call_note(
+                                        opportunity_id=opp_id,
+                                        note_text=call_takeaway,
+                                        call_type=call_type,
+                                        interviewer=interviewer
+                                    )
+                                    if success:
+                                        st.session_state.pop("crm_cached_opportunities", None)
+                                        st.success("Call note appended to Google Sheets tracker!")
+                                        st.rerun()
+                                    else:
+                                        st.error("Failed to append call note.")
+                                else:
+                                    st.info("Simulated: Call note appended (Demo Mode).")
+                            else:
+                                st.warning("Please enter note text before appending.")
+
+                # Section B: Application Screening Questions Manager
+                draft_ans_key = f"draft_ans_val_{opp_id}_{idx}"
+                is_qa_open = (st.session_state.get("active_opp_card") == opp_id and (st.session_state.get("active_sub_card") == f"qa_{opp_id}" or bool(st.session_state.get(draft_ans_key))))
+                with st.expander("📝 Screening Questions & Answers for this Role", expanded=is_qa_open):
+                    st.caption("Manage custom Q&As for this application. Updates Google Sheets and syncs with the Google Doc in your Drive folder.")
+
+                    # Look up existing Q&A from in-memory map (0 API calls)
+                    opp_qa_list = opp_qa_map.get(opp_id, [])
+
+                    if opp_qa_list:
+                        st.markdown(f"**Recorded Questions ({len(opp_qa_list)}):**")
+                        for q_i, q_item in enumerate(opp_qa_list):
+                            cat_tag = f"[{q_item.get('category', 'General')}] " if q_item.get('category') else ""
+                            st.markdown(f"**{q_i + 1}. {cat_tag}{q_item.get('question', '')}**")
+                            st.info(q_item.get('answer', ''))
+                    else:
+                        st.caption("No screening questions recorded yet for this application.")
+
+                    st.markdown("---")
+                    st.markdown("##### ➕ Add / Append Screening Question:")
+
+                    # AI Draft Assistant outside form to enable interactive pre-population
+                    col_ai_prompt, col_ai_btn = st.columns([3, 1])
+                    with col_ai_prompt:
+                        ai_prompt_hint = st.text_input(
+                            "Topic or Question to Draft with AI (Optional)",
+                            placeholder="e.g. Experience with HubSpot or salary expectations",
+                            key=f"ai_hint_{opp_id}_{idx}"
+                        )
+                    with col_ai_btn:
+                        st.write("")
+                        btn_draft_ai = st.button("✨ Draft with AI", key=f"btn_ai_draft_{opp_id}_{idx}")
+
+                    if btn_draft_ai:
+                        st.session_state.active_opp_card = opp_id
+                        st.session_state.crm_jump_to_card = opp_id
+                        st.session_state.active_sub_card = f"qa_{opp_id}"
+                        if not ai_prompt_hint.strip():
+                            st.warning("Please enter a topic or question to draft.")
+                        elif hasattr(llm_adapter, "client") and getattr(llm_adapter, "api_key", None):
+                            try:
+                                draft_prompt = (
+                                    f"You are helping candidate {st.session_state.profile.candidate_name} answer an application screening question.\n"
+                                    f"Core strengths: {', '.join(st.session_state.profile.core_strengths)}.\n"
+                                    f"Target role: {title}.\n"
+                                    f"Target company: {comp}.\n"
+                                    f"Screening Question: {ai_prompt_hint}\n\n"
+                                    f"Write a concise, high-impact, professional application answer (2-4 sentences or tight bullet points). Make it ATS-friendly and confident."
+                                )
+                                resp = llm_adapter.client.chat.completions.create(
+                                    model="gpt-6-luna",
+                                    reasoning_effort='none',
+                                    messages=[{"role": "user", "content": draft_prompt}],
+                                    temperature=0.4,
+                                    max_tokens=250
+                                )
+                                st.session_state[draft_ans_key] = resp.choices[0].message.content.strip()
+                                st.rerun()
+                            except Exception as d_err:
+                                st.error(f"AI draft notice: {d_err}")
+
+                    # Form encapsulates typing to completely eliminate typing-time API calls
+                    with st.form(key=f"qa_form_{opp_id}_{idx}", clear_on_submit=True):
+                        q_new_prompt = st.text_input(
+                            "Screening Question Prompt",
+                            value=ai_prompt_hint if ai_prompt_hint else "",
+                            placeholder="e.g. Describe your experience scaling HubSpot to Salesforce syncs.",
+                            key=f"new_q_prompt_{opp_id}_{idx}"
+                        )
+                        q_new_cat = st.selectbox(
+                            "Category",
+                            SCREENING_CATEGORIES,
+                            key=f"new_q_cat_{opp_id}_{idx}"
+                        )
+                        initial_ans = st.session_state.get(draft_ans_key, "")
+                        q_new_ans = st.text_area(
+                            "Your Answer",
+                            value=initial_ans,
+                            height=90,
+                            placeholder="Enter or refine your answer here...",
+                            key=f"new_q_ans_{opp_id}_{idx}"
+                        )
+
+                        btn_save_qa = st.form_submit_button("💾 Save Question & Sync to Drive")
+                        if btn_save_qa:
+                            st.session_state.active_opp_card = opp_id
+                            st.session_state.crm_jump_to_card = opp_id
+                            st.session_state.active_sub_card = f"qa_{opp_id}"
+                            if not q_new_prompt.strip() or not q_new_ans.strip():
+                                st.warning("Please enter both the question and answer.")
+                            else:
+                                with st.spinner("💾 Saving screening question & syncing to Google Drive..."):
+                                    new_qa_obj = ScreeningQA(
+                                        question=q_new_prompt.strip(),
+                                        answer=q_new_ans.strip(),
+                                        category=q_new_cat,
+                                        archetype=ScreeningIntelligenceService.classify_archetype(q_new_prompt.strip()),
+                                        competency_signals=ScreeningIntelligenceService.extract_competency_signals(q_new_prompt.strip())
+                                    )
+
+                                    # 1. Save to Google Sheets
+                                    if storage_adapter.is_connected:
+                                        storage_adapter.save_screening_qa(
+                                            opportunity_id=opp_id,
+                                            company_name=comp,
+                                            job_title=title,
+                                            qa_items=[new_qa_obj]
+                                        )
+
+                                    # 2. Extract folder_id from drive_link if available and sync Google Doc
+                                    gdoc_url = None
+                                    folder_id_match = re.search(r'folders/([a-zA-Z0-9_-]+)', drive_link) if drive_link else None
+                                    folder_target_id = folder_id_match.group(1) if folder_id_match else None
+
+                                    if drive_adapter.is_connected and folder_target_id:
+                                        current_all_qa = [
+                                            ScreeningQA(
+                                                question=item.get("question", ""),
+                                                answer=item.get("answer", ""),
+                                                category=item.get("category", ""),
+                                                created_at=item.get("timestamp", "")
+                                            )
+                                            for item in opp_qa_list
+                                        ] + [new_qa_obj]
+
+                                        doc_result = drive_adapter.create_screening_questions_doc(
+                                            folder_id=folder_target_id,
+                                            company_name=comp,
+                                            job_title=title,
+                                            qa_items=current_all_qa,
+                                            opportunity_id=opp_id
+                                        )
+                                        if doc_result and doc_result.get("file_link"):
+                                            gdoc_url = doc_result["file_link"]
+                                            if storage_adapter.is_connected and hasattr(storage_adapter, "update_opportunity_screening_doc"):
+                                                storage_adapter.update_opportunity_screening_doc(
+                                                    opportunity_id=opp_id,
+                                                    gdoc_link=gdoc_url,
+                                                    qa_count=len(current_all_qa)
+                                                )
+
+                                    if gdoc_url:
+                                        st.success("Saved screening question to Google Sheets and updated Screening Questions Google Doc in Drive!")
+                                    else:
+                                        st.success("Saved screening question to Google Sheets!")
+
+                                # Clear all screening Q&A inputs so fields return to their default blank state
+                                for key_to_clear in [
+                                    f"ai_hint_{opp_id}_{idx}",
+                                    f"new_q_prompt_{opp_id}_{idx}",
+                                    f"new_q_ans_{opp_id}_{idx}",
+                                    f"new_q_cat_{opp_id}_{idx}",
+                                    draft_ans_key
+                                ]:
+                                    if key_to_clear in st.session_state:
+                                        del st.session_state[key_to_clear]
+
+                                st.session_state.pop("crm_cached_qa", None)
+                                st.session_state.pop("crm_cached_opportunities", None)
+                                st.rerun()
+
+        # Cross-Job Screening Questions & Answers Library
+        st.markdown("---")
+        with st.expander("📚 Cross-Job Screening Questions & Answers Library", expanded=False):
+            # Reuse in-memory list loaded at top of the CRM section (0 extra API calls)
+            if all_screening_qa:
+                col_f1, col_f2 = st.columns([2, 1])
+                with col_f1:
+                    sq_search = st.text_input("🔍 Filter Questions by Keyword", placeholder="e.g. dbt, salary, why this company...")
+                with col_f2:
+                    arch_names = ["All Archetypes"] + list(SCREENING_ARCHETYPES.values())
+                    selected_arch_filter = st.selectbox("Filter by Question Archetype", arch_names)
+
+                filtered_qa = all_screening_qa
+                if sq_search:
+                    sq = sq_search.lower()
+                    filtered_qa = [
+                        qa for qa in filtered_qa
+                        if sq in str(qa.get("question", "")).lower()
+                        or sq in str(qa.get("answer", "")).lower()
+                        or sq in str(qa.get("category", "")).lower()
+                    ]
+                if selected_arch_filter != "All Archetypes":
+                    matched_codes = [k for k, v in SCREENING_ARCHETYPES.items() if v == selected_arch_filter]
+                    target_code = matched_codes[0] if matched_codes else ""
+                    filtered_qa = [
+                        qa for qa in filtered_qa
+                        if qa.get("archetype") == target_code
+                        or ScreeningIntelligenceService.classify_archetype(qa.get("question", "")) == target_code
+                    ]
+
+                st.write(f"Found **{len(filtered_qa)}** recorded screening answers:")
+                for q_idx, qa in enumerate(reversed(filtered_qa)):
+                    q_title = qa.get("question", "Screening Question")
+                    q_ans = qa.get("answer", "")
+                    q_comp = qa.get("company_name", "")
+                    q_cat = qa.get("category", "General")
+                    q_time = qa.get("timestamp", "")
+                    q_arch_code = qa.get("archetype") or ScreeningIntelligenceService.classify_archetype(q_title)
+                    q_arch_label = SCREENING_ARCHETYPES.get(q_arch_code, "General")
+                    q_comps = qa.get("competency_signals") or ScreeningIntelligenceService.extract_competency_signals(q_title)
+
+                    with st.expander(f"[{q_cat} | {q_arch_label}] {q_title} ({q_comp})"):
+                        if q_comps:
+                            pills_html = "<b>Competency Signals:</b> " + " ".join([f'<span class="badge-pill" style="background:#1E3A8A; color:#BFDBFE; font-size:0.75rem;">{c}</span>' for c in q_comps])
+                            st.markdown(pills_html, unsafe_allow_html=True)
+                        st.write(f"**Answer:**\n{q_ans}")
+                        st.caption(f"Submitted for: {q_comp} on {q_time}")
+                        st.code(q_ans, language="text")
+            else:
+                st.info("No screening questions recorded yet. Add them from the Fast Ingestion section!")
+    else:
+        st.info("No applications found in Google Sheets yet. Paste a job description in the Fast Ingestion section to track your first role!")
+
+
+# =====================================================================
+# SECTION 3: INTERVIEW INTELLIGENCE
+# =====================================================================
+if active_section in (SECTION_STORIES, "📖 Global Story Bank & Interview Map"):
+    st.subheader("📖 Interview Intelligence")
+    st.caption("12 canonical behavioral stories grounded in RevOps, GTM Systems, Data Architecture, and Cross-Functional Leadership. Modularized into breadcrumb trails with lock protections.")
+
+    # Always ensure story bank is loaded in session state
+    if "story_bank" not in st.session_state or not st.session_state.story_bank:
+        st.session_state.story_bank = StoryBankService.load_stories()
+
+    stories = st.session_state.story_bank
+
+    # 1. Behavioral Question Reconnaissance & Routing Tool
+    with st.expander("🎯 Behavioral Question Recon & Routing Tool", expanded=True):
+        st.caption("Paste or type any interview question to instantly identify the matching canonical story, recommended angle, turning point, and breadcrumbs.")
+        c_recon1, c_recon2 = st.columns([3, 1])
+        with c_recon1:
+            user_b_prompt = st.text_input(
+                "Behavioral Question / Interview Prompt",
+                placeholder="e.g. Tell me about a time you handled conflict between sales and marketing over lead quality."
+            )
+        with c_recon2:
+            st.write("")
+            recon_sample = st.selectbox(
+                "Quick Example Prompts",
+                [
+                    "-- Select Sample --",
+                    "Ambiguous data requirements / pipeline leakage",
+                    "Sales & marketing lead routing SLA conflict",
+                    "Modernizing reporting stack from sheets to dbt",
+                    "Persuading leadership with data / attribution dispute",
+                    "Technical integration failure / webhook recovery",
+                    "High-stakes territory realignment under tight deadline",
+                    "Sales rep resistance to CRM process governance",
+                    "Balancing board deck fire drill vs broken routing",
+                    "Customer churn predictive model & ARR preservation",
+                    "Teaching non-technical managers self-serve analytics",
+                    "Vendor tech stack audit and cost reduction",
+                    "M&A CRM data migration and cutover"
+                ]
+            )
+            if recon_sample != "-- Select Sample --":
+                sample_map = {
+                    "Ambiguous data requirements / pipeline leakage": "Tell me about a time you handled highly ambiguous data requirements and had to find root cause.",
+                    "Sales & marketing lead routing SLA conflict": "How have you resolved operational conflict between sales and marketing teams?",
+                    "Modernizing reporting stack from sheets to dbt": "Describe a major technical migration or automated reporting workflow you led.",
+                    "Persuading leadership with data / attribution dispute": "Tell me about a time you used data to persuade skeptical executive stakeholders.",
+                    "Technical integration failure / webhook recovery": "Tell me about a time something went seriously wrong with a system and how you owned it.",
+                    "High-stakes territory realignment under tight deadline": "Describe a high-pressure quantitative project with a firm deadline that you delivered.",
+                    "Sales rep resistance to CRM process governance": "Tell me about a time you faced strong user resistance to a new operational process.",
+                    "Balancing board deck fire drill vs broken routing": "How do you prioritize when multiple senior executives have competing urgent demands?",
+                    "Customer churn predictive model & ARR preservation": "Give an example of an operational project that directly impacted revenue retention.",
+                    "Teaching non-technical managers self-serve analytics": "Tell me about a time you mentored or enabled non-technical colleagues on data.",
+                    "Vendor tech stack audit and cost reduction": "How do you evaluate software vendors and eliminate tech stack redundancy?",
+                    "M&A CRM data migration and cutover": "Describe the most complex database migration or systems cutover you have managed."
+                }
+                user_b_prompt = sample_map.get(recon_sample, user_b_prompt)
+
+        if user_b_prompt:
+            recon_match = StoryBankService.match_behavioral_prompt(user_b_prompt)
+            if recon_match:
+                matched_s = recon_match["story"]
+                st.markdown(f"""
+                <div class="cue-card-box" style="border-left:5px solid #10B981; margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="margin:0; color:#34D399;">🎯 Matched: Story {matched_s.story_number} — {matched_s.title}</h3>
+                        <span class="badge-pill" style="background:#065F46; color:#A7F3D0; font-weight:700;">{recon_match['recommended_angle']}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                if recon_match.get("breadcrumbs"):
+                    st.markdown("##### 🍞 Visual Recall Breadcrumb Stepper (Live Call Guide):")
+                    render_breadcrumb_trail(recon_match["breadcrumbs"])
+                c_rc1, c_rc2 = st.columns(2)
+                with c_rc1:
+                    st.markdown(f"""
+                    <div style="background:#1E293B; border-left:4px solid #6366F1; padding:10px 14px; border-radius:6px; min-height:85px;">
+                        <div style="color:#A5B4FC; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">⚡ The Turning Point</div>
+                        <div style="color:#F8FAFC; font-size:0.92rem; font-weight:500; margin-top:4px;">{recon_match['turning_point']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with c_rc2:
+                    st.markdown(f"""
+                    <div style="background:#064E3B; border-left:4px solid #10B981; padding:10px 14px; border-radius:6px; min-height:85px;">
+                        <div style="color:#6EE7B7; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">📊 Proven Result & Metrics</div>
+                        <div style="color:#ECFDF5; font-size:0.92rem; font-weight:600; margin-top:4px;">{recon_match['result']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No high-confidence match found. Try entering key operational terms like 'SLA', 'SQL', 'conflict', or 'reporting'.")
+
+    # 2. Controls & Search Bar
+    st.markdown("---")
+
+    if not stories:
+        st.warning("⚠️ **Your Story Bank is currently empty (`stories.json` has no stories or was not found).**")
+        if st.button("🌱 Initialize 12 Canonical Stories", type="primary"):
+            st.session_state.story_bank = StoryBankService.reset_canonical_stories()
+            st.success("Loaded 12 canonical stories into stories.json!")
+            st.rerun()
+
+    c_ctrl1, c_ctrl2, c_ctrl3 = st.columns([2, 1, 1])
+    with c_ctrl1:
+        story_search = st.text_input("🔍 Search Stories by Title, Tool, Keyword, or Turning Point", placeholder="e.g. dbt, Salesforce, SLA, $410K...")
+    with c_ctrl2:
+        tag_options = ["All Themes", "Ambiguity", "Conflict", "Modern Data Stack", "Influence", "Setback", "Quantitative", "User Adoption", "Prioritization", "Retention", "Enablement", "Cost Optimization", "M&A Integration"]
+        selected_tag = st.selectbox("Filter by Theme", tag_options)
+    with c_ctrl3:
+        st.write("")
+        if st.button("🔄 Reset Canonical Seeds", help="Restores the 12 pristine default canonical stories"):
+            st.session_state.story_bank = StoryBankService.reset_canonical_stories()
+            st.success("Reset story bank to canonical defaults!")
+            st.rerun()
+
+    # 2b. Form to Create a New Story from Scratch
+    create_exp_expanded = (len(stories) == 0)
+    with st.expander("➕ Create New Story from Scratch", expanded=create_exp_expanded):
+        st.caption("Author a brand-new professional story with modular visual breadcrumbs. Hitting 'Save Story' will create or update `stories.json`.")
+        with st.form("create_new_story_form"):
+            c_new1, c_new2 = st.columns([3, 1])
+            with c_new1:
+                new_title = st.text_input("Story Title *", placeholder="e.g. Cross-Functional Pipeline Metric Alignment")
+            with c_new2:
+                next_num = len(stories) + 1
+                new_num = st.number_input("Story Number", min_value=1, value=next_num, step=1)
+
+            c_meta1, c_meta2 = st.columns(2)
+            with c_meta1:
+                new_tags = st.text_input("Archetype Tags (comma-separated)", placeholder="e.g. Ambiguity, Root Cause, Process Improvement")
+                new_comps = st.text_input("Competency Signals (comma-separated)", placeholder="e.g. SQL, Data Modeling, Stakeholder Alignment")
+            with c_meta2:
+                new_inds = st.text_input("Target Industries (comma-separated)", placeholder="e.g. B2B SaaS, Technology, Enterprise")
+                new_locked = st.checkbox("Lock Story (protect from system rewrites)", value=False)
+
+            st.markdown("##### 📝 Narrative Components:")
+            new_hook = st.text_area("Elevator Hook (1-2 sentences for opening answers)", placeholder="e.g. Uncovered $400K in unattributed pipeline by building a row-level lifecycle data model.")
+            new_problem = st.text_area("The Problem & Stakes", placeholder="e.g. Sales and marketing leadership reported conflicting numbers, threatening quarterly forecasting.")
+            new_tp = st.text_area("The Turning Point (Pivot)", placeholder="e.g. Traced raw audit timestamps in SQL to map the exact end-to-end deal journey.")
+            new_result = st.text_area("Measurable Result & Metrics", placeholder="e.g. Discovered orphaned leads; reconciled gap and established trusted forecast baseline.")
+            new_learning = st.text_area("Lasting Philosophy / Learning", placeholder="e.g. Trust in reporting starts at the raw event level.")
+
+            st.markdown("##### 🍞 Visual Breadcrumb Milestones (Primary Visual for Calls):")
+            st.caption("Define 3-4 concise narrative beats with distinct labels and punchy soundbite taglines.")
+            bc_cols = st.columns(4)
+            b_kinds = ["context", "action", "pivot", "milestone", "metric"]
+
+            with bc_cols[0]:
+                st.markdown("**Milestone 1**")
+                b1_label = st.text_input("Step 1 Label", value="The Trigger / Signal", key="new_b1_lbl")
+                b1_kind = st.selectbox("Step 1 Kind", b_kinds, index=0, key="new_b1_k")
+                b1_content = st.text_area("Step 1 Soundbite", placeholder="The initial problem or spark", key="new_b1_c", height=70)
+
+            with bc_cols[1]:
+                st.markdown("**Milestone 2**")
+                b2_label = st.text_input("Step 2 Label", value="The Turning Point", key="new_b2_lbl")
+                b2_kind = st.selectbox("Step 2 Kind", b_kinds, index=2, key="new_b2_k")
+                b2_content = st.text_area("Step 2 Soundbite", placeholder="The technical or tactical pivot", key="new_b2_c", height=70)
+
+            with bc_cols[2]:
+                st.markdown("**Milestone 3**")
+                b3_label = st.text_input("Step 3 Label", value="The Action", key="new_b3_lbl")
+                b3_kind = st.selectbox("Step 3 Kind", b_kinds, index=3, key="new_b3_k")
+                b3_content = st.text_area("Step 3 Soundbite", placeholder="The core execution step", key="new_b3_c", height=70)
+
+            with bc_cols[3]:
+                st.markdown("**Milestone 4**")
+                b4_label = st.text_input("Step 4 Label", value="Hard Result", key="new_b4_lbl")
+                b4_kind = st.selectbox("Step 4 Kind", b_kinds, index=4, key="new_b4_k")
+                b4_content = st.text_area("Step 4 Soundbite", placeholder="The quantified metric or impact", key="new_b4_c", height=70)
+
+            st.markdown("##### 🎯 Routing & Recon Matching:")
+            new_keywords = st.text_input("Trigger Keywords (comma-separated)", placeholder="e.g. ambiguity, discrepancy, reconciliation, root cause")
+            new_questions = st.text_area("Target Behavioral Questions (one per line)", placeholder="Tell me about a time you handled ambiguous requirements.\nDescribe a complex problem where you uncovered root cause.")
+
+            submit_new_story = st.form_submit_button("💾 Save New Story to Bank", type="primary", use_container_width=True)
+            if submit_new_story:
+                if not new_title.strip():
+                    st.error("Please provide a story title.")
+                else:
+                    new_breadcrumbs = []
+                    for lbl, knd, cnt in [(b1_label, b1_kind, b1_content), (b2_label, b2_kind, b2_content), (b3_label, b3_kind, b3_content), (b4_label, b4_kind, b4_content)]:
+                        if lbl.strip() and cnt.strip():
+                            new_breadcrumbs.append(StoryBreadcrumb(label=lbl.strip(), content=cnt.strip(), kind=knd))
+
+                    if not new_breadcrumbs:
+                        new_breadcrumbs = [StoryBreadcrumb(label="Milestone 1", content=new_title.strip(), kind="milestone")]
+
+                    created_story = CanonicalStory(
+                        story_id=f"story-{new_num}-{uuid.uuid4().hex[:4]}",
+                        story_number=int(new_num),
+                        title=new_title.strip(),
+                        archetype_tags=[t.strip() for t in new_tags.split(",") if t.strip()] or ["General"],
+                        competencies=[c.strip() for c in new_comps.split(",") if c.strip()],
+                        industries=[i.strip() for i in new_inds.split(",") if i.strip()] or ["General"],
+                        is_locked=bool(new_locked),
+                        is_canonical=True,
+                        hook=new_hook.strip(),
+                        problem=new_problem.strip(),
+                        turning_point=new_tp.strip(),
+                        result=new_result.strip(),
+                        learning=new_learning.strip(),
+                        breadcrumbs=new_breadcrumbs,
+                        trigger_keywords=[k.strip() for k in new_keywords.split(",") if k.strip()],
+                        target_question_types=[q.strip() for q in new_questions.split("\n") if q.strip()],
+                        transitions={}
+                    )
+                    StoryBankService.add_story(created_story)
+                    st.session_state.story_bank = StoryBankService.load_stories()
+                    st.success(f"🎉 Created Story {new_num}: '{new_title.strip()}' and saved to stories.json!")
+                    st.rerun()
+
+    # Filter stories
+    filtered_stories = stories
+    if story_search:
+        ss = story_search.lower()
+        filtered_stories = [
+            s for s in filtered_stories
+            if ss in s.title.lower()
+            or ss in s.turning_point.lower()
+            or ss in s.result.lower()
+            or any(ss in c.lower() for c in s.competencies)
+            or any(ss in kw.lower() for kw in s.trigger_keywords)
+        ]
+    if selected_tag != "All Themes":
+        filtered_stories = [
+            s for s in filtered_stories
+            if any(selected_tag.lower() in t.lower() for t in s.archetype_tags)
+        ]
+
+    st.markdown(f"Showing **{len(filtered_stories)} of {len(stories)}** canonical stories:")
+
+    # 3. Render Story Cards (Breadcrumbs as the Primary Visual)
+    for s_idx, s in enumerate(filtered_stories):
+        lock_icon = "🔒" if s.is_locked else "🔓"
+        with st.expander(f"{lock_icon} **Story {s.story_number}: {s.title}** | *{', '.join(s.archetype_tags[:2])}*", expanded=False):
+            # Top Action Bar: Badges + Lock Toggle
+            col_hdr1, col_hdr2 = st.columns([3, 1])
+            with col_hdr1:
+                tags_html = ""
+                for t in s.archetype_tags:
+                    tags_html += f'<span class="badge-pill" style="background:#1E3A8A; color:#BFDBFE; font-weight:600;">{t}</span>'
+                for comp in s.competencies:
+                    tags_html += f'<span class="badge-pill" style="background:#064E3B; color:#A7F3D0; font-weight:600;">{comp}</span>'
+                for ind in s.industries:
+                    tags_html += f'<span class="badge-pill" style="background:#374151; color:#E5E7EB;">{ind}</span>'
+                st.markdown(tags_html, unsafe_allow_html=True)
+            with col_hdr2:
+                btn_lock_label = "🔓 Unlock Story" if s.is_locked else "🔒 Lock Story"
+                if st.button(btn_lock_label, key=f"btn_lock_{s.story_id}_{s_idx}"):
+                    StoryBankService.toggle_story_lock(s.story_id)
+                    st.session_state.story_bank = StoryBankService.load_stories()
+                    st.rerun()
+
+            # PRIMARY VISUAL: THE BREADCRUMB TRAIL STEPPER (FULL WIDTH)
+            st.markdown("##### 🍞 Narrative Breadcrumbs (Quick Screen & Call Stepper):")
+            render_breadcrumb_trail(s.breadcrumbs)
+
+            # High-Impact Anchors: Turning Point & Result side-by-side
+            c_anchor1, c_anchor2 = st.columns(2)
+            with c_anchor1:
+                st.markdown(f"""
+                <div style="background:#1E293B; border-left:4px solid #6366F1; padding:10px 14px; border-radius:6px; min-height:85px; margin-bottom:12px;">
+                    <div style="color:#A5B4FC; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">⚡ The Turning Point</div>
+                    <div style="color:#F8FAFC; font-size:0.92rem; font-weight:500; margin-top:4px;">{s.turning_point}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            with c_anchor2:
+                st.markdown(f"""
+                <div style="background:#064E3B; border-left:4px solid #10B981; padding:10px 14px; border-radius:6px; min-height:85px; margin-bottom:12px;">
+                    <div style="color:#6EE7B7; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">📊 Proven Result & Metrics</div>
+                    <div style="color:#ECFDF5; font-size:0.92rem; font-weight:600; margin-top:4px;">{s.result}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Sub-Section 1: Full Narrative & Context
+            with st.expander("🔍 View Full Narrative, Hook & Transition Details", expanded=False):
+                col_n1, col_n2 = st.columns(2)
+                with col_n1:
+                    st.markdown(f"**Elevator Hook:**\n*{s.hook}*")
+                    st.markdown(f"**The Problem & Stakes:**\n{s.problem}")
+                    st.markdown(f"**💡 Lasting Philosophy & Takeaway:**\n{s.learning}")
+                with col_n2:
+                    if s.transitions:
+                        st.markdown("**🌉 Interview Narrative Bridges (Transitions):**")
+                        for target_sid, trans_text in s.transitions.items():
+                            target_num = target_sid.replace("story-", "")
+                            st.caption(f"➔ **To Story {target_num}:** *\"{trans_text}\"*")
+                    st.markdown("**🎯 Question Types This Story Answers:**")
+                    for q_ans in s.target_question_types:
+                        st.write(f"• {q_ans}")
+                    if s.trigger_keywords:
+                        st.caption(f"**Trigger Keywords:** {', '.join(s.trigger_keywords)}")
+
+            # Sub-Section 2: Full In-App Story & Breadcrumb Editor (Rendered on-demand)
+            is_editing_this_story = (st.session_state.get("editing_story_id") == s.story_id)
+            if not is_editing_this_story:
+                if st.button(f"✏️ Edit Story {s.story_number} Information & Breadcrumbs", key=f"btn_open_edit_{s.story_id}_{s_idx}"):
+                    st.session_state.editing_story_id = s.story_id
+                    st.rerun()
+            else:
+                with st.expander(f"✏️ Editing Story {s.story_number}: {s.title}", expanded=True):
+                    if st.button("✖️ Close Story Editor", key=f"cancel_ed_{s.story_id}_{s_idx}"):
+                        st.session_state.editing_story_id = None
+                        st.rerun()
+                    with st.form(key=f"edit_story_form_{s.story_id}_{s_idx}"):
+                        st.markdown(f"#### ✏️ Full Editor: Story {s.story_number}")
+                        if s.is_locked:
+                            st.caption("ℹ️ *This story is locked to prevent automated background updates, but your manual edits here will be saved directly.*")
+
+                        c_e1, c_e2 = st.columns([2, 1])
+                        with c_e1:
+                            ed_title = st.text_input("Story Title", value=s.title, key=f"ed_t_{s.story_id}_{s_idx}")
+                        with c_e2:
+                            ed_arch = st.text_input("Archetype Tags (comma-separated)", value=", ".join(s.archetype_tags), key=f"ed_arch_{s.story_id}_{s_idx}")
+
+                        c_e3, c_e4 = st.columns([1, 1])
+                        with c_e3:
+                            ed_comps = st.text_input("Competencies / Tech Stack (comma-separated)", value=", ".join(s.competencies), key=f"ed_comp_{s.story_id}_{s_idx}")
+                        with c_e4:
+                            ed_inds = st.text_input("Target Industries (comma-separated)", value=", ".join(s.industries), key=f"ed_ind_{s.story_id}_{s_idx}")
+
+                        ed_hook = st.text_area("Elevator Hook (1-2 sentences)", value=s.hook, height=70, key=f"ed_hk_{s.story_id}_{s_idx}")
+                        ed_problem = st.text_area("The Problem & High Stakes", value=s.problem, height=85, key=f"ed_prob_{s.story_id}_{s_idx}")
+
+                        c_e5, c_e6 = st.columns(2)
+                        with c_e5:
+                            ed_tp = st.text_area("⚡ The Turning Point", value=s.turning_point, height=85, key=f"ed_tp_{s.story_id}_{s_idx}")
+                        with c_e6:
+                            ed_result = st.text_area("📊 Measurable Result & Metrics", value=s.result, height=85, key=f"ed_res_{s.story_id}_{s_idx}")
+
+                        ed_learning = st.text_area("💡 Lasting Learning & Philosophy", value=s.learning, height=75, key=f"ed_learn_{s.story_id}_{s_idx}")
+
+                        st.markdown("---")
+                        st.markdown("##### 🍞 Edit Existing Breadcrumb Milestones:")
+                        ed_breadcrumbs = []
+                        kind_options = ["context", "pivot", "milestone", "metric", "learning"]
+                        for b_i, b_item in enumerate(s.breadcrumbs):
+                            b_c1, b_c2, b_c3, b_c4 = st.columns([2, 5, 2, 1])
+                            with b_c1:
+                                b_lbl = st.text_input(f"Step {b_i+1} Label", value=b_item.label, key=f"ed_bl_{s.story_id}_{b_i}_{s_idx}")
+                            with b_c2:
+                                b_cnt = st.text_input(f"Step {b_i+1} Soundbite", value=b_item.content, key=f"ed_bc_{s.story_id}_{b_i}_{s_idx}")
+                            with b_c3:
+                                b_k_idx = kind_options.index(b_item.kind) if b_item.kind in kind_options else 0
+                                b_knd = st.selectbox(f"Kind", kind_options, index=b_k_idx, key=f"ed_bk_{s.story_id}_{b_i}_{s_idx}")
+                            with b_c4:
+                                st.write("")
+                                b_remove = st.checkbox("Delete", key=f"del_b_{s.story_id}_{b_i}_{s_idx}", help="Remove this breadcrumb")
+
+                            if not b_remove:
+                                ed_breadcrumbs.append(StoryBreadcrumb(id=b_item.id, label=b_lbl, content=b_cnt, kind=b_knd))
+
+                        st.markdown("##### ➕ Add An Extra Milestone (Optional):")
+                        extra_c1, extra_c2, extra_c3 = st.columns([2, 5, 2])
+                        with extra_c1:
+                            ex_lbl = st.text_input("New Label", placeholder="e.g. Outcome", key=f"ex_lbl_{s.story_id}_{s_idx}")
+                        with extra_c2:
+                            ex_cnt = st.text_input("New Soundbite", placeholder="e.g. Reconciled $410K gap", key=f"ex_cnt_{s.story_id}_{s_idx}")
+                        with extra_c3:
+                            ex_knd = st.selectbox("Kind", kind_options, index=2, key=f"ex_knd_{s.story_id}_{s_idx}")
+
+                        st.markdown("---")
+                        c_e7, c_e8 = st.columns([1, 1])
+                        with c_e7:
+                            ed_keywords = st.text_input("Trigger Keywords (comma-separated)", value=", ".join(s.trigger_keywords), key=f"ed_kw_{s.story_id}_{s_idx}")
+                        with c_e8:
+                            ed_questions = st.text_area("Target Question Types (one per line)", value="\n".join(s.target_question_types), height=90, key=f"ed_q_{s.story_id}_{s_idx}")
+
+                        c_b1, c_b2 = st.columns([3, 1])
+                        with c_b1:
+                            btn_save_story = st.form_submit_button("💾 Save All Story Changes & Update Knowledge Base", type="primary", use_container_width=True)
+                        with c_b2:
+                            btn_del_story = st.form_submit_button("🗑️ Delete Story", use_container_width=True)
+
+                        if btn_del_story:
+                            StoryBankService.delete_story(s.story_id)
+                            st.session_state.story_bank = StoryBankService.load_stories()
+                            st.session_state.editing_story_id = None
+                            st.success(f"Deleted Story {s.story_number} from stories.json!")
+                            st.rerun()
+
+                        if btn_save_story:
+                            if not ed_title.strip():
+                                st.error("Story title cannot be empty.")
+                            else:
+                                final_breadcrumbs = [b for b in ed_breadcrumbs if b.label.strip() and b.content.strip()]
+                                if ex_lbl.strip() and ex_cnt.strip():
+                                    final_breadcrumbs.append(StoryBreadcrumb(label=ex_lbl.strip(), content=ex_cnt.strip(), kind=ex_knd))
+
+                                updated_dict = {
+                                    "title": ed_title.strip(),
+                                    "archetype_tags": [t.strip() for t in ed_arch.split(",") if t.strip()],
+                                    "competencies": [c.strip() for c in ed_comps.split(",") if c.strip()],
+                                    "industries": [i.strip() for i in ed_inds.split(",") if i.strip()],
+                                    "hook": ed_hook.strip(),
+                                    "problem": ed_problem.strip(),
+                                    "turning_point": ed_tp.strip(),
+                                    "result": ed_result.strip(),
+                                    "learning": ed_learning.strip(),
+                                    "breadcrumbs": [b.model_dump() for b in final_breadcrumbs],
+                                    "trigger_keywords": [k.strip() for k in ed_keywords.split(",") if k.strip()],
+                                    "target_question_types": [q.strip() for q in ed_questions.split("\n") if q.strip()]
+                                }
+                                StoryBankService.update_story(s.story_id, updated_dict, is_user_override=True)
+                                st.session_state.story_bank = StoryBankService.load_stories()
+                                st.session_state.editing_story_id = None
+                                st.success(f"Saved changes to Story {s.story_number} ('{ed_title.strip()}')!")
+                                st.rerun()
+
+
+
+# Startup completion notice
+if st.session_state.get("app_session_started") and not st.session_state.get("app_render_completed"):
+    st.session_state.app_render_completed = True
+    log_startup("✨ Cockpit UI rendering complete. Dashboard is fully active and ready!")
+

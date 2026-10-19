@@ -1,1 +1,1 @@
-# Adapters package
+"""Legacy entry-point namespace."""

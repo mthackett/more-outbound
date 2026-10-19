@@ -1,9 +1,12 @@
 [server]
 headless = true
-enableCORS = false
-enableXsrfProtection = false
+enableCORS = true
+enableXsrfProtection = true
 port = 8501
 disconnectedSessionTTL = 3600
+
+[browser]
+gatherUsageStats = false
 
 [theme]
 base = "dark"

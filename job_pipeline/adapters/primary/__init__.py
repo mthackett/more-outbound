@@ -1,1 +1,1 @@
-# Primary (Driving Inputs) Adapters Package
+"""Legacy CLI and Streamlit launchers."""
