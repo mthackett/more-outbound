@@ -24,7 +24,7 @@ class TestUIResponsivenessAndSearch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             cfg_path = str(Path(tmp) / 'config.json')
             PipelineConfigService.save_config({}, cfg_path)
-            with patch.dict(os.environ, {'DEMO_MODE': 'true', 'PIPELINE_CONFIG_PATH': cfg_path, 'ENABLE_CLI_LOGGING': 'false'}), \
+            with patch.dict(os.environ, {'PRIVATE_OFFLINE': 'true', 'PIPELINE_CONFIG_PATH': cfg_path, 'ENABLE_CLI_LOGGING': 'false'}), \
                  patch('job_pipeline.domain.services.QuickLinksService.load_quicklinks', return_value=[]), \
                  patch('job_pipeline.domain.story_bank.StoryBankService.load_stories', return_value=[]), \
                  patch('job_pipeline.adapters.secondary.twilio_adapter.TwilioMessagingAdapter._init_client'):
@@ -65,7 +65,7 @@ class TestUIResponsivenessAndSearch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             cfg_path = str(Path(tmp) / 'config.json')
             PipelineConfigService.save_config({}, cfg_path)
-            with patch.dict(os.environ, {'DEMO_MODE': 'true', 'PIPELINE_CONFIG_PATH': cfg_path, 'ENABLE_CLI_LOGGING': 'false'}), \
+            with patch.dict(os.environ, {'PRIVATE_OFFLINE': 'true', 'PIPELINE_CONFIG_PATH': cfg_path, 'ENABLE_CLI_LOGGING': 'false'}), \
                  patch('job_pipeline.adapters.secondary.mock_adapter.MockJobStorageAdapter.fetch_all_opportunities', return_value=mock_opps), \
                  patch('job_pipeline.domain.services.QuickLinksService.load_quicklinks', return_value=[]), \
                  patch('job_pipeline.domain.story_bank.StoryBankService.load_stories', return_value=[]), \
@@ -117,7 +117,7 @@ class TestUIResponsivenessAndSearch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             cfg_path = str(Path(tmp) / 'config.json')
             PipelineConfigService.save_config({}, cfg_path)
-            with patch.dict(os.environ, {'DEMO_MODE': 'true', 'PIPELINE_CONFIG_PATH': cfg_path, 'ENABLE_CLI_LOGGING': 'false'}), \
+            with patch.dict(os.environ, {'PRIVATE_OFFLINE': 'true', 'PIPELINE_CONFIG_PATH': cfg_path, 'ENABLE_CLI_LOGGING': 'false'}), \
                  patch('job_pipeline.domain.services.QuickLinksService.load_quicklinks', return_value=[]), \
                  patch('job_pipeline.domain.story_bank.StoryBankService.load_stories', return_value=[]), \
                  patch('job_pipeline.adapters.secondary.twilio_adapter.TwilioMessagingAdapter._init_client'):

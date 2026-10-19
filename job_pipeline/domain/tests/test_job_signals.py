@@ -247,7 +247,7 @@ class TestJobSignalsUI(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = str(Path(tmp) / 'config.json')
             PipelineConfigService.save_config({'telemetry_rules': [{**rule(), 'match_mode': 'token', 'patterns': ['SQL']}]}, path)
-            with patch.dict(os.environ, {'DEMO_MODE': 'true', 'PIPELINE_CONFIG_PATH': path, 'ENABLE_CLI_LOGGING': 'false'}), \
+            with patch.dict(os.environ, {'PRIVATE_OFFLINE': 'true', 'PIPELINE_CONFIG_PATH': path, 'ENABLE_CLI_LOGGING': 'false'}), \
                  patch('job_pipeline.adapters.secondary.mock_adapter.MockDocumentStorageAdapter', return_value=drive), \
                  patch('job_pipeline.adapters.secondary.mock_adapter.MockJobStorageAdapter', return_value=storage), \
                  patch('job_pipeline.domain.services.QuickLinksService.load_quicklinks', return_value=[]), \

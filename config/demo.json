@@ -1,0 +1,229 @@
+{
+  "instance_config": {
+    "schema_version": 1,
+    "instance_id": "b2b-outbound-demo",
+    "mode": "demo",
+    "storage": "memory",
+    "pipeline_type": "b2b_outbound",
+    "display_name": "More Outbound",
+    "page_title": "More Outbound ? B2B Pipeline",
+    "page_subtitle": "Fictional accounts. Real pipeline intelligence. Explore, edit, and reset your own session.",
+    "page_icon": "??",
+    "stale_threshold_days": 7,
+    "stages": [
+      {
+        "id": "identified",
+        "name": "Identified",
+        "category": "open",
+        "active": true,
+        "terminal": false,
+        "milestones": []
+      },
+      {
+        "id": "qualified",
+        "name": "Qualified",
+        "category": "open",
+        "active": true,
+        "terminal": false,
+        "milestones": []
+      },
+      {
+        "id": "ready",
+        "name": "Ready for Outreach",
+        "category": "open",
+        "active": true,
+        "terminal": false,
+        "milestones": []
+      },
+      {
+        "id": "contacted",
+        "name": "Contacted",
+        "category": "active",
+        "active": true,
+        "terminal": false,
+        "milestones": [
+          "contacted"
+        ]
+      },
+      {
+        "id": "replied",
+        "name": "Replied",
+        "category": "active",
+        "active": true,
+        "terminal": false,
+        "milestones": [
+          "replied"
+        ]
+      },
+      {
+        "id": "meeting_booked",
+        "name": "Meeting Booked",
+        "category": "active",
+        "active": true,
+        "terminal": false,
+        "milestones": [
+          "meeting"
+        ]
+      },
+      {
+        "id": "opportunity_created",
+        "name": "Opportunity Created",
+        "category": "converted",
+        "active": false,
+        "terminal": true,
+        "milestones": [
+          "opportunity"
+        ]
+      },
+      {
+        "id": "disqualified",
+        "name": "Disqualified",
+        "category": "closed",
+        "active": false,
+        "terminal": true,
+        "milestones": []
+      },
+      {
+        "id": "no_response",
+        "name": "No Response",
+        "category": "closed",
+        "active": false,
+        "terminal": true,
+        "milestones": []
+      }
+    ],
+    "initial_stage": "identified",
+    "fields": [
+      {
+        "key": "company",
+        "label": "Account",
+        "type": "text",
+        "required": true,
+        "card": true,
+        "format": "text"
+      },
+      {
+        "key": "contact",
+        "label": "Prospect Name",
+        "type": "text",
+        "required": true,
+        "card": true,
+        "format": "text"
+      },
+      {
+        "key": "title",
+        "label": "Title",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "format": "text"
+      },
+      {
+        "key": "acv",
+        "label": "Annual Contract Value",
+        "type": "currency",
+        "required": false,
+        "card": true,
+        "format": "currency"
+      },
+      {
+        "key": "industry",
+        "label": "Industry",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "format": "text"
+      },
+      {
+        "key": "source",
+        "label": "Source",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "format": "text"
+      },
+      {
+        "key": "next_action",
+        "label": "Next Action",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "format": "text"
+      },
+      {
+        "key": "next_action_date",
+        "label": "Next Action Date",
+        "type": "date",
+        "required": false,
+        "card": false,
+        "format": "date"
+      },
+      {
+        "key": "notes",
+        "label": "Notes",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "format": "text"
+      }
+    ],
+    "navigation": [
+      {
+        "id": "pipeline",
+        "label": "Pipeline"
+      },
+      {
+        "id": "intake",
+        "label": "Add Prospect"
+      },
+      {
+        "id": "analytics",
+        "label": "Analytics"
+      },
+      {
+        "id": "intelligence",
+        "label": "Intelligence"
+      }
+    ],
+    "features": {
+      "create_records": true,
+      "edit_records": true,
+      "activities": true,
+      "intelligence": true,
+      "reset_demo_data": true,
+      "resume_matching": false,
+      "screening_qa": false,
+      "role_intelligence_docx": false
+    },
+    "integrations": {
+      "google_workspace": false,
+      "openai": false,
+      "twilio": false,
+      "gmail": false
+    },
+    "labels": {
+      "record_singular": "Prospect",
+      "record_plural": "Prospects",
+      "stage": "Stage",
+      "create": "Add Prospect",
+      "save": "Save Changes",
+      "add_note": "Add Note",
+      "reset": "Reset Demo Data",
+      "intelligence": "Account Intelligence"
+    },
+    "metrics": [
+      "meeting_booking_rate",
+      "reply_rate",
+      "reply_to_meeting_rate",
+      "total",
+      "active",
+      "pipeline_value"
+    ],
+    "dashboard_modules": [
+      "metrics",
+      "funnel",
+      "table"
+    ],
+    "seed": "b2b_prospects"
+  }
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "intel-01",
+    "title": "Manufacturing handoffs",
+    "tags": [
+      "manufacturing",
+      "operations"
+    ],
+    "summary": "Fictional account playbook for disconnected sales and fulfillment teams.",
+    "signals": [
+      "Repeated manual order re-entry suggests a handoff problem."
+    ],
+    "questions": [
+      "Where does a signed order wait before fulfillment can start?"
+    ]
+  },
+  {
+    "id": "intel-02",
+    "title": "SaaS qualification",
+    "tags": [
+      "saas",
+      "revenue"
+    ],
+    "summary": "Synthetic discovery guide for subscription businesses with uneven qualification.",
+    "signals": [
+      "Different teams use conflicting definitions of a qualified account."
+    ],
+    "questions": [
+      "Which account signals predict a useful discovery meeting?"
+    ]
+  },
+  {
+    "id": "intel-03",
+    "title": "Logistics visibility",
+    "tags": [
+      "logistics",
+      "operations"
+    ],
+    "summary": "A fictional logistics team needs shared account context.",
+    "signals": [
+      "Exception updates are scattered across internal messages."
+    ],
+    "questions": [
+      "How does the account owner learn that a delivery exception is resolved?"
+    ]
+  },
+  {
+    "id": "intel-04",
+    "title": "Services capacity",
+    "tags": [
+      "services",
+      "planning"
+    ],
+    "summary": "Synthetic guidance for a services team balancing demand and capacity.",
+    "signals": [
+      "Sales promises and delivery capacity are reviewed separately."
+    ],
+    "questions": [
+      "What information is missing when you commit to a start date?"
+    ]
+  },
+  {
+    "id": "intel-05",
+    "title": "Security review",
+    "tags": [
+      "security",
+      "enterprise"
+    ],
+    "summary": "Fictional battlecard for an enterprise evaluation with multiple stakeholders.",
+    "signals": [
+      "Security review begins late in the purchase process."
+    ],
+    "questions": [
+      "Who should join the first review to avoid a late surprise?"
+    ]
+  },
+  {
+    "id": "intel-06",
+    "title": "Build versus buy",
+    "tags": [
+      "technology",
+      "systems"
+    ],
+    "summary": "Synthetic conversation guide for teams evaluating an internal build.",
+    "signals": [
+      "Maintenance ownership is unclear after the initial implementation."
+    ],
+    "questions": [
+      "Who owns fixes and reporting changes six months after launch?"
+    ]
+  }
+]

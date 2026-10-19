@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Union, Set
 from pydantic import BaseModel, Field, field_validator
+from job_pipeline.domain.instance_config import InstanceCapabilities
 
 
 
@@ -599,7 +600,7 @@ class QuickLink(BaseModel):
     icon: str = "🔗"
 
 
-class PipelineInstanceConfig(BaseModel):
+class PipelineInstanceConfig(InstanceCapabilities):
     """Configuration for branding and instance identity of the pipeline."""
     instance_id: str = "job-applications"
     pipeline_type: str = "job_applications"

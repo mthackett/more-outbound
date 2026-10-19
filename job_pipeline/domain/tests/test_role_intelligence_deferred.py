@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
+import unittest
 
 from job_pipeline.domain.models import (
     JobPosting,
@@ -47,7 +47,6 @@ def create_dummy_fit_eval() -> FitEvaluation:
     )
 
 
-@pytest.fixture
 def mock_adapters():
     storage = MockJobStorageAdapter()
     drive = MockDocumentStorageAdapter()
@@ -56,7 +55,7 @@ def mock_adapters():
     return storage, drive, resume, llm
 
 
-class TestDeferredRoleIntelligenceScenarios:
+class TestDeferredRoleIntelligenceScenarios(unittest.TestCase):
     """Tests for verifying deferred Role Intelligence across all 6 required scenarios."""
 
     def test_scenario_1_new_application_ingestion_defers_role_intelligence(self):
@@ -109,7 +108,7 @@ class TestDeferredRoleIntelligenceScenarios:
             assert saved_opp.job_title in ["Senior Revenue Operations Analyst", "Revenue Operations Analyst"]
             assert len(saved_opp.required_skills) > 0 or len(saved_opp.preferred_skills) >= 0
 
-    def test_scenario_2_manual_generation_runs_pipeline_and_persists(self, mock_adapters):
+    def test_scenario_2_manual_generation_runs_pipeline_and_persists(self):
         """
         Scenario 2: Manual generation:
         - Applied application
@@ -117,7 +116,7 @@ class TestDeferredRoleIntelligenceScenarios:
         - Role Intelligence pipeline runs & report artifact saved
         - Opportunity marked as 'Generated'
         """
-        storage, drive, resume, llm = mock_adapters
+        storage, drive, resume, llm = mock_adapters()
         spy_report = MagicMock(wraps=llm.generate_role_intelligence_report)
         llm.generate_role_intelligence_report = spy_report
 
@@ -158,13 +157,13 @@ class TestDeferredRoleIntelligenceScenarios:
             u_hex = uuid.uuid5(uuid.NAMESPACE_URL, opp_id).hex
             shutil.rmtree(Path("output_reports") / u_hex, ignore_errors=True)
 
-    def test_scenario_3_stage_transition_to_interview_triggers_generation(self, mock_adapters):
+    def test_scenario_3_stage_transition_to_interview_triggers_generation(self):
         """
         Scenario 3: Employer interest:
         - Moving from 'Applied' to 'Recruiter Screen' automatically triggers generation if none exists
         - Report is produced and status updated
         """
-        storage, drive, resume, llm = mock_adapters
+        storage, drive, resume, llm = mock_adapters()
         opp_id = f"test-interest-{uuid.uuid4()}"
         job = JobPosting(
             opportunity_id=opp_id,
@@ -234,7 +233,7 @@ class TestDeferredRoleIntelligenceScenarios:
         # has_role_intelligence is True, so should NOT trigger again
         assert should_trigger_role_intelligence("Applied", "Recruiter Screen", job) is False
 
-    def test_scenario_5_failure_handling_preserves_stage_and_enables_retry(self, mock_adapters):
+    def test_scenario_5_failure_handling_preserves_stage_and_enables_retry(self):
         """
         Scenario 5: Generation failure:
         - Applied -> Recruiter Screen
@@ -244,7 +243,7 @@ class TestDeferredRoleIntelligenceScenarios:
         - Role Intelligence marked as 'Failed'
         - Retry remains available
         """
-        storage, drive, resume, llm = mock_adapters
+        storage, drive, resume, llm = mock_adapters()
         opp_id = f"test-fail-{uuid.uuid4()}"
         job = JobPosting(
             opportunity_id=opp_id,

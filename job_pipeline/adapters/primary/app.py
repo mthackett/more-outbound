@@ -9,7 +9,6 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
 
 # Ensure project root is in sys.path for Streamlit
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -17,6 +16,29 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 import streamlit as st
+from job_pipeline.adapters.primary.runtime import public_mode, select_session, offline_adapters
+
+try:
+    if not public_mode(os.environ):
+        load_dotenv()
+    is_public = public_mode(os.environ)
+except ValueError:
+    st.error("Invalid instance mode. Configure PIPELINE_MODE as demo or private.")
+    st.stop()
+
+if not is_public:
+    select_session(st.session_state, ("private", os.environ.get("PRIVATE_OFFLINE", "false"), os.environ.get("PIPELINE_CONFIG_PATH", "")))
+if is_public:
+    from job_pipeline.domain.instance_loader import load_demo_config, InstanceConfigError
+    try:
+        demo_config = load_demo_config(os.environ.get("PIPELINE_INSTANCE_CONFIG"))
+    except InstanceConfigError as exc:
+        st.error(str(exc))
+        st.stop()
+    st.set_page_config(page_title=demo_config.page_title, layout="wide")
+    from job_pipeline.adapters.primary.public_ui import render_public
+    render_public(demo_config)
+    st.stop()
 
 try:
     from job_pipeline.version import __version__ as APP_VERSION
@@ -31,6 +53,9 @@ from job_pipeline.domain.services import (
 
 # Load instance configuration for dynamic branding
 instance_cfg = PipelineConfigService.get_instance_config()
+if instance_cfg.mode != "private":
+    st.error("Select PIPELINE_MODE=demo to load a public instance.")
+    st.stop()
 
 # Set page config as very first Streamlit command
 page_icon_val = instance_cfg.page_icon or "🚀"
@@ -737,26 +762,16 @@ with st.sidebar.expander("Application Quicklinks", expanded=True):
 
 # 2. Pipeline Adapters & Shared Refresh
 @st.cache_resource
-def get_adapters(is_demo: bool):
-    log_startup(f"🔌 Initializing secondary adapters (demo_mode={is_demo})...")
-    if is_demo:
-        log_startup("Using mock secondary adapters (demo mode)...")
-        storage = MockJobStorageAdapter()
-        drive = MockDocumentStorageAdapter()
-        resume = MockResumeRepositoryAdapter()
-        llm = MockLLMStrategyAdapter()
-        twilio = TwilioMessagingAdapter()
-    else:
-        log_startup("Connecting to live infrastructure adapters (Google Sheets, Drive, OpenAI)...")
-        storage = GoogleSheetsAdapter()
-        drive = GoogleDriveAdapter()
-        resume = drive
-        llm = OpenAIEngineAdapter()
-        twilio = TwilioMessagingAdapter()
+def get_live_adapters():
+    storage = GoogleSheetsAdapter()
+    drive = GoogleDriveAdapter()
+    return storage, drive, drive, OpenAIEngineAdapter(), TwilioMessagingAdapter(), GmailIngestionAdapter()
 
-    gmail = GmailIngestionAdapter()
-    log_startup("Secondary adapters successfully initialized.")
-    return storage, drive, resume, llm, twilio, gmail
+
+def get_adapters(is_demo: bool):
+    if is_demo:
+        return offline_adapters(st.session_state)
+    return get_live_adapters()
 
 
 def perform_pipeline_refresh(storage, log_func=None):
@@ -772,7 +787,7 @@ def perform_pipeline_refresh(storage, log_func=None):
 
 
 # Resolve demo mode state and initialize adapters
-demo_mode_state = st.session_state.get("demo_mode_cb", os.environ.get("DEMO_MODE", "false").lower() == "true")
+demo_mode_state = os.environ.get("PRIVATE_OFFLINE", "false").lower() == "true"
 storage_adapter, drive_adapter, resume_repo, llm_adapter, twilio_adapter, gmail_adapter = get_adapters(demo_mode_state)
 demo_mode = demo_mode_state
 
@@ -965,7 +980,10 @@ def trigger_role_intelligence_generation(opp_data: Dict[str, Any], show_toasts: 
 
 # Dedicated Analytics Dashboard View
 if st.session_state.get("in_dashboard_view", False):
-    all_opps_for_dash = storage_adapter.fetch_all_opportunities() if storage_adapter.is_connected else []
+    from job_pipeline.adapters.primary.dashboard_data import dashboard_records
+    all_opps_for_dash, using_cache = dashboard_records(storage_adapter, st.session_state.get("crm_cached_opportunities", []))
+    if using_cache:
+        st.warning("Storage is unavailable. Showing the last data loaded in this session.")
     render_analytics_dashboard_view(all_opps_for_dash, instance_cfg)
     st.stop()
 
@@ -1057,15 +1075,8 @@ if st.session_state.get("in_settings_view", False):
     st.markdown("##### Environment & System Controls")
     col_demo, col_log = st.columns(2)
     with col_demo:
-        demo_mode_toggle = st.checkbox(
-            "Zero-Cost Demo Mode",
-            value=demo_mode,
-            key="demo_mode_cb",
-            help="Uses mock fixtures and bypasses live API charges."
-        )
-        if demo_mode_toggle != demo_mode:
-            storage_adapter, drive_adapter, resume_repo, llm_adapter, twilio_adapter, gmail_adapter = get_adapters(demo_mode_toggle)
-            st.rerun()
+        st.caption("Private offline preview" if demo_mode else "Private Google-connected instance")
+        st.caption("Instance mode is selected at launch; restart to switch instances.")
     with col_log:
         curr_cli_logging = is_logging_enabled()
         cli_logging_toggle = st.checkbox(

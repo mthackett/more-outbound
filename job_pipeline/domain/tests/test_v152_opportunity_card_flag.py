@@ -259,7 +259,7 @@ class TestOpportunityCardFlagIndicator(unittest.TestCase):
             cfg_path = str(Path(tmp) / "config.json")
             PipelineConfigService.save_config({}, cfg_path)
             with patch.dict(os.environ, {
-                "DEMO_MODE": "true",
+                "PRIVATE_OFFLINE": "true",
                 "PIPELINE_CONFIG_PATH": cfg_path,
                 "ENABLE_CLI_LOGGING": "false"
             }), \
@@ -403,7 +403,7 @@ class TestOpportunityCardFlagIndicator(unittest.TestCase):
             cfg_path = str(Path(tmp) / "config.json")
             PipelineConfigService.save_config({}, cfg_path)
             with patch.dict(os.environ, {
-                "DEMO_MODE": "true",
+                "PRIVATE_OFFLINE": "true",
                 "PIPELINE_CONFIG_PATH": cfg_path,
                 "ENABLE_CLI_LOGGING": "false"
             }), \

@@ -1,18 +1,37 @@
 import os
 import unittest
+import json
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 from job_pipeline.domain.story_bank import StoryBankService
 from job_pipeline.domain.models import CanonicalStory, StoryBreadcrumb
 
 
 class TestStoryBankService(unittest.TestCase):
     def setUp(self):
-        self.test_stories_path = "test_stories.json"
-        if os.path.exists(self.test_stories_path):
-            os.remove(self.test_stories_path)
-
-    def tearDown(self):
-        if os.path.exists(self.test_stories_path):
-            os.remove(self.test_stories_path)
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.test_stories_path = str(Path(temp.name) / "stories.json")
+        seeds = []
+        for number in range(1, 13):
+            routing = number == 2
+            seeds.append(CanonicalStory(
+                story_id=f"story-{number}", story_number=number,
+                title="Lead Routing & SLA Crisis" if routing else f"Synthetic Career Example {number}",
+                hook="A fictional team improved a process.", problem="Unclear ownership.",
+                turning_point="The team tested a new workflow.", result="Fewer missed handoffs.",
+                learning="Measure the outcome.", archetype_tags=["Process Improvement"],
+                competencies=["Salesforce", "Lead Routing", "SLA Management"] if routing else ["Planning"],
+                trigger_keywords=["lead", "routing", "marketing", "sales", "conflict"] if routing else ["planning", "review", "documentation"],
+                target_question_types=["Tell me about a time you handled conflict between marketing and sales over lead quality."] * 3 if routing else ["Describe a planning process."] * 3,
+                breadcrumbs=[StoryBreadcrumb(label=f"Step {i}", content="Synthetic evidence", kind="context") for i in range(4)],
+            ).model_dump())
+        seed_path = Path(temp.name) / "seeds.json"
+        seed_path.write_text(json.dumps(seeds), encoding="utf-8")
+        seed_patch = patch.object(StoryBankService, 'CANONICAL_SEEDS_PATH', str(seed_path))
+        seed_patch.start()
+        self.addCleanup(seed_patch.stop)
 
     def test_canonical_seeds_integrity(self):
         seeds = StoryBankService.get_default_seeds()
@@ -123,19 +142,19 @@ class TestStoryBankService(unittest.TestCase):
 
         # Story title must remain unchanged
         check_stories = StoryBankService.load_stories(self.test_stories_path)
-        self.assertEqual(check_stories[0].title, "The Revenue Pipeline Black Box")
+        self.assertEqual(check_stories[0].title, "Synthetic Career Example 1")
 
         # Intentional user override edit -> should succeed
         success_user = StoryBankService.update_story(
             "story-1",
-            {"title": "The Revenue Pipeline Black Box (Polished)"},
+            {"title": "Synthetic Career Example 1 (Polished)"},
             is_user_override=True,
             file_path=self.test_stories_path
         )
         self.assertTrue(success_user)
 
         check_stories2 = StoryBankService.load_stories(self.test_stories_path)
-        self.assertEqual(check_stories2[0].title, "The Revenue Pipeline Black Box (Polished)")
+        self.assertEqual(check_stories2[0].title, "Synthetic Career Example 1 (Polished)")
 
     def test_suggest_story_cue_cards(self):
         StoryBankService.reset_canonical_stories(self.test_stories_path)
@@ -171,7 +190,9 @@ class TestStoryBankService(unittest.TestCase):
 
     def test_load_example_stories(self):
         # Verify loading the 2 generic placeholder stories from stories.json.example
-        examples = StoryBankService.load_example_stories(example_path="stories.json.example", file_path=self.test_stories_path)
+        example_path = Path(self.test_stories_path).with_name('legacy-examples.json')
+        example_path.write_text(json.dumps([s.model_dump() for s in StoryBankService.get_default_seeds()[:2]]), encoding='utf-8')
+        examples = StoryBankService.load_example_stories(example_path=str(example_path), file_path=self.test_stories_path)
         self.assertEqual(len(examples), 2)
         self.assertEqual(examples[0].story_id, "story-1")
         self.assertEqual(examples[1].story_id, "story-2")

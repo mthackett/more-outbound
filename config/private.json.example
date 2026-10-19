@@ -1,0 +1,9 @@
+{
+  "instance_config": {
+    "schema_version": 1,
+    "instance_id": "job-applications",
+    "mode": "private",
+    "storage": "google",
+    "page_title": "More Outbound: Job Application Pipeline"
+  }
+}

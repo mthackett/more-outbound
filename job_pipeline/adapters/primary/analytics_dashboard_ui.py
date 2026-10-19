@@ -8,6 +8,18 @@ import streamlit as st
 from job_pipeline.domain.services import PipelineKPIService
 
 
+def safe_date_str(value):
+    parsed = PipelineKPIService.parse_timestamp(value)
+    return parsed.strftime('%Y-%m-%d') if parsed else 'Missing'
+
+
+def safe_stale_threshold(value):
+    try:
+        return max(1, min(90, int(value)))
+    except (ValueError, TypeError, OverflowError):
+        return 7
+
+
 def render_analytics_dashboard_view(
     opportunities: List[Dict[str, Any]],
     instance_cfg=None
@@ -44,7 +56,9 @@ def render_analytics_dashboard_view(
             key="dash_filter_date_range"
         )
     with col_ctrl3:
-        initial_thresh = getattr(instance_cfg, "stale_threshold_days", 7) or 7
+        initial_thresh = safe_stale_threshold(getattr(instance_cfg, "stale_threshold_days", 7))
+        if "dash_stale_threshold" in st.session_state:
+            st.session_state.dash_stale_threshold = safe_stale_threshold(st.session_state.dash_stale_threshold)
         stale_threshold = st.number_input(
             "Stale Inactivity Threshold (Days)",
             min_value=1,
@@ -233,7 +247,7 @@ def render_analytics_dashboard_view(
                         "Source": r["source"],
                         "Stage": r["status"],
                         "Days Inactive": f"{r['days_elapsed']}d",
-                        "Last Activity Date": r["last_activity_date"].strftime("%Y-%m-%d") if r["last_activity_date"] else "Missing",
+                        "Last Activity Date": safe_date_str(r["last_activity_date"]),
                         "Activity Type": r["last_activity_source"]
                     }
                     for r in oh["stale_records"]
