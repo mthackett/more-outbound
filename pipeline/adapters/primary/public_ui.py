@@ -113,8 +113,11 @@ STAGE_STYLES = {
 
 PUBLIC_THEME_CSS = """
 <style>
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
     .block-container {
-        padding-top: 1.6rem;
+        padding-top: 4.25rem !important;
         padding-bottom: 2rem;
         max-width: 1360px;
     }
@@ -122,14 +125,23 @@ PUBLIC_THEME_CSS = """
         font-size: 1.75rem;
         font-weight: 800;
         color: #F8FAFC;
+        margin-top: 0;
         margin-bottom: 0.15rem;
         letter-spacing: -0.015em;
+        line-height: 1.25;
     }
     .demo-sub-title {
         font-size: 0.88rem;
         color: #94A3B8;
         margin-bottom: 0.75rem;
         line-height: 1.4;
+    }
+    .demo-section-header {
+        font-size: 1.22rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        margin-top: 0.2rem;
+        margin-bottom: 0.15rem;
     }
     /* Compact headline KPI cards: centered labels and values */
     div[data-testid="stMetric"] {
@@ -207,7 +219,7 @@ PUBLIC_THEME_CSS = """
     div[data-testid="stForm"] {
         border: 1px solid #1E293B;
         border-radius: 6px;
-        padding: 8px 10px;
+        padding: 10px 14px;
         background-color: #0F172A;
     }
 </style>
@@ -234,33 +246,172 @@ def session_storage(config, workspace_key=None):
     return stores[store_key]
 
 
+def render_single_field(field, prefix, values, height=None, placeholder=None):
+    if not field.editable:
+        st.text(f'{field.label}: {format_field(field, values.get(field.key))}')
+        return values.get(field.key)
+    label = field.label + (' *' if field.required else '')
+    key = prefix + '_' + field.key
+    val = values.get(field.key)
+    if field.type == 'currency':
+        num_val = float(val) if val is not None and str(val).strip() != '' else None
+        return st.number_input(label, min_value=0.0, value=num_val, key=key)
+    elif field.type == 'date':
+        val_date = val or None
+        if isinstance(val_date, str):
+            try:
+                val_date = datetime.date.fromisoformat(val_date)
+            except ValueError:
+                val_date = None
+        date_res = st.date_input(label, value=val_date, key=key)
+        return date_res.isoformat() if date_res else None
+    elif field.type == 'long_text':
+        ph = placeholder or f"Enter {field.label.lower()}..."
+        return st.text_area(label, value=val or '', max_chars=field.max_length, key=key, height=height or 75, placeholder=ph)
+    else:
+        ph = placeholder or f"Enter {field.label.lower()}..."
+        return st.text_input(label, value=val or '', max_chars=field.max_length, key=key, placeholder=ph)
+
+
 def input_fields(config, prefix, values=None, intake=False):
     values = values or {}
     result = {}
-    for field in config.fields:
-        if not field.visible or (intake and not field.intake):
-            continue
-        if not field.editable:
-            st.text(f'{field.label}: {format_field(field, values.get(field.key))}')
-            continue
-        label = field.label + (' *' if field.required else '')
-        key = prefix + '_' + field.key
-        value = values.get(field.key)
-        if field.type == 'currency':
-            result[field.key] = st.number_input(label, min_value=0.0, value=float(value) if value is not None else None, key=key)
-        elif field.type == 'date':
-            val_date = value or None
-            if isinstance(val_date, str):
-                try:
-                    val_date = datetime.date.fromisoformat(val_date)
-                except ValueError:
-                    val_date = None
-            date_res = st.date_input(label, value=val_date, key=key)
-            result[field.key] = date_res.isoformat() if date_res else None
-        elif field.type == 'long_text':
-            result[field.key] = st.text_area(label, value=value or '', max_chars=field.max_length, key=key)
-        else:
-            result[field.key] = st.text_input(label, value=value or '', max_chars=field.max_length, key=key)
+    fields_by_key = {f.key: f for f in config.fields if f.visible and (not intake or f.intake)}
+
+    # Section A: Account & Contact (Two-Column Grid)
+    st.markdown("<div style='font-size:0.78rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; margin-bottom:6px;'>Account & Contact Information</div>", unsafe_allow_html=True)
+    
+    # Row 1: Account * | Prospect Name *
+    if 'company' in fields_by_key and 'contact' in fields_by_key:
+        c1, c2 = st.columns(2)
+        with c1:
+            result['company'] = render_single_field(fields_by_key['company'], prefix, values, placeholder="e.g. Lumina HealthTech")
+        with c2:
+            result['contact'] = render_single_field(fields_by_key['contact'], prefix, values, placeholder="e.g. Elena Rostova")
+    elif 'company' in fields_by_key:
+        result['company'] = render_single_field(fields_by_key['company'], prefix, values, placeholder="e.g. Lumina HealthTech")
+    elif 'contact' in fields_by_key:
+        result['contact'] = render_single_field(fields_by_key['contact'], prefix, values, placeholder="e.g. Elena Rostova")
+
+    # Row 2: Job Title | Email
+    if 'title' in fields_by_key and 'email' in fields_by_key:
+        c1, c2 = st.columns(2)
+        with c1:
+            result['title'] = render_single_field(fields_by_key['title'], prefix, values, placeholder="e.g. VP of Revenue Operations")
+        with c2:
+            result['email'] = render_single_field(fields_by_key['email'], prefix, values, placeholder="e.g. elena@lumina.example.com")
+    elif 'title' in fields_by_key:
+        result['title'] = render_single_field(fields_by_key['title'], prefix, values, placeholder="e.g. VP of Revenue Operations")
+    elif 'email' in fields_by_key:
+        result['email'] = render_single_field(fields_by_key['email'], prefix, values, placeholder="e.g. elena@lumina.example.com")
+
+    # Row 3: Phone | Website
+    if 'phone' in fields_by_key and 'website' in fields_by_key:
+        c1, c2 = st.columns(2)
+        with c1:
+            result['phone'] = render_single_field(fields_by_key['phone'], prefix, values, placeholder="e.g. (617) 555-0142")
+        with c2:
+            result['website'] = render_single_field(fields_by_key['website'], prefix, values, placeholder="e.g. lumina.example.com")
+    elif 'phone' in fields_by_key:
+        result['phone'] = render_single_field(fields_by_key['phone'], prefix, values, placeholder="e.g. (617) 555-0142")
+    elif 'website' in fields_by_key:
+        result['website'] = render_single_field(fields_by_key['website'], prefix, values, placeholder="e.g. lumina.example.com")
+
+    # Row 4: Industry | Company Size
+    if 'industry' in fields_by_key and 'company_size' in fields_by_key:
+        c1, c2 = st.columns(2)
+        with c1:
+            result['industry'] = render_single_field(fields_by_key['industry'], prefix, values, placeholder="e.g. HealthTech, B2B SaaS")
+        with c2:
+            result['company_size'] = render_single_field(fields_by_key['company_size'], prefix, values, placeholder="e.g. 250-500")
+    elif 'industry' in fields_by_key:
+        result['industry'] = render_single_field(fields_by_key['industry'], prefix, values, placeholder="e.g. HealthTech, Consulting")
+    elif 'company_size' in fields_by_key:
+        result['company_size'] = render_single_field(fields_by_key['company_size'], prefix, values, placeholder="e.g. 250-500")
+
+    # Tech Stack (full width)
+    if 'tech_stack' in fields_by_key:
+        result['tech_stack'] = render_single_field(fields_by_key['tech_stack'], prefix, values, placeholder="e.g. Salesforce · HubSpot · Gong")
+
+    # Section B: Opportunity Context
+    opp_keys = {'acv', 'icp_fit', 'opportunity_brief'} & set(fields_by_key)
+    if opp_keys:
+        st.markdown("<div style='font-size:0.78rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.5px; margin-top:10px; margin-bottom:2px;'>Opportunity Context</div>", unsafe_allow_html=True)
+        st.caption("Why is this prospect worth pursuing?")
+        if 'acv' in fields_by_key and 'icp_fit' in fields_by_key:
+            c1, c2 = st.columns(2)
+            with c1:
+                result['acv'] = render_single_field(fields_by_key['acv'], prefix, values)
+            with c2:
+                result['icp_fit'] = render_single_field(fields_by_key['icp_fit'], prefix, values, placeholder="e.g. High, Medium, Low")
+        elif 'acv' in fields_by_key:
+            result['acv'] = render_single_field(fields_by_key['acv'], prefix, values)
+        elif 'icp_fit' in fields_by_key:
+            result['icp_fit'] = render_single_field(fields_by_key['icp_fit'], prefix, values, placeholder="e.g. High, Medium, Low")
+
+        if 'opportunity_brief' in fields_by_key:
+            result['opportunity_brief'] = render_single_field(fields_by_key['opportunity_brief'], prefix, values, height=75, placeholder="Brief opportunity thesis: scaling team, manual bottlenecks, or expansion trigger...")
+
+    # Section C: Pipeline & Next Actions
+    pipe_keys = {'source', 'opportunity_owner', 'priority', 'follow_up_status', 'next_action_date', 'next_action'} & set(fields_by_key)
+    if pipe_keys:
+        st.markdown("<div style='font-size:0.78rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.5px; margin-top:10px; margin-bottom:6px;'>Pipeline & Next Actions</div>", unsafe_allow_html=True)
+        if 'source' in fields_by_key and 'opportunity_owner' in fields_by_key:
+            c1, c2 = st.columns(2)
+            with c1:
+                result['source'] = render_single_field(fields_by_key['source'], prefix, values, placeholder="e.g. Account Research, Inbound, Referral")
+            with c2:
+                result['opportunity_owner'] = render_single_field(fields_by_key['opportunity_owner'], prefix, values, placeholder="e.g. Sarah Jenkins")
+        elif 'source' in fields_by_key:
+            result['source'] = render_single_field(fields_by_key['source'], prefix, values)
+        elif 'opportunity_owner' in fields_by_key:
+            result['opportunity_owner'] = render_single_field(fields_by_key['opportunity_owner'], prefix, values)
+
+        if 'priority' in fields_by_key and 'follow_up_status' in fields_by_key:
+            c1, c2 = st.columns(2)
+            with c1:
+                result['priority'] = render_single_field(fields_by_key['priority'], prefix, values, placeholder="e.g. High, Medium, Low")
+            with c2:
+                result['follow_up_status'] = render_single_field(fields_by_key['follow_up_status'], prefix, values, placeholder="e.g. Pre-outreach, Active, In Research")
+        elif 'priority' in fields_by_key:
+            result['priority'] = render_single_field(fields_by_key['priority'], prefix, values)
+        elif 'follow_up_status' in fields_by_key:
+            result['follow_up_status'] = render_single_field(fields_by_key['follow_up_status'], prefix, values)
+
+        if 'next_action_date' in fields_by_key:
+            c1, _ = st.columns(2)
+            with c1:
+                result['next_action_date'] = render_single_field(fields_by_key['next_action_date'], prefix, values)
+
+        if 'next_action' in fields_by_key:
+            result['next_action'] = render_single_field(fields_by_key['next_action'], prefix, values, placeholder="e.g. Schedule discovery call with decision maker")
+
+    # Section D: Additional Qualification & Notes (Collapsed Expander)
+    qual_keys = {'pain_points', 'desired_outcome', 'intent_signals', 'qualification_notes', 'notes'} & set(fields_by_key)
+    if qual_keys:
+        with st.expander("Additional Qualification & Notes", expanded=False):
+            if 'pain_points' in fields_by_key:
+                result['pain_points'] = render_single_field(fields_by_key['pain_points'], prefix, values, height=70, placeholder="Core operational friction, manual bottlenecks, or customer pain points...")
+            if 'desired_outcome' in fields_by_key:
+                result['desired_outcome'] = render_single_field(fields_by_key['desired_outcome'], prefix, values, height=70, placeholder="Target outcomes, business KPIs, or expected impact...")
+            if 'intent_signals' in fields_by_key:
+                result['intent_signals'] = render_single_field(fields_by_key['intent_signals'], prefix, values, height=60, placeholder="e.g. Hiring 6 enterprise AEs · Series B funding ($35M) · G2 review surge")
+            if 'qualification_notes' in fields_by_key:
+                result['qualification_notes'] = render_single_field(fields_by_key['qualification_notes'], prefix, values, height=70, placeholder="Budget confirmation, authority, timing, and ICP fit criteria...")
+            if 'notes' in fields_by_key:
+                result['notes'] = render_single_field(fields_by_key['notes'], prefix, values, height=70, placeholder="Account background, relationship notes, or miscellaneous context...")
+
+    # Remaining fields (if any)
+    handled_keys = {
+        'company', 'contact', 'title', 'email', 'phone', 'website', 'industry', 'company_size', 'tech_stack',
+        'acv', 'icp_fit', 'opportunity_brief',
+        'source', 'opportunity_owner', 'priority', 'follow_up_status', 'next_action_date', 'next_action',
+        'pain_points', 'desired_outcome', 'intent_signals', 'qualification_notes', 'notes'
+    }
+    remaining = [f for f in config.fields if f.key not in handled_keys and f.visible and (not intake or f.intake)]
+    for rf in remaining:
+        result[rf.key] = render_single_field(rf, prefix, values)
+
     return result
 
 
@@ -269,7 +420,9 @@ def intake(config, storage, prefix):
     st.caption('Fields marked * are required. Use fictional information for this public demo.')
     with st.form(prefix + '_form', clear_on_submit=True):
         values = input_fields(config, prefix, intake=True)
-        submitted = st.form_submit_button(config.labels.create)
+        col_btn1, col_btn2 = st.columns([3, 7])
+        with col_btn1:
+            submitted = st.form_submit_button(config.labels.create, use_container_width=True)
     if submitted:
         try:
             storage.create(values)
@@ -278,6 +431,57 @@ def intake(config, storage, prefix):
         else:
             st.session_state['_demo_flash'] = f'{config.labels.record_singular} added.'
             st.rerun()
+
+
+def render_visual_conversion_funnel(funnel_rows):
+    if not funnel_rows:
+        return
+    total_count = funnel_rows[0]['Count'] if funnel_rows else 0
+    colors = ['#6366F1', '#0284C7', '#D97706', '#059669', '#7C3AED']
+
+    bars_html = []
+    for idx, row in enumerate(funnel_rows):
+        color = colors[idx % len(colors)]
+        label = row['Milestone']
+        count = row['Count']
+        prev_conv = row.get('Conversion from Previous', '—')
+        overall_conv = row.get('Overall Conversion', '—')
+        pct_of_total = (count / total_count * 100) if total_count > 0 else 0
+        bar_width = max(3.5, pct_of_total) if count > 0 else 0
+
+        step_badge = ""
+        if prev_conv != '—':
+            step_badge = f"<span style='color: {color}; font-weight: 600; font-size: 0.74rem;'>({prev_conv} step)</span>"
+
+        bars_html.append(
+            f"<div style='margin-bottom: 11px;'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; font-size: 0.82rem;'>"
+            f"<div style='font-weight: 600; color: #F8FAFC;'>"
+            f"<span style='display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {color}; margin-right: 6px;'></span>"
+            f"{label}"
+            f"</div>"
+            f"<div style='font-size: 0.78rem; color: #94A3B8;'>"
+            f"<b style='color: #F8FAFC; font-size: 0.86rem;'>{count}</b>"
+            f"&nbsp;·&nbsp; <span style='color: #CBD5E1;'>{overall_conv} of cohort</span>"
+            f"&nbsp;{step_badge}"
+            f"</div>"
+            f"</div>"
+            f"<div style='background: #1E293B; height: 10px; border-radius: 5px; overflow: hidden; width: 100%; border: 1px solid #334155;'>"
+            f"<div style='background: {color}; height: 100%; width: {bar_width:.1f}%; border-radius: 4px;'></div>"
+            f"</div>"
+            f"</div>"
+        )
+
+    bars_content = "".join(bars_html)
+    container_html = (
+        f"<div style='background: #0F172A; border: 1px solid #1E293B; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;'>"
+        f"<div style='font-size: 0.74rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;'>"
+        f"Conversion Pipeline Funnel"
+        f"</div>"
+        f"{bars_content}"
+        f"</div>"
+    )
+    st.markdown(container_html, unsafe_allow_html=True)
 
 
 def record_table(config, records):
@@ -343,6 +547,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix):
     contact = record.fields.get('contact', '')
     title = record.fields.get('title', '')
     email = record.fields.get('email', '')
+    phone = record.fields.get('phone', '')
     website = record.fields.get('website', '')
     industry = record.fields.get('industry', '')
     company_size = record.fields.get('company_size', '')
@@ -442,17 +647,25 @@ def render_opportunity_workspace(config, storage, record, stages, prefix):
             t_items = [t.strip() for t in tech_stack.split('·')]
             tech_badges = " ".join([f"<span style='background:#1E293B; border:1px solid #334155; color:#38BDF8; padding:1px 5px; border-radius:3px; font-size:0.72rem; font-weight:500;'>{t}</span>" for t in t_items])
 
+        profile_items = [
+            f'<div><span style="color:#64748B; font-weight:600;">Contact:</span> <span style="color:#F8FAFC;">{contact or "—"}</span></div>',
+            f'<div><span style="color:#64748B; font-weight:600;">Job Title:</span> <span style="color:#F8FAFC;">{title or "—"}</span></div>',
+            f'<div><span style="color:#64748B; font-weight:600;">Email:</span> <span style="color:#94A3B8; font-family:monospace; font-size:0.76rem;">{email or "—"}</span></div>',
+        ]
+        if phone:
+            profile_items.append(f'<div><span style="color:#64748B; font-weight:600;">Phone:</span> <span style="color:#94A3B8; font-family:monospace; font-size:0.76rem;">{phone}</span></div>')
+        profile_items.extend([
+            f'<div><span style="color:#64748B; font-weight:600;">Industry:</span> <span style="color:#F8FAFC;">{industry or "—"}</span></div>',
+            f'<div><span style="color:#64748B; font-weight:600;">Company Size:</span> <span style="color:#F8FAFC;">{company_size or "—"}</span></div>',
+            f'<div><span style="color:#64748B; font-weight:600;">Owner:</span> <span style="color:#F8FAFC;">{owner or "—"}</span></div>',
+            f'<div><span style="color:#64748B; font-weight:600;">Lead Source:</span> <span style="color:#F8FAFC;">{source or "—"}</span></div>',
+            f'<div><span style="color:#64748B; font-weight:600;">Tech Stack:</span> {tech_badges or "—"}</div>',
+        ])
+
         profile_grid_html = f"""
         <div style="font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Account Profile</div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 12px; background: #0F172A; border: 1px solid #1E293B; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.80rem;">
-            <div><span style="color:#64748B; font-weight:600;">Contact:</span> <span style="color:#F8FAFC;">{contact or '—'}</span></div>
-            <div><span style="color:#64748B; font-weight:600;">Job Title:</span> <span style="color:#F8FAFC;">{title or '—'}</span></div>
-            <div><span style="color:#64748B; font-weight:600;">Email:</span> <span style="color:#94A3B8; font-family:monospace; font-size:0.76rem;">{email or '—'}</span></div>
-            <div><span style="color:#64748B; font-weight:600;">Industry:</span> <span style="color:#F8FAFC;">{industry or '—'}</span></div>
-            <div><span style="color:#64748B; font-weight:600;">Company Size:</span> <span style="color:#F8FAFC;">{company_size or '—'}</span></div>
-            <div><span style="color:#64748B; font-weight:600;">Owner:</span> <span style="color:#F8FAFC;">{owner or '—'}</span></div>
-            <div><span style="color:#64748B; font-weight:600;">Lead Source:</span> <span style="color:#F8FAFC;">{source or '—'}</span></div>
-            <div><span style="color:#64748B; font-weight:600;">Tech Stack:</span> {tech_badges or '—'}</div>
+            {''.join(profile_items)}
         </div>
         """
         st.markdown(profile_grid_html, unsafe_allow_html=True)
@@ -660,10 +873,14 @@ def pipeline(config, storage, prefix):
         next_action_date = record.fields.get('next_action_date', '')
         priority = record.fields.get('priority', '')
 
-        # Line 1: Header (Company — Contact (Title) · Stage)
+        phone = record.fields.get('phone', '')
+
+        # Line 1: Header (Company — Contact (Title) · Phone · Stage)
         header_text = f"**{company}**"
         if contact:
             header_text += f" — {contact}" + (f" ({title})" if title else "")
+        if phone:
+            header_text += f" &nbsp;·&nbsp; `{phone}`"
         header_text += f" &nbsp;·&nbsp; `{stage_name}`"
 
         # Line 2: Opportunity Brief (Clean, readable text, no blockquote clipping)
@@ -785,32 +1002,76 @@ def pipeline(config, storage, prefix):
 
 
 def intelligence(config):
-    st.subheader(config.labels.intelligence)
-    st.caption('Synthetic account research and conversation guides. No enrichment services are connected.')
+    heading = config.labels.intelligence
+    st.subheader(heading)
+    if config.pipeline_type == 'sales_rep_outbound':
+        st.caption('Reusable discovery guides, buying signals, outreach angles, and objection-handling resources for common sales scenarios.')
+    else:
+        st.caption('Commercial discovery guides, client requirements, and conversation frameworks for consultative engagements.')
+
     items = IntelligenceService.load_intel(Path(__file__).resolve().parents[3] / 'intel.json.example')
-    query = st.text_input('Find intelligence', placeholder='Search by sector, keyword, or company profile...', key='public_intelligence_search')
+    query = st.text_input(
+        f"Find {heading.lower()}",
+        placeholder='Search by scenario, pain point, sector, or keyword...',
+        key='public_intelligence_search'
+    )
     cards = IntelligenceService.get_cue_cards(items, query)
     if not cards:
-        st.info('No matching intelligence. Try another search.')
+        st.info(f'No matching playbooks. Try another search.')
+        return
+
     for item in cards:
-        with st.expander(item.title, expanded=True):
+        with st.expander(f"📘 {item.title}", expanded=True):
             st.markdown(
                 f"""
-                <div style="background:#0F172A; border-left:4px solid #6366F1; border-radius:6px; padding:10px 14px; margin-bottom:10px;">
-                    <div style="color:#F8FAFC; font-size:0.92rem; font-weight:600; line-height:1.4; margin-bottom:6px;">{item.summary}</div>
-                    <div style="color:#818CF8; font-size:0.76rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">{' · '.join(item.tags)}</div>
+                <div style="background:#0F172A; border-left:4px solid #6366F1; border-radius:6px; padding:10px 14px; margin-bottom:12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="color:#818CF8; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">{' · '.join(item.tags)}</span>
+                        <span style="background:#1E293B; border:1px solid #334155; color:#94A3B8; padding:1px 6px; border-radius:3px; font-size:0.68rem; font-weight:600;">SYNTHETIC PLAYBOOK</span>
+                    </div>
+                    <div style="color:#F8FAFC; font-size:0.90rem; font-weight:600; line-height:1.4;">{item.summary}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-            if item.signals:
-                st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;'>Account Signals</div>", unsafe_allow_html=True)
-                for signal in item.signals:
-                    st.markdown(f"<div style='font-size:0.85rem; color:#E2E8F0; margin-bottom:3px;'>• {signal}</div>", unsafe_allow_html=True)
+
+            if item.context:
+                st.markdown(
+                    f"""
+                    <div style="background:#0F172A; border:1px solid #1E293B; border-radius:6px; padding:8px 12px; margin-bottom:10px; font-size:0.82rem;">
+                        <span style="color:#38BDF8; font-weight:700; text-transform:uppercase; font-size:0.70rem; letter-spacing:0.4px;">Context & Business Scenario</span>
+                        <div style="color:#CBD5E1; margin-top:2px; line-height:1.4;">{item.context}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            col_p1, col_p2 = st.columns([1, 1])
+            with col_p1:
+                if item.pain_points:
+                    st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#FCA5A5; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;'>Common Pain Points</div>", unsafe_allow_html=True)
+                    pts_html = "".join([f"<div style='font-size:0.80rem; color:#E2E8F0; margin-bottom:4px; line-height:1.35;'>• {p}</div>" for p in item.pain_points])
+                    st.markdown(f"<div style='background:#0F172A; border:1px solid #1E293B; border-radius:6px; padding:8px 12px; margin-bottom:10px;'>{pts_html}</div>", unsafe_allow_html=True)
+            with col_p2:
+                if item.signals:
+                    st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#FBBF24; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px;'>Signals to Investigate</div>", unsafe_allow_html=True)
+                    sigs_html = "".join([f"<div style='font-size:0.80rem; color:#E2E8F0; margin-bottom:4px; line-height:1.35;'>⚡ {s}</div>" for s in item.signals])
+                    st.markdown(f"<div style='background:#0F172A; border:1px solid #1E293B; border-radius:6px; padding:8px 12px; margin-bottom:10px;'>{sigs_html}</div>", unsafe_allow_html=True)
+
             if item.questions:
-                st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-top:8px; margin-bottom:4px;'>Conversation Prompts</div>", unsafe_allow_html=True)
-                for question in item.questions:
-                    st.markdown(f"<div style='background:#1E293B; border-radius:6px; padding:6px 10px; margin-bottom:4px; font-size:0.84rem; color:#CBD5E1;'><b>Prompt:</b> {question}</div>", unsafe_allow_html=True)
+                st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#38BDF8; text-transform:uppercase; letter-spacing:0.4px; margin-top:4px; margin-bottom:4px;'>Discovery Questions</div>", unsafe_allow_html=True)
+                for q in item.questions:
+                    st.code(q, language=None)
+
+            if item.outreach_angles:
+                st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#34D399; text-transform:uppercase; letter-spacing:0.4px; margin-top:6px; margin-bottom:4px;'>Suggested Outreach Angles</div>", unsafe_allow_html=True)
+                for angle in item.outreach_angles:
+                    st.code(angle, language=None)
+
+            if item.objections:
+                st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#FB7185; text-transform:uppercase; letter-spacing:0.4px; margin-top:6px; margin-bottom:4px;'>Potential Objections & Handling</div>", unsafe_allow_html=True)
+                for obj in item.objections:
+                    st.markdown(f"<div style='background:#1E293B; border-left:3px solid #FB7185; border-radius:4px; padding:6px 10px; margin-bottom:4px; font-size:0.80rem; color:#CBD5E1; line-height:1.35;'>{obj}</div>", unsafe_allow_html=True)
 
 
 def metric_cards(config, records):
@@ -944,7 +1205,10 @@ def render_public(config):
             metric_cards(config, records)
         if 'funnel' in config.dashboard_modules:
             st.subheader('Historical Conversion Funnel')
-            st.dataframe(conversion_funnel(records, config), hide_index=True, width="stretch")
+            funnel_rows = conversion_funnel(records, config)
+            render_visual_conversion_funnel(funnel_rows)
+            with st.expander('Conversion Funnel Data Table', expanded=True):
+                st.dataframe(funnel_rows, hide_index=True, width="stretch")
             st.caption('Each step counts unique records that achieved every preceding milestone. Later stage moves retain earlier achievements.')
         if 'table' in config.dashboard_modules:
             record_table(config, records)

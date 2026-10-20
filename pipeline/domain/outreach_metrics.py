@@ -90,11 +90,50 @@ def calculate_metrics(records, config):
 
 def conversion_funnel(records, config):
     cohorts, _ = historical_cohorts(records, config)
-    previous = cohorts['total']
-    rows = [{'Milestone': 'All Prospects', 'Count': len(previous), 'Conversion from Previous': None}]
-    for key, label in [('contacted', 'Contacted'), ('replied', 'Replied'), ('meeting', 'Meeting Booked'), ('opportunity', 'Opportunity Created')]:
-        reached = previous & cohorts[key]
-        rows.append({'Milestone': label, 'Count': len(reached),
-                     'Conversion from Previous': ratio(len(reached), len(previous))['value']})
+    total_cohort = cohorts['total']
+    total_count = len(total_cohort)
+
+    milestone_stage_map = {}
+    for stage in getattr(config, 'stages', []):
+        for m in getattr(stage, 'milestones', []):
+            if m not in milestone_stage_map:
+                milestone_stage_map[m] = stage.name
+
+    default_labels = {
+        'contacted': 'Contacted',
+        'replied': 'Replied',
+        'meeting': 'Meeting Booked',
+        'opportunity': 'Opportunity Created'
+    }
+
+    first_label = f"All {getattr(getattr(config, 'labels', None), 'record_plural', 'Prospects')}"
+
+    rows = [{
+        'Milestone': first_label,
+        'Count': total_count,
+        'Conversion from Previous': '—',
+        'Overall Conversion': '100.0%' if total_count > 0 else '—'
+    }]
+
+    previous = total_cohort
+    milestone_keys = ['contacted', 'replied', 'meeting', 'opportunity']
+    for key in milestone_keys:
+        label = milestone_stage_map.get(key, default_labels.get(key, key.title()))
+        reached = previous & cohorts.get(key, set())
+        cnt = len(reached)
+
+        prev_rate = ratio(cnt, len(previous))['value']
+        overall_rate = ratio(cnt, total_count)['value']
+
+        prev_str = f"{prev_rate:.1f}%" if prev_rate is not None else '—'
+        overall_str = f"{overall_rate:.1f}%" if overall_rate is not None else '—'
+
+        rows.append({
+            'Milestone': label,
+            'Count': cnt,
+            'Conversion from Previous': prev_str,
+            'Overall Conversion': overall_str
+        })
         previous = reached
+
     return rows

@@ -1,92 +1,206 @@
 [
   {
     "id": "intel-01",
-    "title": "Manufacturing handoffs",
+    "title": "Manufacturing Handoffs",
     "tags": [
       "manufacturing",
-      "operations"
+      "operations",
+      "supply chain"
     ],
-    "summary": "Fictional account playbook for disconnected sales and fulfillment teams.",
+    "summary": "Reusable discovery guide for mid-market manufacturers experiencing friction between sales quoting and shop-floor fulfillment.",
+    "context": "Industrial manufacturers where custom configurations and engineering sign-offs create friction between sales commitments and plant fulfillment schedules.",
+    "pain_points": [
+      "Sales reps manually re-keying quote specifications into legacy ERP systems",
+      "Order fulfillment stalls due to unvalidated custom engineering requests",
+      "Post-signature rework and scope creep eroding gross product margins"
+    ],
     "signals": [
-      "Repeated manual order re-entry suggests a handoff problem."
+      "ERP modernization initiatives or supply chain advisory consultant engagements",
+      "Hiring surges in plant operations or post-sales quality engineering",
+      "Customer reviews citing unexpected lead-time extensions or missed delivery dates"
     ],
     "questions": [
-      "Where does a signed order wait before fulfillment can start?"
+      "Where does a signed order typically stall between sales and plant fulfillment?",
+      "How often do engineering discrepancies require re-quoting after customer sign-off?",
+      "What is the average lead time variance between initial promise date and actual delivery?"
+    ],
+    "outreach_angles": [
+      "Frame the conversation around eliminating quote-to-fulfillment discrepancies without ripping and replacing the core ERP.",
+      "Reference how similar mid-market manufacturers cut order rework by 40% using standardized handoff gates."
+    ],
+    "objections": [
+      "\"We already have an ERP for that.\" -> Clarify that ERPs track inventory and financial records, but don't prevent front-end handoff miscommunications before manufacturing begins.",
+      "\"Our engineering team custom-checks every order.\" -> Position standardized handoffs as reducing the repetitive verification burden on senior engineers."
     ]
   },
   {
     "id": "intel-02",
-    "title": "SaaS qualification",
+    "title": "SaaS Qualification & Pipeline Rigor",
     "tags": [
       "saas",
-      "revenue"
+      "revenue",
+      "pipeline"
     ],
-    "summary": "Synthetic discovery guide for subscription businesses with uneven qualification.",
+    "summary": "Discovery guide for B2B SaaS sales teams facing uneven qualification criteria and high Stage 1 pipeline drop-off.",
+    "context": "Growing software vendors where sales development reps book meetings without strict qualification gates, resulting in bloated pipeline and low AE close rates.",
+    "pain_points": [
+      "Inconsistent qualification definitions across SDR and AE cohorts",
+      "High drop-off between initial demo and formal commercial proposal",
+      "Reps spending excessive time chasing unqualified non-decision makers"
+    ],
     "signals": [
-      "Different teams use conflicting definitions of a qualified account."
+      "Recent Series A/B funding announcements with aggressive sales hiring targets",
+      "Sales leadership transitions (new VP of Sales or CRO within last 90 days)",
+      "High SDR turnover or open postings for Sales Enablement leadership"
     ],
     "questions": [
-      "Which account signals predict a useful discovery meeting?"
+      "Which specific prospect buying signals reliably predict a useful discovery meeting?",
+      "How aligned are your SDR and AE teams on what constitutes an acceptable stage progression?",
+      "What percentage of opportunities created in Stage 1 actually advance to a commercial proposal?"
+    ],
+    "outreach_angles": [
+      "Highlight actionable strategies to increase AE win rates by filtering out low-fit pipeline early.",
+      "Share benchmarking data on pipeline velocity improvements achieved through standardized qualification."
+    ],
+    "objections": [
+      "\"Our reps already use MEDDPICC / BANT.\" -> Acknowledge the methodology, but focus on operationalizing it into daily rep workflows rather than passive training docs.",
+      "\"We need more pipeline volume, not stricter gates.\" -> Demonstrate that unqualified meetings waste AE capacity that should be spent on high-probability opportunities."
     ]
   },
   {
     "id": "intel-03",
-    "title": "Logistics visibility",
+    "title": "Logistics Exception Visibility",
     "tags": [
       "logistics",
-      "operations"
+      "operations",
+      "freight"
     ],
-    "summary": "A fictional logistics team needs shared account context.",
+    "summary": "Playbook for 3PLs and freight brokers needing unified account context and faster exception resolution across teams.",
+    "context": "Freight brokerages and logistics providers where real-time shipment updates, carrier delays, and client communications live in fragmented silos.",
+    "pain_points": [
+      "Carrier exception updates scattered across private email threads and chat channels",
+      "Account managers blindsided by customer complaints before knowing an exception occurred",
+      "High broker turnover causing institutional customer knowledge to be lost"
+    ],
     "signals": [
-      "Exception updates are scattered across internal messages."
+      "Expansion into new regional lanes or opening of additional terminal hubs",
+      "Customer reviews mentioning communication delays during freight disruptions",
+      "Job postings for Logistics Coordinators and Customer Operations Specialists"
     ],
     "questions": [
-      "How does the account owner learn that a delivery exception is resolved?"
+      "How does an account owner learn that a delivery exception has occurred before the customer calls?",
+      "What happens to account notes and relationship history when a freight broker leaves your firm?",
+      "How much time do account managers spend daily gathering status updates from dispatchers?"
+    ],
+    "outreach_angles": [
+      "Emphasize protecting shipper relationships through proactive exception notification and shared account history.",
+      "Showcase how logistics leaders reduced broker onboarding ramp time by 30% with centralized account intelligence."
+    ],
+    "objections": [
+      "\"Our TMS handles our tracking.\" -> Distinguish TMS operational tracking from commercial customer relationship and account management intelligence.",
+      "\"Brokers prefer their own spreadsheets.\" -> Emphasize reducing redundant data entry so brokers can focus on closing shipper freight."
     ]
   },
   {
     "id": "intel-04",
-    "title": "Services capacity",
+    "title": "Services Capacity & Scoping",
     "tags": [
       "services",
-      "planning"
+      "planning",
+      "consulting"
     ],
-    "summary": "Synthetic guidance for a services team balancing demand and capacity.",
+    "summary": "Consulting and professional services guide for balancing commercial commitments against delivery team utilization.",
+    "context": "Professional services and agency businesses where sales promises outpace delivery capacity, creating staffing crunches and client dissatisfaction.",
+    "pain_points": [
+      "Sales proposals submitted without visibility into upcoming delivery team utilization",
+      "Vague Statements of Work resulting in unbillable scope creep during implementation",
+      "Disjointed handoffs between business development and project delivery leaders"
+    ],
     "signals": [
-      "Sales promises and delivery capacity are reviewed separately."
+      "Rapid growth in client engagements alongside active job postings for Senior Consultants",
+      "Recent expansion into new service offerings or specialized practice areas",
+      "Glassdoor reviews from delivery staff noting burnout or unrealistic project deadlines"
     ],
     "questions": [
-      "What information is missing when you commit to a start date?"
+      "What information is currently missing when sales commits to a project kickoff date?",
+      "How do delivery leads review and validate project scope before a contract is finalized?",
+      "How do you track whether custom client requests are billable or absorbed as overhead?"
+    ],
+    "outreach_angles": [
+      "Focus on aligning commercial proposal terms directly with delivery capacity to protect project margins.",
+      "Discuss strategies for building scoping gates that prevent unbillable scope creep before contract execution."
+    ],
+    "objections": [
+      "\"Every client engagement is completely bespoke.\" -> Position standardized scoping modules as protecting baseline profitability while allowing flexible customization.",
+      "\"Sales and delivery sync weekly already.\" -> Highlight how asynchronous account intelligence prevents critical requirements from falling through the cracks between meetings."
     ]
   },
   {
     "id": "intel-05",
-    "title": "Security review",
+    "title": "Enterprise Security Review Gateways",
     "tags": [
       "security",
-      "enterprise"
+      "enterprise",
+      "compliance"
     ],
-    "summary": "Fictional battlecard for an enterprise evaluation with multiple stakeholders.",
+    "summary": "Playbook for enterprise software reps navigating late-stage security, compliance, and legal roadblocks.",
+    "context": "Enterprise SaaS sales cycles where deals stall for weeks or months during security review, InfoSec questionnaires, and compliance approvals.",
+    "pain_points": [
+      "Security evaluations initiating at the final stage of purchase rather than during technical evaluation",
+      "InfoSec questionnaires stalling deals right before quarter-end closing deadlines",
+      "Lack of pre-packaged compliance artifacts causing repetitive technical fire-drills"
+    ],
     "signals": [
-      "Security review begins late in the purchase process."
+      "Target accounts in highly regulated sectors (healthcare, financial services, defense)",
+      "Prospect organization recently appointing a new CISO or VP of Information Security",
+      "Vendor consolidation initiatives emphasizing strict enterprise compliance standards"
     ],
     "questions": [
-      "Who should join the first review to avoid a late surprise?"
+      "At what stage does your IT security committee typically enter a software procurement evaluation?",
+      "Who needs to join the initial technical review to avoid late security surprises before contracting?",
+      "What compliance certifications (SOC 2, ISO 27001, HIPAA) are mandatory prerequisites for vendor approval?"
+    ],
+    "outreach_angles": [
+      "Provide proactive security documentation and architecture briefs early to de-risk late procurement stalls.",
+      "Frame enterprise security readiness as an accelerator that cuts sales cycle length by 3 to 4 weeks."
+    ],
+    "objections": [
+      "\"Our security team rejects external software by default.\" -> Offer a standardized technical dossier and isolated tenant architecture summary designed specifically for InfoSec review.",
+      "\"We don't have time to complete another vendor security review.\" -> Show how automated compliance verification eliminates 80% of questionnaire overhead."
     ]
   },
   {
     "id": "intel-06",
-    "title": "Build versus buy",
+    "title": "Build vs. Buy Evaluation",
     "tags": [
       "technology",
-      "systems"
+      "systems",
+      "architecture"
     ],
-    "summary": "Synthetic conversation guide for teams evaluating an internal build.",
+    "summary": "Conversation framework for engaging technical buyers and executive sponsors evaluating an internal tool build.",
+    "context": "Engineering and product teams tempted to build custom internal tooling rather than adopting a specialized platform solution.",
+    "pain_points": [
+      "Initial internal build estimates ignoring ongoing maintenance, bug fixes, and feature enhancement costs",
+      "Core product roadmap delayed because senior engineers are diverted to build internal administrative tools",
+      "Internal tools lacking user polish, resulting in poor employee adoption and shadow IT workflows"
+    ],
     "signals": [
-      "Maintenance ownership is unclear after the initial implementation."
+      "Technical executives posting about developer productivity or engineering bandwidth constraints",
+      "Internal tool job postings or legacy internal systems mentioned in tech blogs",
+      "Company prioritizing core revenue product features ahead of upcoming major release"
     ],
     "questions": [
-      "Who owns fixes and reporting changes six months after launch?"
+      "Who will own feature enhancements, maintenance, and bug fixes six months after the internal tool launches?",
+      "What core customer-facing roadmap items will be delayed if engineering builds this internally?",
+      "How are you factoring long-term maintenance overhead into the total cost of ownership calculation?"
+    ],
+    "outreach_angles": [
+      "Frame the buy decision as preserving valuable engineering hours for core proprietary product differentiation.",
+      "Share an executive total-cost-of-ownership model comparing 3-year internal maintenance against turnkey software."
+    ],
+    "objections": [
+      "\"Our engineers can build a basic version in two weeks.\" -> Acknowledge prototype speed, but ask about long-term maintenance, edge cases, integrations, and user documentation.",
+      "\"We have unique requirements off-the-shelf tools can't support.\" -> Highlight modular configuration and flexible architecture that satisfies custom workflows without full custom builds."
     ]
   }
 ]

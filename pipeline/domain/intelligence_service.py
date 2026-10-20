@@ -12,6 +12,10 @@ class IntelligenceItem(BaseModel):
     tags: list[str] = Field(default_factory=list)
     signals: list[str] = Field(default_factory=list)
     questions: list[str] = Field(default_factory=list)
+    context: str = ''
+    pain_points: list[str] = Field(default_factory=list)
+    outreach_angles: list[str] = Field(default_factory=list)
+    objections: list[str] = Field(default_factory=list)
 
 
 class IntelligenceService:
@@ -26,7 +30,8 @@ class IntelligenceService:
     def get_cue_cards(items, query='', limit=6):
         tokens = set(query.lower().split())
         def score(item):
-            words = set((' '.join([item.title, item.summary, *item.tags])).lower().split())
+            searchable = [item.title, item.summary, item.context, *item.tags, *item.signals, *item.pain_points, *item.outreach_angles]
+            words = set(' '.join(searchable).lower().split())
             return len(tokens & words)
         ranked = sorted(items, key=lambda item: (-score(item), item.id))
         return [i for i in ranked if not tokens or score(i)][:limit]

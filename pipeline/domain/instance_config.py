@@ -7,7 +7,7 @@ Metric = Literal['meeting_booking_rate', 'reply_rate', 'reply_to_meeting_rate', 
 FIELD_TYPES = {
     # Core Identity & Account
     'company': 'text', 'contact': 'text', 'title': 'text', 'email': 'text',
-    'website': 'text', 'industry': 'text', 'company_size': 'text', 'tech_stack': 'text',
+    'phone': 'text', 'website': 'text', 'industry': 'text', 'company_size': 'text', 'tech_stack': 'text',
     # Opportunity Context
     'opportunity_brief': 'long_text', 'pain_points': 'long_text', 'desired_outcome': 'long_text',
     'icp_fit': 'text', 'intent_signals': 'long_text', 'acv': 'currency',

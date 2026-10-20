@@ -163,4 +163,124 @@ class TestPublicUI(unittest.TestCase):
         self.assertIn('Next:', rendered)
         self.assertIn('ACV', rendered)
         self.assertIn('Edit', rendered)
+        self.assertIn('(617) 555-0193', rendered)
+
+    def test_safe_synthetic_domains_and_reserved_phone_numbers(self):
+        fixtures_dir = Path(__file__).resolve().parents[2] / 'examples/fixtures'
+        sales_records = json.loads((fixtures_dir / 'demo_prospects.json').read_text(encoding='utf-8'))
+        b2b_records = json.loads((fixtures_dir / 'demo_b2b_services.json').read_text(encoding='utf-8'))
+
+        import re
+        phone_pattern = re.compile(r'^\(([2-9][0-9]{2})\) 555-01([0-9]{2})$')
+
+        for rec in sales_records:
+            fields = rec['fields']
+            email = fields.get('email', '')
+            website = fields.get('website', '')
+            phone = fields.get('phone', '')
+
+            if email:
+                self.assertTrue(email.endswith('.example.com'), f'Unsafe email domain: {email}')
+            if website:
+                self.assertTrue('.example.com' in website, f'Unsafe website domain: {website}')
+            if phone:
+                m = phone_pattern.match(phone)
+                self.assertIsNotNone(m, f'Phone not in reserved (NPA) 555-0100..0199 range: {phone}')
+                last_two = int(m.group(2))
+                self.assertTrue(0 <= last_two <= 99)
+
+        for rec in b2b_records:
+            fields = rec['fields']
+            email = fields.get('email', '')
+            if email:
+                self.assertTrue(email.endswith('.example.com'), f'Unsafe B2B email domain: {email}')
+
+    def test_phone_field_optional_creation_and_persistence(self):
+        app = AppTest.from_file(str(APP), default_timeout=20).run()
+        self.assertFalse(app.exception)
+        app.radio(key='public_navigation').set_value('intake').run()
+
+        # 1. Test creation with minimal required data (no phone)
+        app.text_input(key='public_0_intake_company').set_value('Minimal Prospect LLC')
+        app.text_input(key='public_0_intake_contact').set_value('Jordan Minimal')
+        next(b for b in app.button if b.label == 'Add Prospect').click().run()
+        self.assertFalse(app.exception)
+
+        created_min = app.session_state['_demo_store'].list_records()[-1]
+        self.assertEqual(created_min.fields['company'], 'Minimal Prospect LLC')
+        self.assertEqual(created_min.fields.get('phone', ''), '')
+
+        # 2. Test creation with valid reserved phone number
+        app.text_input(key='public_0_intake_company').set_value('Phone Prospect Corp')
+        app.text_input(key='public_0_intake_contact').set_value('Taylor Phone')
+        app.text_input(key='public_0_intake_phone').set_value('(415) 555-0142')
+        next(b for b in app.button if b.label == 'Add Prospect').click().run()
+        self.assertFalse(app.exception)
+
+        created_phone = app.session_state['_demo_store'].list_records()[-1]
+        self.assertEqual(created_phone.fields['company'], 'Phone Prospect Corp')
+        self.assertEqual(created_phone.fields['phone'], '(415) 555-0142')
+
+    def test_analytics_percentage_formatting_and_visual_funnel(self):
+        from pipeline.domain.outreach_metrics import conversion_funnel
+        app = AppTest.from_file(str(APP), default_timeout=20).run()
+        self.assertFalse(app.exception)
+        records = app.session_state['_demo_store'].list_records()
+        cfg = app.session_state['_demo_store'].config
+
+        funnel = conversion_funnel(records, cfg)
+        self.assertEqual(len(funnel), 5)
+        self.assertEqual([r['Count'] for r in funnel], [40, 30, 17, 10, 4])
+        self.assertEqual(funnel[0]['Conversion from Previous'], '—')
+        self.assertEqual(funnel[0]['Overall Conversion'], '100.0%')
+        self.assertEqual(funnel[1]['Conversion from Previous'], '75.0%')
+        self.assertEqual(funnel[1]['Overall Conversion'], '75.0%')
+        self.assertEqual(funnel[2]['Conversion from Previous'], '56.7%')
+        self.assertEqual(funnel[2]['Overall Conversion'], '42.5%')
+        self.assertEqual(funnel[3]['Conversion from Previous'], '58.8%')
+        self.assertEqual(funnel[3]['Overall Conversion'], '25.0%')
+        self.assertEqual(funnel[4]['Conversion from Previous'], '40.0%')
+        self.assertEqual(funnel[4]['Overall Conversion'], '10.0%')
+
+        # Navigate to analytics and ensure visual funnel and table render cleanly
+        app.radio(key='public_navigation').set_value('analytics').run()
+        self.assertFalse(app.exception)
+        all_md = " ".join(m.value for m in app.markdown)
+        self.assertIn('Conversion Pipeline Funnel', all_md)
+        self.assertTrue(any('Historical Conversion Funnel' in s.value for s in app.subheader))
+
+    def test_sales_playbooks_navigation_and_content(self):
+        app = AppTest.from_file(str(APP), default_timeout=20).run()
+        self.assertFalse(app.exception)
+
+        # Sales Rep workspace should show Sales Playbooks
+        app.radio(key='public_navigation').set_value('intelligence').run()
+        self.assertFalse(app.exception)
+        rendered = str(app)
+        self.assertIn('Sales Playbooks', rendered)
+        self.assertIn('Manufacturing Handoffs', rendered)
+
+        all_md = " ".join(m.value for m in app.markdown)
+        self.assertIn('Context & Business Scenario', all_md)
+        self.assertIn('Common Pain Points', all_md)
+        self.assertIn('Signals to Investigate', all_md)
+        self.assertIn('Discovery Questions', all_md)
+        self.assertIn('Suggested Outreach Angles', all_md)
+        self.assertIn('Potential Objections', all_md)
+        self.assertIn('SYNTHETIC PLAYBOOK', all_md)
+
+        # Verify discovery questions and outreach angles exist in copyable code blocks
+        all_code = " ".join(c.value for c in app.code)
+        self.assertIn('where does a signed order typically stall', all_code.lower())
+        self.assertIn('frame the conversation around eliminating quote-to-fulfillment discrepancies', all_code.lower())
+        self.assertTrue(len(app.code) >= 6)
+
+        # Switch to B2B Services workspace
+        app.selectbox(key='demo_workspace_selector').set_value('b2b_services').run()
+        self.assertFalse(app.exception)
+        app.radio(key='public_navigation').set_value('intelligence').run()
+        self.assertFalse(app.exception)
+        b2b_rendered = str(app)
+        self.assertTrue('Client Intelligence' in b2b_rendered or 'Intelligence' in b2b_rendered)
+
 

@@ -135,6 +135,16 @@
         "format": "text"
       },
       {
+        "key": "phone",
+        "label": "Phone",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
         "key": "website",
         "label": "Website",
         "type": "text",
@@ -390,7 +400,7 @@
       },
       {
         "id": "intelligence",
-        "label": "Intelligence"
+        "label": "Sales Playbooks"
       }
     ],
     "features": {
@@ -417,7 +427,7 @@
       "save": "Save Changes",
       "add_note": "Log Activity",
       "reset": "Reset Demo Data",
-      "intelligence": "Prospect Intelligence"
+      "intelligence": "Sales Playbooks"
     },
     "metrics": [
       "meeting_booking_rate",
