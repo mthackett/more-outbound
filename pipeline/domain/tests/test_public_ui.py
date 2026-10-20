@@ -118,3 +118,47 @@ class TestPublicUI(unittest.TestCase):
             before = path.read_bytes()
             self.assertEqual(IntelligenceService.load_career_stories(path)[0].story_id, 'legacy')
             self.assertEqual(path.read_bytes(), before)
+
+    def test_workspace_switching_and_preservation(self):
+        app = AppTest.from_file(str(APP), default_timeout=20).run()
+        self.assertFalse(app.exception)
+        # Verify initial Sales Rep workspace
+        sales_records = app.session_state['_demo_store'].list_records()
+        self.assertEqual(len(sales_records), 40)
+        first_id = sales_records[0].id
+        self.assertEqual(sales_records[0].fields['company'], 'Lumina HealthTech')
+
+        # Make an edit in Sales Rep
+        app.selectbox(key=f'public_0_stage_{first_id}').set_value('meeting_booked')
+        next(b for b in app.button if b.label == 'Save Changes').click().run()
+        self.assertFalse(app.exception)
+        rec = next(r for r in app.session_state['_demo_store'].list_records() if r.id == first_id)
+        self.assertEqual(rec.stage_id, 'meeting_booked')
+
+        # Switch to B2B Services workspace
+        app.selectbox(key='demo_workspace_selector').set_value('b2b_services').run()
+        self.assertFalse(app.exception)
+        b2b_records = app.session_state['_demo_store'].list_records()
+        self.assertEqual(len(b2b_records), 20)
+        self.assertEqual(b2b_records[0].fields['company'], 'Acme Global Consulting')
+        self.assertIn('Client Opportunities', [s.label for s in app.metric])
+
+        # Switch back to Sales Rep workspace and verify preservation of edit
+        app.selectbox(key='demo_workspace_selector').set_value('sales_rep').run()
+        self.assertFalse(app.exception)
+        preserved_records = app.session_state['_demo_store'].list_records()
+        self.assertEqual(len(preserved_records), 40)
+        rec_preserved = next(r for r in preserved_records if r.id == first_id)
+        self.assertEqual(rec_preserved.stage_id, 'meeting_booked')
+
+    def test_opportunity_card_and_workspace_rendering(self):
+        app = AppTest.from_file(str(APP), default_timeout=20).run()
+        self.assertFalse(app.exception)
+        rendered = str(app)
+        # Check for card elements: Opportunity brief, badges, next action
+        self.assertIn('Lumina HealthTech', rendered)
+        self.assertIn('High Fit', rendered)
+        self.assertIn('Next:', rendered)
+        self.assertIn('ACV', rendered)
+        self.assertIn('Edit', rendered)
+

@@ -1,14 +1,14 @@
 {
   "instance_config": {
     "schema_version": 1,
-    "instance_id": "b2b-outbound-demo",
+    "instance_id": "sales-rep-demo",
     "mode": "demo",
     "storage": "memory",
-    "pipeline_type": "b2b_outbound",
+    "pipeline_type": "sales_rep_outbound",
     "display_name": "More Outbound",
-    "page_title": "More Outbound — B2B Pipeline",
-    "page_subtitle": "Fictional accounts. Real pipeline intelligence. Explore, edit, and reset your own session.",
-    "page_icon": "🚀",
+    "page_title": "More Outbound \u2014 Sales Prospecting & Pipeline Intelligence",
+    "page_subtitle": "Know who to contact, why they're worth contacting, what to say, and what to do next.",
+    "page_icon": "\ud83c\udfaf",
     "stale_threshold_days": 7,
     "stages": [
       {
@@ -100,6 +100,8 @@
         "type": "text",
         "required": true,
         "card": true,
+        "table": true,
+        "intake": true,
         "format": "text"
       },
       {
@@ -108,6 +110,8 @@
         "type": "text",
         "required": true,
         "card": true,
+        "table": true,
+        "intake": true,
         "format": "text"
       },
       {
@@ -116,30 +120,158 @@
         "type": "text",
         "required": false,
         "card": true,
+        "table": true,
+        "intake": true,
         "format": "text"
       },
       {
-        "key": "acv",
-        "label": "Annual Contract Value",
-        "type": "currency",
+        "key": "email",
+        "label": "Email",
+        "type": "text",
         "required": false,
-        "card": true,
-        "format": "currency"
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "website",
+        "label": "Website",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
       },
       {
         "key": "industry",
         "label": "Industry",
         "type": "text",
         "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "company_size",
+        "label": "Company Size",
+        "type": "text",
+        "required": false,
         "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "tech_stack",
+        "label": "Tech Stack",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "acv",
+        "label": "Estimated ACV",
+        "type": "currency",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "currency"
+      },
+      {
+        "key": "opportunity_brief",
+        "label": "Opportunity Brief",
+        "type": "long_text",
+        "required": false,
+        "card": true,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "pain_points",
+        "label": "Pain Points & Needs",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "desired_outcome",
+        "label": "Desired Outcome",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "icp_fit",
+        "label": "ICP Fit",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "intent_signals",
+        "label": "Intent & Buying Signals",
+        "type": "long_text",
+        "required": false,
+        "card": true,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "qualification_notes",
+        "label": "Qualification Notes",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "opportunity_owner",
+        "label": "Opportunity Owner",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
         "format": "text"
       },
       {
         "key": "source",
-        "label": "Source",
+        "label": "Lead Source",
         "type": "text",
         "required": false,
         "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "priority",
+        "label": "Priority",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
         "format": "text"
       },
       {
@@ -147,23 +279,99 @@
         "label": "Next Action",
         "type": "text",
         "required": false,
-        "card": false,
+        "card": true,
+        "table": true,
+        "intake": true,
         "format": "text"
       },
       {
         "key": "next_action_date",
-        "label": "Next Action Date",
+        "label": "Next Action Due",
         "type": "date",
         "required": false,
-        "card": false,
+        "card": true,
+        "table": true,
+        "intake": true,
         "format": "date"
       },
       {
+        "key": "follow_up_status",
+        "label": "Follow-up Status",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
         "key": "notes",
-        "label": "Notes",
+        "label": "Account Notes",
         "type": "long_text",
         "required": false,
         "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "fit_rationale",
+        "label": "Fit Rationale",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": false,
+        "format": "text"
+      },
+      {
+        "key": "opportunity_rationale",
+        "label": "Opportunity Rationale",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": false,
+        "format": "text"
+      },
+      {
+        "key": "suggested_action",
+        "label": "Suggested Action",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": false,
+        "format": "text"
+      },
+      {
+        "key": "suggested_angle",
+        "label": "Suggested Outreach Angle",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": false,
+        "format": "text"
+      },
+      {
+        "key": "discovery_questions",
+        "label": "Discovery Questions",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": false,
+        "format": "text"
+      },
+      {
+        "key": "objections",
+        "label": "Potential Objections",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": false,
         "format": "text"
       }
     ],
@@ -204,12 +412,12 @@
     "labels": {
       "record_singular": "Prospect",
       "record_plural": "Prospects",
-      "stage": "Stage",
+      "stage": "Pipeline Stage",
       "create": "Add Prospect",
       "save": "Save Changes",
       "add_note": "Add Note",
       "reset": "Reset Demo Data",
-      "intelligence": "Account Intelligence"
+      "intelligence": "Prospect Intelligence"
     },
     "metrics": [
       "meeting_booking_rate",

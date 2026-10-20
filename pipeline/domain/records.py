@@ -18,7 +18,7 @@ class StageEvent(BaseModel):
 
 class Activity(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
-    kind: Literal['note', 'contacted', 'replied', 'meeting', 'meeting_canceled', 'opportunity']
+    kind: Literal['note', 'contacted', 'replied', 'meeting', 'meeting_canceled', 'opportunity', 'call', 'email', 'follow_up']
     text: str = ''
     occurred_at: str = Field(default_factory=timestamp)
 

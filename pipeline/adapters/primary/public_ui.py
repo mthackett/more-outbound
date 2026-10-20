@@ -1,9 +1,9 @@
 """Configuration-driven public views. Imports no private workflow or provider."""
+import datetime
 import hashlib
 import json
 from pathlib import Path
 import streamlit as st
-import streamlit.components.v1 as components
 from pipeline.adapters.primary.runtime import select_session
 from pipeline.adapters.secondary.memory_records import MemoryRecordStorage
 from pipeline.domain.records import format_field
@@ -11,6 +11,7 @@ from pipeline.domain.intelligence_service import IntelligenceService
 from pipeline.domain.outreach_metrics import calculate_metrics, conversion_funnel
 
 STAGE_STYLES = {
+    # Sales Rep Stages
     'identified': {
         'bg': '#1E293B',
         'fg': '#94A3B8',
@@ -65,12 +66,55 @@ STAGE_STYLES = {
         'border': '#334155',
         'badge_bg': '#1E293B',
     },
+    # B2B Services Stages
+    'inquiry': {
+        'bg': '#1E293B',
+        'fg': '#94A3B8',
+        'border': '#334155',
+        'badge_bg': '#0F172A',
+    },
+    'scoping': {
+        'bg': '#0C4A6E33',
+        'fg': '#38BDF8',
+        'border': '#0284C755',
+        'badge_bg': '#0369A122',
+    },
+    'proposal_dev': {
+        'bg': '#312E8133',
+        'fg': '#A5B4FC',
+        'border': '#4F46E555',
+        'badge_bg': '#4338CA22',
+    },
+    'proposal_sent': {
+        'bg': '#164E6333',
+        'fg': '#22D3EE',
+        'border': '#0891B255',
+        'badge_bg': '#0E749022',
+    },
+    'negotiation': {
+        'bg': '#451A0333',
+        'fg': '#FBBF24',
+        'border': '#D9770655',
+        'badge_bg': '#B4530922',
+    },
+    'contract_awarded': {
+        'bg': '#064E3B33',
+        'fg': '#34D399',
+        'border': '#05966955',
+        'badge_bg': '#04785722',
+    },
+    'lost': {
+        'bg': '#4C051933',
+        'fg': '#FB7185',
+        'border': '#E11D4855',
+        'badge_bg': '#9F123922',
+    },
 }
 
 PUBLIC_THEME_CSS = """
 <style>
     .block-container {
-        padding-top: 2.5rem;
+        padding-top: 2.2rem;
         padding-bottom: 2rem;
     }
     .demo-main-title {
@@ -86,7 +130,7 @@ PUBLIC_THEME_CSS = """
         margin-bottom: 0.85rem;
         line-height: 1.4;
     }
-    /* Compact headline 6-metric KPI cards: centered labels and values */
+    /* Compact headline KPI cards: centered labels and values */
     div[data-testid="stMetric"] {
         background-color: #0F172A;
         border: 1px solid #334155;
@@ -141,218 +185,36 @@ PUBLIC_THEME_CSS = """
         text-align: center !important;
         width: 100% !important;
     }
-    /* Compact two-line pipeline card styling */
-    div[data-testid="stExpander"] details {
+    /* Workspace Card Container Styling */
+    .opp-workspace-card {
+        background-color: #0B132B;
+        border: 1px solid #1E293B;
         border-radius: 8px;
-        border: 1px solid #334155;
-        background-color: #0B1120;
-        margin-bottom: 6px;
-        transition: border-color 0.15s ease;
-    }
-    div[data-testid="stExpander"] details:hover {
-        border-color: #475569;
-    }
-    div[data-testid="stExpander"] details summary {
-        padding: 8px 12px;
-        cursor: pointer;
-    }
-    div[data-testid="stExpander"] details summary p {
-        margin-top: 0px !important;
-        margin-bottom: 2px !important;
-        line-height: 1.32;
-    }
-    /* Form & Container styling */
-    div[data-testid="stForm"] {
-        border: 1px solid #334155;
-        border-radius: 8px;
-        background-color: #0F172A44;
-        padding: 14px;
-    }
-    /* Subtle custom Reset button in sidebar */
-    div.st-key-public_reset button {
-        background-color: #1E293B !important;
-        border: 1px solid #334155 !important;
-        color: #E2E8F0 !important;
-        font-size: 0.82rem !important;
-        font-weight: 600 !important;
-        transition: all 0.15s ease !important;
-    }
-    div.st-key-public_reset button:hover {
-        background-color: #7F1D1D33 !important;
-        border-color: #DC2626 !important;
-        color: #FCA5A5 !important;
+        padding: 14px 16px;
+        margin-bottom: 12px;
     }
 </style>
 """
 
 
-def render_outreach_resources_sidebar():
-    sections = [
-        {
-            "category": "Target ICP Profiles",
-            "items": [
-                ("VP RevOps", "ICP Target: VP of Revenue Operations. Primary pain: disparate CRM data, siloed outbound tooling, manual pipeline hygiene. Value angle: automated pipeline intelligence and unified qualification."),
-                ("Head of Sales", "ICP Target: Head of Sales / VP Sales. Primary pain: low SDR conversion, slow lead response times, missed targets. Value angle: multi-channel sequence cadence and verified account insights."),
-                ("Dir Growth", "ICP Target: Director of Growth. Primary pain: scaling outbound pipeline without proportional rep headcount. Value angle: automated lead qualification rules and instant response workflows."),
-                ("CRO", "ICP Target: Chief Revenue Officer. Primary pain: unpredictable forecast, pipeline leakage, unmonitored deal velocity. Value angle: executive pipeline visibility and conversion telemetry."),
-            ]
-        },
-        {
-            "category": "Campaign Playbooks",
-            "items": [
-                ("Executive Sequence", "Subject: Quick question regarding outbound infrastructure\\n\\nHi - Noticed your team expanding your sales footprint. Revenue teams often hit a bottleneck when qualification data stays scattered across sheets. We automated full-funnel intelligence so reps focus solely on high-fit accounts. Open to a brief 5-minute preview this week?"),
-                ("Value Trigger", "Subject: Scaling pipeline velocity\\n\\nHi - Following up on recent market signals in your space. Our partners typically see booking rates improve by 30%+ in 14 days without modifying their existing CRM stack. Would you be open to seeing the benchmark playbook?"),
-                ("Tech Stack Audit", "Subject: Quick audit on outbound tech stack\\n\\nHi - We completed a synthetic benchmark on outreach conversion across B2B platforms. Would you like a 1-page summary of findings for your team?"),
-                ("Breakup Touchpoint", "Subject: Closing the loop\\n\\nHi - Haven't heard back, so I assume pipeline automation isn't top of mind right now. I'll pause outreach for now. If anything changes down the line, feel free to reach back out anytime."),
-            ]
-        },
-        {
-            "category": "Objection Scripts",
-            "items": [
-                ("Timing / Budget", "Talk track: Understood on the budget pause. Our architecture requires zero upfront commitments and runs alongside your existing CRM in an isolated sandbox. Let's run a 14-day zero-risk trial to prove ROI before budget cycles open."),
-                ("Already Have Tool", "Talk track: Completely expected. Most teams we work with already use HubSpot, Salesforce, or Apollo. We sit on top of your existing CRM to score opportunities before reps spend time on low-fit prospects."),
-                ("Send by Email", "Talk track: Happy to! To make sure I share what's most relevant to your team, are you primarily looking to improve response rates or automate lead qualification?"),
-                ("Not a Priority", "Talk track: Understood. What is the single biggest initiative your revenue team is tackling this quarter? Let's stay in touch when pipeline expansion moves up the queue."),
-            ]
-        }
-    ]
-
-    html_sections = ""
-    total_rows = 0
-    for sec in sections:
-        cat_name = sec["category"]
-        links = sec["items"]
-        total_rows += (len(links) + 1) // 2
-        html_sections += f'<div class="res-category-title">{cat_name}</div><div class="res-grid">'
-        for label, snippet in links:
-            safe_text = json.dumps(snippet)
-            html_sections += f'<button type="button" class="res-btn" title="Click to copy playbook reference" onclick=\'copyText({safe_text}, this, event)\'>{label}</button>'
-        html_sections += '</div>'
-
-    doc_html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-    <meta charset="utf-8">
-    <style>
-        body {{
-            margin: 0;
-            padding: 2px 2px 6px 2px;
-            background: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #F8FAFC;
-            overflow-x: hidden;
-        }}
-        .res-category-title {{
-            font-size: 0.70rem;
-            font-weight: 700;
-            color: #94A3B8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 8px 0 4px 0;
-            padding-bottom: 2px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-        }}
-        .res-category-title:first-child {{
-            margin-top: 1px;
-        }}
-        .res-grid {{
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 4px;
-            margin-bottom: 6px;
-        }}
-        .res-btn {{
-            background: #1E293B;
-            color: #E2E8F0;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            padding: 5px 6px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: all 0.15s ease;
-            user-select: none;
-            width: 100%;
-            box-sizing: border-box;
-        }}
-        .res-btn:hover {{
-            background: #334155;
-            color: #FFFFFF;
-            border-color: #6366F1;
-        }}
-        .res-btn:active {{
-            transform: scale(0.97);
-        }}
-    </style>
-    </head>
-    <body>
-        {html_sections}
-        <script>
-        function copyText(text, btn, e) {{
-            if (e) {{
-                e.preventDefault();
-                e.stopPropagation();
-            }}
-            if (navigator.clipboard && navigator.clipboard.writeText) {{
-                navigator.clipboard.writeText(text).then(() => onSuccess(btn)).catch(() => fallback(text, btn));
-            }} else {{
-                fallback(text, btn);
-            }}
-        }}
-        function fallback(text, btn) {{
-            var ta = document.createElement('textarea');
-            ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.left = '-9999px';
-            document.body.appendChild(ta);
-            ta.focus();
-            ta.select();
-            try {{
-                document.execCommand('copy');
-                onSuccess(btn);
-            }} catch(e) {{
-                console.error(e);
-            }}
-            document.body.removeChild(ta);
-        }}
-        function onSuccess(btn) {{
-            var orig = btn.innerText;
-            btn.innerText = 'Copied';
-            btn.style.background = '#065F46';
-            btn.style.borderColor = '#10B981';
-            btn.style.color = '#A7F3D0';
-            setTimeout(() => {{
-                btn.innerText = orig;
-                btn.style.background = '#1E293B';
-                btn.style.borderColor = '#334155';
-                btn.style.color = '#E2E8F0';
-            }}, 1200);
-        }}
-        </script>
-    </body>
-    </html>
-    """
-    iframe_height = max(50, len(sections) * 26 + total_rows * 32 + 16)
-    if hasattr(st, "html"):
-        st.html(doc_html, unsafe_allow_javascript=True)
-    else:
-        components.html(doc_html, height=iframe_height, scrolling=False)
-
-
-def session_storage(config):
-    identity = 'demo:' + hashlib.sha256(config.model_dump_json().encode()).hexdigest()
-    select_session(st.session_state, identity)
-    if '_demo_store' not in st.session_state:
+def session_storage(config, workspace_key=None):
+    select_session(st.session_state, 'demo')
+    ws_key = workspace_key or config.pipeline_type or 'sales_rep'
+    cfg_hash = hashlib.sha256(config.model_dump_json().encode()).hexdigest()[:12]
+    store_key = f"{ws_key}_{cfg_hash}"
+    if '_demo_workspace_stores' not in st.session_state:
+        st.session_state['_demo_workspace_stores'] = {}
+    stores = st.session_state['_demo_workspace_stores']
+    if store_key not in stores:
         seed = []
-        if config.seed == 'b2b_prospects':
-            seed = json.loads((Path(__file__).resolve().parents[2] / 'examples/fixtures/demo_prospects.json').read_text(encoding='utf-8'))
-        st.session_state['_demo_store'] = MemoryRecordStorage(config, seed)
-    return st.session_state['_demo_store']
+        fixtures_dir = Path(__file__).resolve().parents[2] / 'examples/fixtures'
+        if config.seed in ('b2b_prospects', 'sales_rep_prospects'):
+            seed = json.loads((fixtures_dir / 'demo_prospects.json').read_text(encoding='utf-8'))
+        elif config.seed == 'b2b_services_prospects':
+            seed = json.loads((fixtures_dir / 'demo_b2b_services.json').read_text(encoding='utf-8'))
+        stores[store_key] = MemoryRecordStorage(config, seed)
+    st.session_state['_demo_store'] = stores[store_key]
+    return stores[store_key]
 
 
 def input_fields(config, prefix, values=None, intake=False):
@@ -370,8 +232,14 @@ def input_fields(config, prefix, values=None, intake=False):
         if field.type == 'currency':
             result[field.key] = st.number_input(label, min_value=0.0, value=float(value) if value is not None else None, key=key)
         elif field.type == 'date':
-            value = st.date_input(label, value=value or None, key=key)
-            result[field.key] = value.isoformat() if value else None
+            val_date = value or None
+            if isinstance(val_date, str):
+                try:
+                    val_date = datetime.date.fromisoformat(val_date)
+                except ValueError:
+                    val_date = None
+            date_res = st.date_input(label, value=val_date, key=key)
+            result[field.key] = date_res.isoformat() if date_res else None
         elif field.type == 'long_text':
             result[field.key] = st.text_area(label, value=value or '', max_chars=field.max_length, key=key)
         else:
@@ -398,7 +266,7 @@ def intake(config, storage, prefix):
 def record_table(config, records):
     stages = {s.id: s.name for s in config.stages}
     rows = [{**{f.label: format_field(f, r.fields.get(f.key)) for f in config.fields if f.visible and f.table},
-             config.labels.stage: stages[r.stage_id]} for r in records]
+             config.labels.stage: stages.get(r.stage_id, r.stage_id)} for r in records]
     st.dataframe(rows, hide_index=True, width="stretch")
 
 
@@ -408,6 +276,13 @@ def pipeline_distribution_bar(config, records):
         if r.stage_id in stage_counts:
             stage_counts[r.stage_id] += 1
 
+    today_str = datetime.date.today().isoformat()
+    overdue_cnt = sum(1 for r in records if r.fields.get('next_action_date') and str(r.fields.get('next_action_date')) < today_str and r.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'))
+    today_cnt = sum(1 for r in records if str(r.fields.get('next_action_date')) == today_str and r.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'))
+    replied_cnt = sum(1 for r in records if r.stage_id in ('replied', 'proposal_sent'))
+    active_cnt = sum(1 for r in records if any(s.id == r.stage_id and s.active for s in config.stages))
+    total_cnt = len(records)
+
     items_html = []
     for s in config.stages:
         cnt = stage_counts.get(s.id, 0)
@@ -415,16 +290,248 @@ def pipeline_distribution_bar(config, records):
         items_html.append(f"<span style='color: #94A3B8;'>{s.name}:</span> <b style='color: {style['fg']};'>{cnt}</b>")
 
     breakdown_str = " &nbsp;·&nbsp; ".join(items_html)
-    active_cnt = sum(stage_counts[s.id] for s in config.stages if s.active)
-    total_cnt = len(records)
+
+    # Operational Priorities Alert Row
+    priority_badges = [
+        f"<span style='color:#38BDF8;'><b>{active_cnt}</b> Active Opportunities</span>"
+    ]
+    if overdue_cnt > 0:
+        priority_badges.append(f"<span style='color:#FB7185;'>⚠️ <b>{overdue_cnt}</b> Overdue Actions</span>")
+    if today_cnt > 0:
+        priority_badges.append(f"<span style='color:#FBBF24;'>📅 <b>{today_cnt}</b> Due Today</span>")
+    if replied_cnt > 0:
+        priority_badges.append(f"<span style='color:#34D399;'>💬 <b>{replied_cnt}</b> Awaiting Follow-up</span>")
+
+    priority_str = " &nbsp;|&nbsp; ".join(priority_badges)
 
     st.markdown(
-        f"<div style='margin-top: 4px; margin-bottom: 12px; font-size: 0.82rem; color: #94A3B8; background: #0F172A; padding: 7px 14px; border-radius: 6px; border: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;'>"
-        f"<div><span style='color: #F8FAFC; font-weight: 600;'>Pipeline Distribution:</span> &nbsp; {breakdown_str}</div>"
-        f"<div style='color: #64748B; font-size: 0.78rem;'>Active: {active_cnt} of {total_cnt}</div>"
-        f"</div>",
+        f"""
+        <div style='margin-top: 4px; margin-bottom: 10px; font-size: 0.82rem; color: #94A3B8; background: #0F172A; padding: 8px 14px; border-radius: 6px; border: 1px solid #334155;'>
+            <div style='display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 4px;'>
+                <div><span style='color: #F8FAFC; font-weight: 700; text-transform: uppercase; font-size: 0.74rem; letter-spacing: 0.5px;'>Daily Priorities:</span> &nbsp; {priority_str}</div>
+                <div style='color: #64748B; font-size: 0.77rem;'>Total Tracked: {total_cnt}</div>
+            </div>
+            <div style='border-top: 1px solid #1E293B; padding-top: 5px; font-size: 0.79rem;'>
+                <span style='color: #94A3B8; font-weight: 600;'>Stage Distribution:</span> &nbsp; {breakdown_str}
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True
     )
+
+
+def render_opportunity_workspace(config, storage, record, stages, prefix):
+    """Read-first opportunity workspace emphasizing decisions, context, and actions."""
+    company = record.fields.get('company', '')
+    contact = record.fields.get('contact', '')
+    title = record.fields.get('title', '')
+    email = record.fields.get('email', '')
+    website = record.fields.get('website', '')
+    industry = record.fields.get('industry', '')
+    company_size = record.fields.get('company_size', '')
+    tech_stack = record.fields.get('tech_stack', '')
+    acv = record.fields.get('acv')
+    brief = record.fields.get('opportunity_brief', '')
+    pain_points = record.fields.get('pain_points', '')
+    desired_outcome = record.fields.get('desired_outcome', '')
+    icp_fit = record.fields.get('icp_fit', '')
+    intent = record.fields.get('intent_signals', '')
+    qual_notes = record.fields.get('qualification_notes', '')
+    owner = record.fields.get('opportunity_owner', '')
+    source = record.fields.get('source', '')
+    priority = record.fields.get('priority', '')
+    next_action = record.fields.get('next_action', '')
+    next_action_date = record.fields.get('next_action_date', '')
+    follow_up_status = record.fields.get('follow_up_status', '')
+    notes = record.fields.get('notes', '')
+    
+    # Intelligence fields
+    fit_rationale = record.fields.get('fit_rationale', '')
+    opp_rationale = record.fields.get('opportunity_rationale', '')
+    suggested_action = record.fields.get('suggested_action', '')
+    suggested_angle = record.fields.get('suggested_angle', '')
+    discovery_questions = record.fields.get('discovery_questions', '')
+    objections = record.fields.get('objections', '')
+
+    stage_name = stages.get(record.stage_id, record.stage_id)
+    st_style = STAGE_STYLES.get(record.stage_id, {'bg': '#1E293B', 'fg': '#CBD5E1', 'border': '#334155'})
+
+    # --- SECTION A: OPPORTUNITY OVERVIEW ---
+    pills_html = [
+        f"<span style='background:{st_style['bg']}; color:{st_style['fg']}; border:1px solid {st_style['border']}; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;'>{stage_name}</span>"
+    ]
+    if acv is not None:
+        try:
+            pills_html.append(f"<span style='background:#064E3B33; color:#34D399; border:1px solid #05966955; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;'>${float(acv):,.0f} ACV</span>")
+        except (ValueError, TypeError):
+            pass
+    if icp_fit:
+        icp_color = '#38BDF8' if icp_fit == 'High' else '#FBBF24'
+        pills_html.append(f"<span style='background:#0F172A; color:{icp_color}; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;'>🎯 {icp_fit} Fit</span>")
+    if priority:
+        pills_html.append(f"<span style='background:#0F172A; color:#E2E8F0; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;'>⚡ {priority} Priority</span>")
+    if source:
+        pills_html.append(f"<span style='background:#0F172A; color:#94A3B8; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;'>📡 {source}</span>")
+
+    st.markdown(f"<div style='margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 6px;'>{''.join(pills_html)}</div>", unsafe_allow_html=True)
+
+    if brief:
+        st.markdown(
+            f"""
+            <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%); border-left: 4px solid #6366F1; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;">
+                <div style="font-size: 0.74rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Opportunity Brief</div>
+                <div style="font-size: 0.92rem; color: #F8FAFC; line-height: 1.45; font-weight: 500;">{brief}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # --- SECTION B: NEXT ACTION (HERO CONTAINER) ---
+    today_str = datetime.date.today().isoformat()
+    is_overdue = bool(next_action_date and str(next_action_date) < today_str and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'))
+    is_today = bool(next_action_date and str(next_action_date) == today_str)
+    due_badge = f"<span style='color:#FB7185; font-weight:700;'>⚠️ Due {next_action_date} (Overdue)</span>" if is_overdue else (f"<span style='color:#FBBF24; font-weight:700;'>📅 Due Today</span>" if is_today else f"<span style='color:#CBD5E1;'>📅 {next_action_date or 'No date set'}</span>")
+
+    action_box_html = f"""
+    <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <div style="font-size: 0.72rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px;">Recommended Next Action</div>
+            <div style="font-size: 0.95rem; font-weight: 600; color: #F8FAFC; margin-top: 2px;">🎯 {next_action or 'Identify next milestone'}</div>
+        </div>
+        <div style="font-size: 0.82rem; text-align: right;">
+            <div>{due_badge}</div>
+            <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 2px;">Status: {follow_up_status or 'Active'}</div>
+        </div>
+    </div>
+    """
+    st.markdown(action_box_html, unsafe_allow_html=True)
+
+    # Two-Column Workspace Layout
+    col_left, col_right = st.columns([1, 1])
+
+    with col_left:
+        # --- SECTION C: ACCOUNT & QUALIFICATION DETAILS ---
+        st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;'>Account Profile & Qualification</div>", unsafe_allow_html=True)
+        
+        details_items = []
+        if contact:
+            details_items.append(f"<b>Contact:</b> {contact}" + (f" ({title})" if title else ""))
+        if email:
+            details_items.append(f"<b>Email:</b> <code style='font-size:0.78rem;'>{email}</code>")
+        if industry:
+            details_items.append(f"<b>Industry:</b> {industry}")
+        if company_size:
+            details_items.append(f"<b>Size:</b> {company_size}")
+        if tech_stack:
+            details_items.append(f"<b>Tech:</b> {tech_stack}")
+        if owner:
+            details_items.append(f"<b>Owner:</b> {owner}")
+
+        if details_items:
+            st.markdown(
+                f"<div style='background:#0F172A; border:1px solid #1E293B; border-radius:6px; padding:8px 12px; font-size:0.83rem; color:#CBD5E1; line-height:1.7; margin-bottom:10px;'>"
+                + " &nbsp;·&nbsp; ".join(details_items)
+                + "</div>",
+                unsafe_allow_html=True
+            )
+
+        if pain_points:
+            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Pain Points & Needs:</b> {pain_points}</div>", unsafe_allow_html=True)
+        if desired_outcome:
+            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Desired Outcome:</b> {desired_outcome}</div>", unsafe_allow_html=True)
+        if intent:
+            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Intent Signals:</b> {intent}</div>", unsafe_allow_html=True)
+        if qual_notes:
+            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Qualification Notes:</b> {qual_notes}</div>", unsafe_allow_html=True)
+
+        # --- SECTION D: ACCOUNT INTELLIGENCE ---
+        if fit_rationale or opp_rationale or suggested_angle or discovery_questions or objections:
+            st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.4px; margin-top:14px; margin-bottom:6px;'>Account Intelligence</div>", unsafe_allow_html=True)
+            
+            if fit_rationale:
+                st.markdown(f"<div style='background:#0F172A; border-left:3px solid #38BDF8; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#E2E8F0;'><b>💡 Fit Rationale:</b> {fit_rationale}</div>", unsafe_allow_html=True)
+            if opp_rationale:
+                st.markdown(f"<div style='background:#0F172A; border-left:3px solid #FBBF24; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#E2E8F0;'><b>⏰ Why Contact Now:</b> {opp_rationale}</div>", unsafe_allow_html=True)
+            if suggested_angle:
+                st.markdown("<div style='font-size:0.80rem; font-weight:600; color:#94A3B8; margin-top:6px; margin-bottom:2px;'>💬 Suggested Outreach Angle (Click copy icon in top-right of block):</div>", unsafe_allow_html=True)
+                st.code(suggested_angle, language="text")
+            if discovery_questions:
+                st.markdown(f"<div style='background:#0F172A; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#CBD5E1;'><b>❓ Discovery Questions:</b> {discovery_questions}</div>", unsafe_allow_html=True)
+            if objections:
+                st.markdown(f"<div style='background:#0F172A; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#CBD5E1;'><b>🛡️ Potential Objections:</b> {objections}</div>", unsafe_allow_html=True)
+
+    with col_right:
+        # --- SECTION E: ACTIVITIES AND TIMELINE ---
+        st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;'>Pipeline Stage & Action Tracking</div>", unsafe_allow_html=True)
+
+        # Quick Stage Update
+        with st.form(f"{prefix}_stage_form_{record.id}"):
+            col_st1, col_st2 = st.columns([3, 2])
+            with col_st1:
+                new_stage = st.selectbox(
+                    config.labels.stage,
+                    list(stages),
+                    index=list(stages).index(record.stage_id) if record.stage_id in stages else 0,
+                    format_func=stages.get,
+                    key=f"{prefix}_stage_{record.id}"
+                )
+            with col_st2:
+                st.write("")
+                save_stage = st.form_submit_button(config.labels.save, use_container_width=True)
+            if save_stage:
+                try:
+                    storage.update(record.id, {}, new_stage)
+                except ValueError as exc:
+                    st.error(str(exc))
+                else:
+                    st.session_state['_demo_flash'] = 'Stage updated.'
+                    st.rerun()
+
+        # Log Activity Form
+        if config.features.activities:
+            with st.form(f"{prefix}_activity_{record.id}", clear_on_submit=True):
+                col_act1, col_act2 = st.columns([2, 1])
+                with col_act1:
+                    text = st.text_area('Activity Summary / Note', max_chars=2000, key=f"{prefix}_note_{record.id}", height=70)
+                with col_act2:
+                    kind = st.selectbox(
+                        'Activity Type',
+                        ['call', 'email', 'contacted', 'replied', 'meeting', 'note', 'follow_up'],
+                        format_func=lambda v: {'call': '📞 Call', 'email': '✉️ Email', 'contacted': '📤 Contacted', 'replied': '💬 Replied', 'meeting': '📅 Meeting', 'note': '📝 Note', 'follow_up': '🔄 Follow-up'}.get(v, v.title()),
+                        key=f"{prefix}_kind_{record.id}"
+                    )
+                    add = st.form_submit_button(config.labels.add_note, use_container_width=True)
+                if add:
+                    try:
+                        storage.add_activity(record.id, kind, text)
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.rerun()
+
+        # Chronological Timeline
+        if record.activities:
+            st.caption('Activity Timeline')
+            kind_icons = {'call': '📞', 'email': '✉️', 'contacted': '📤', 'replied': '💬', 'meeting': '📅', 'opportunity': '🏆', 'note': '📝', 'follow_up': '🔄'}
+            timeline_items = []
+            for act in reversed(record.activities):
+                icon = kind_icons.get(act.kind, '📝')
+                time_str = act.occurred_at[:10] if hasattr(act, 'occurred_at') and act.occurred_at else ''
+                timeline_items.append(
+                    f"<div style='border-left: 2px solid #334155; padding-left: 10px; margin-bottom: 8px; font-size: 0.81rem;'>"
+                    f"<div style='color: #94A3B8; font-size: 0.72rem;'>{icon} <b>{act.kind.replace('_', ' ').title()}</b> &nbsp;·&nbsp; {time_str}</div>"
+                    f"<div style='color: #E2E8F0; margin-top: 2px;'>{act.text}</div>"
+                    f"</div>"
+                )
+            st.markdown(f"<div style='max-height: 220px; overflow-y: auto;'>{''.join(timeline_items)}</div>", unsafe_allow_html=True)
+
+        if record.stage_history:
+            st.caption('Stage Progression History')
+            st.dataframe(
+                [{'Stage': stages.get(e.stage_id, e.stage_id), 'Entered': e.entered_at[:10] if e.entered_at else '—'} for e in record.stage_history],
+                hide_index=True,
+                width="stretch"
+            )
 
 
 def pipeline(config, storage, prefix):
@@ -490,8 +597,14 @@ def pipeline(config, storage, prefix):
         industry = record.fields.get('industry', '')
         source = record.fields.get('source', '')
         stage_name = stages.get(record.stage_id, record.stage_id)
+        brief = record.fields.get('opportunity_brief') or record.fields.get('notes', '')
+        icp_fit = record.fields.get('icp_fit', '')
+        tech_stack = record.fields.get('tech_stack', '')
+        intent = record.fields.get('intent_signals', '')
+        next_action = record.fields.get('next_action', '')
+        next_action_date = record.fields.get('next_action_date', '')
 
-        # Line 1: Company — Contact (Title)
+        # Line 1: Header (Account — Contact (Title) · Stage)
         if company and contact:
             line1 = f"**{company}** — {contact}" + (f" ({title})" if title else "")
         elif company:
@@ -500,83 +613,102 @@ def pipeline(config, storage, prefix):
             line1 = f"**{contact}**" + (f" ({title})" if title else "")
         else:
             line1 = f"**{config.labels.record_singular} #{record.id}**"
+        line1 += f" &nbsp;·&nbsp; `{stage_name}`"
 
-        # Line 2: Stage pill · Industry · Source · ACV
-        line2_items = [f"`{stage_name}`"]
-        if industry:
-            line2_items.append(f"`{industry}`")
-        if source:
-            line2_items.append(f"`{source}`")
+        # Line 2: Opportunity Context (Brief + Badges)
+        line2_parts = []
+        if brief:
+            short_brief = brief.strip()
+            if len(short_brief) > 125:
+                short_brief = short_brief[:122] + "..."
+            line2_parts.append(f"> {short_brief}")
+
+        context_badges = []
+        if icp_fit:
+            context_badges.append(f"🎯 {icp_fit} Fit")
+        if intent:
+            short_intent = intent.split('·')[0].strip()
+            if len(short_intent) > 28:
+                short_intent = short_intent[:25] + "..."
+            context_badges.append(f"⚡ {short_intent}")
+        if tech_stack:
+            short_tech = tech_stack.split('·')[0].strip()
+            context_badges.append(f"🛠️ {short_tech}")
+        elif industry:
+            context_badges.append(f"🏢 {industry}")
+
+        if context_badges:
+            line2_parts.append(" &nbsp;|&nbsp; " + " · ".join(context_badges))
+
+        line2_str = "".join(line2_parts)
+
+        # Line 3: Action Footer (Next Action · Due Date · ACV)
+        line3_items = []
+        if next_action:
+            short_na = next_action if len(next_action) <= 55 else next_action[:52] + "..."
+            line3_items.append(f"👉 **Next:** {short_na}")
+        if next_action_date:
+            today_str = datetime.date.today().isoformat()
+            if str(next_action_date) < today_str and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'):
+                line3_items.append(f":red[⚠️ Due {next_action_date} (Overdue)]")
+            elif str(next_action_date) == today_str:
+                line3_items.append(f":orange[📅 Due Today]")
+            else:
+                line3_items.append(f"📅 {next_action_date}")
         if acv is not None:
             try:
                 acv_val = float(acv)
-                line2_items.append(f":green[${acv_val:,.0f} ACV]")
+                line3_items.append(f":green[${acv_val:,.0f} ACV]")
             except (ValueError, TypeError):
-                line2_items.append(f":green[{acv}]")
+                line3_items.append(f":green[{acv}]")
 
-        line2_str = " · ".join(line2_items)
-        card_header = f"{line1}\n\n{line2_str}"
+        line3_str = " &nbsp;·&nbsp; ".join(line3_items)
+        card_header = f"{line1}\n\n{line2_str}\n\n{line3_str}" if line2_str else f"{line1}\n\n{line3_str}"
 
         with st.expander(card_header):
-            st_style = STAGE_STYLES.get(record.stage_id, {'bg': '#1E293B', 'fg': '#CBD5E1', 'border': '#334155'})
-            pills_html = [
-                f"<span style='background:{st_style['bg']}; color:{st_style['fg']}; border:1px solid {st_style['border']}; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;'>{stage_name}</span>"
-            ]
-            if industry:
-                pills_html.append(f"<span style='background:#0F172A; color:#94A3B8; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;'>{industry}</span>")
-            if source:
-                pills_html.append(f"<span style='background:#0F172A; color:#94A3B8; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;'>{source}</span>")
-            if acv is not None:
-                try:
-                    pills_html.append(f"<span style='background:#064E3B22; color:#34D399; border:1px solid #05966944; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;'>${float(acv):,.0f} ACV</span>")
-                except (ValueError, TypeError):
-                    pass
+            is_editing = st.session_state.get(f'{prefix}_editing_{record.id}', False)
 
-            st.markdown(f"<div style='margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px;'>{''.join(pills_html)}</div>", unsafe_allow_html=True)
+            # Top Header Bar with Edit Toggle Button
+            col_bar1, col_bar2 = st.columns([5, 1])
+            with col_bar1:
+                st.markdown(f"#### 💼 {company} — Opportunity Workspace")
+            with col_bar2:
+                if st.button("✏️ Edit" if not is_editing else "✖️ View", key=f"{prefix}_btn_toggle_{record.id}", use_container_width=True):
+                    st.session_state[f'{prefix}_editing_{record.id}'] = not is_editing
+                    st.rerun()
 
-            col_detail, col_activity = st.columns([1, 1])
-
-            with col_detail:
-                st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;'>Record Details</div>", unsafe_allow_html=True)
-                if config.features.edit_records:
-                    with st.form(prefix + '_edit_' + record.id):
-                        values = input_fields(config, prefix + '_' + record.id, record.fields)
-                        stage = st.selectbox(config.labels.stage, list(stages), index=list(stages).index(record.stage_id),
-                                             format_func=stages.get, key=prefix + '_stage_' + record.id)
-                        save = st.form_submit_button(config.labels.save)
-                    if save:
-                        try:
-                            storage.update(record.id, values, stage)
-                        except ValueError as exc:
-                            st.error(str(exc))
-                        else:
-                            st.session_state['_demo_flash'] = 'Changes saved.'
-                            st.rerun()
-                else:
-                    for field in config.fields:
-                        if field.visible:
-                            st.text(f'{field.label}: {format_field(field, record.fields.get(field.key))}')
-
-            with col_activity:
-                st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;'>Activity & Timeline</div>", unsafe_allow_html=True)
-                if config.features.activities:
-                    with st.form(prefix + '_activity_' + record.id, clear_on_submit=True):
-                        text = st.text_area('Activity / Note', max_chars=2000, key=prefix + '_note_' + record.id)
-                        kind = st.selectbox('Activity Type', ['note', 'contacted', 'replied', 'meeting', 'meeting_canceled', 'opportunity'],
-                                            format_func=lambda value: value.replace('_', ' ').title(), key=prefix + '_kind_' + record.id)
-                        add = st.form_submit_button(config.labels.add_note)
-                    if add:
-                        try:
-                            storage.add_activity(record.id, kind, text)
-                        except ValueError as exc:
-                            st.error(str(exc))
-                        else:
-                            st.rerun()
-                if record.activities:
-                    st.caption('Activity History')
-                    st.dataframe([a.model_dump(exclude={'id'}) for a in record.activities], hide_index=True, width="stretch")
-                st.caption('Stage History')
-                st.dataframe([{'Stage': stages[e.stage_id], 'Entered': e.entered_at} for e in record.stage_history], hide_index=True, width="stretch")
+            if is_editing:
+                # Section F: Edit Mode
+                st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px;'>✏️ Edit Opportunity Details</div>", unsafe_allow_html=True)
+                with st.form(f"{prefix}_edit_{record.id}"):
+                    values = input_fields(config, f"{prefix}_{record.id}", record.fields)
+                    stage = st.selectbox(
+                        config.labels.stage,
+                        list(stages),
+                        index=list(stages).index(record.stage_id) if record.stage_id in stages else 0,
+                        format_func=stages.get,
+                        key=f"{prefix}_stage_{record.id}"
+                    )
+                    col_save, col_cancel = st.columns([1, 1])
+                    with col_save:
+                        save = st.form_submit_button(config.labels.save, use_container_width=True)
+                    with col_cancel:
+                        cancel = st.form_submit_button("Cancel", use_container_width=True)
+                if save:
+                    try:
+                        storage.update(record.id, values, stage)
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.session_state[f'{prefix}_editing_{record.id}'] = False
+                        st.session_state['_demo_flash'] = 'Changes saved.'
+                        st.rerun()
+                if cancel:
+                    st.session_state[f'{prefix}_editing_{record.id}'] = False
+                    st.rerun()
+            else:
+                # Read-First Opportunity Workspace
+                render_opportunity_workspace(config, storage, record, stages, prefix)
 
 
 def intelligence(config):
@@ -608,18 +740,48 @@ def intelligence(config):
                     st.markdown(f"<div style='background:#1E293B; border-radius:6px; padding:6px 10px; margin-bottom:4px; font-size:0.84rem; color:#CBD5E1;'><b>Prompt:</b> {question}</div>", unsafe_allow_html=True)
 
 
+def metric_cards(config, records):
+    metrics = calculate_metrics(records, config)
+    if not metrics:
+        return
+    col_count = len(metrics) if len(metrics) <= 6 else 6
+    columns = st.columns(col_count)
+    for index, (key, metric) in enumerate(metrics.items()):
+        value = metric['value']
+        display = '—' if value is None else (f'{value:.1f}%' if metric['format'] == 'percent' else
+                                           f'${value:,.0f}' if metric['format'] == 'currency' else str(value))
+        label = config.labels.record_plural if key == 'total' else metric['label']
+        target_col = columns[index % col_count]
+        target_col.metric(label, display)
+        if 'denominator' in metric:
+            target_col.caption(f"{metric['numerator']} / {metric['denominator']} unique prospects")
+
+
 def render_public(config):
+    import os
+    workspace_options = {
+        'sales_rep': 'Sales Rep (Outbound Prospecting)',
+        'b2b_services': 'B2B Services (Client Opportunities)',
+    }
+    default_ws = 'b2b_services' if config.pipeline_type == 'b2b_services' else 'sales_rep'
+    active_ws = st.session_state.get('demo_workspace_selector', default_ws)
+
+    # Dynamically load selected workspace configuration if user switched workspaces
+    if not os.environ.get('PIPELINE_INSTANCE_CONFIG'):
+        if active_ws == 'b2b_services' and config.pipeline_type != 'b2b_services':
+            from pipeline.domain.instance_loader import load_demo_config
+            b2b_path = Path(__file__).resolve().parents[3] / 'config' / 'demo_b2b_services.json'
+            config = load_demo_config(b2b_path)
+        elif active_ws == 'sales_rep' and config.pipeline_type == 'b2b_services':
+            from pipeline.domain.instance_loader import load_demo_config
+            sales_path = Path(__file__).resolve().parents[3] / 'config' / 'demo_sales_rep.json'
+            config = load_demo_config(sales_path)
+
     try:
-        storage = session_storage(config)
+        storage = session_storage(config, active_ws)
     except (OSError, ValueError):
         st.error('Demo data does not match its configuration. No integrations were started.')
         return
-
-    st.markdown(PUBLIC_THEME_CSS, unsafe_allow_html=True)
-
-    # Main Page Title & Subtitle with custom classes
-    st.markdown(f'<div class="demo-main-title">{config.page_title}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="demo-sub-title">{config.page_subtitle}</div>', unsafe_allow_html=True)
 
     # Sidebar Brand Header
     st.sidebar.markdown(
@@ -645,6 +807,37 @@ def render_public(config):
                 <div style="font-size: 0.70rem; font-weight: 600; color: #818CF8; text-transform: uppercase; letter-spacing: 0.6px;">Pipeline Intelligence</div>
             </div>
         </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Demo Workspace Selector (Section 2)
+    st.sidebar.markdown(
+        "<div style='font-size:0.72rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;'>Demo Workspace</div>",
+        unsafe_allow_html=True
+    )
+    selected_ws = st.sidebar.selectbox(
+        'Demo Workspace',
+        list(workspace_options.keys()),
+        index=0 if active_ws == 'sales_rep' else 1,
+        format_func=workspace_options.get,
+        key='demo_workspace_selector',
+        label_visibility='collapsed'
+    )
+    st.sidebar.caption("More Outbound adapts pipeline stages, fields, and workflows via configuration.")
+
+    if selected_ws != active_ws:
+        st.rerun()
+
+    st.markdown(PUBLIC_THEME_CSS, unsafe_allow_html=True)
+
+    # Main Page Title & Subtitle with custom classes
+    st.markdown(f'<div class="demo-main-title">{config.page_title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="demo-sub-title">{config.page_subtitle}</div>', unsafe_allow_html=True)
+
+    # Subtle Demo Sandbox Indicator (Section 7)
+    st.sidebar.markdown(
+        """
         <div style="background: #0F172A; border: 1px solid #1E293B; border-left: 3px solid #6366F1; border-radius: 6px; padding: 7px 10px; margin-bottom: 12px; font-size: 0.77rem; color: #94A3B8; line-height: 1.35;">
             <strong style="color: #F8FAFC;">Demo Sandbox</strong><br>
             Isolated visitor session. No live integrations or messages are sent.
@@ -658,12 +851,7 @@ def render_public(config):
     nav = {n.id: n.label for n in config.navigation}
     destination = st.sidebar.radio('Navigate', list(nav), format_func=nav.get, key='public_navigation')
 
-    # Sidebar Outreach Resources (collapsible playbook)
-    with st.sidebar.expander("Outreach Resources", expanded=False):
-        render_outreach_resources_sidebar()
-
-    # Sidebar Session Controls
-    st.sidebar.markdown("<div style='font-size:0.72rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-top:14px; margin-bottom:6px;'>Session Controls</div>", unsafe_allow_html=True)
+    # Optional reset button if enabled in feature config (for programmatic test compatibility)
     if config.features.reset_demo_data and st.sidebar.button(config.labels.reset, key='public_reset', use_container_width=True):
         storage.reset()
         st.session_state['_demo_epoch'] = st.session_state.get('_demo_epoch', 0) + 1
@@ -672,20 +860,6 @@ def render_public(config):
                 del st.session_state[key]
         st.session_state['_demo_flash'] = 'Demo data reset for this session.'
         st.rerun()
-
-    # Sidebar Sandbox Architecture Details
-    with st.sidebar.expander("Sandbox Architecture", expanded=False):
-        st.markdown(
-            """
-            <div style="font-size: 0.77rem; color: #94A3B8; line-height: 1.6;">
-                <div><span style="color: #34D399; font-weight: 800;">●</span> <b style="color: #F8FAFC;">Storage:</b> Ephemeral In-Memory</div>
-                <div><span style="color: #38BDF8; font-weight: 800;">●</span> <b style="color: #F8FAFC;">Network:</b> Zero External I/O</div>
-                <div><span style="color: #A5B4FC; font-weight: 800;">●</span> <b style="color: #F8FAFC;">Dataset:</b> 40 Synthetic Accounts</div>
-                <div><span style="color: #FBBF24; font-weight: 800;">●</span> <b style="color: #F8FAFC;">Isolation:</b> Per-Visitor Session</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
     st.sidebar.caption(f"**{config.display_name}** · Public Demo")
 
@@ -712,20 +886,3 @@ def render_public(config):
         if 'table' in config.dashboard_modules:
             record_table(config, records)
         st.caption('Booking counts any recorded booking, including a later cancellation. Closed and disqualified prospects retain their history. Missing evidence is not inferred; a zero denominator displays —.')
-
-
-def metric_cards(config, records):
-    metrics = calculate_metrics(records, config)
-    if not metrics:
-        return
-    col_count = len(metrics) if len(metrics) <= 6 else 6
-    columns = st.columns(col_count)
-    for index, (key, metric) in enumerate(metrics.items()):
-        value = metric['value']
-        display = '—' if value is None else (f'{value:.1f}%' if metric['format'] == 'percent' else
-                                           f'${value:,.0f}' if metric['format'] == 'currency' else str(value))
-        label = config.labels.record_plural if key == 'total' else metric['label']
-        target_col = columns[index % col_count]
-        target_col.metric(label, display)
-        if 'denominator' in metric:
-            target_col.caption(f"{metric['numerator']} / {metric['denominator']} unique prospects")

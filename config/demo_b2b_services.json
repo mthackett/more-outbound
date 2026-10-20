@@ -1,0 +1,311 @@
+{
+  "instance_config": {
+    "schema_version": 1,
+    "instance_id": "b2b-services-demo",
+    "mode": "demo",
+    "storage": "memory",
+    "pipeline_type": "b2b_services",
+    "display_name": "More Outbound",
+    "page_title": "More Outbound \u2014 B2B Services Workspace",
+    "page_subtitle": "Commercial qualification, client requirements, and opportunity management.",
+    "page_icon": "\ud83d\udcbc",
+    "stale_threshold_days": 14,
+    "stages": [
+      {
+        "id": "inquiry",
+        "name": "New Inquiry",
+        "category": "open",
+        "active": true,
+        "terminal": false,
+        "milestones": []
+      },
+      {
+        "id": "scoping",
+        "name": "Discovery & Scoping",
+        "category": "open",
+        "active": true,
+        "terminal": false,
+        "milestones": []
+      },
+      {
+        "id": "proposal_dev",
+        "name": "Proposal Preparation",
+        "category": "active",
+        "active": true,
+        "terminal": false,
+        "milestones": [
+          "contacted"
+        ]
+      },
+      {
+        "id": "proposal_sent",
+        "name": "Proposal Delivered",
+        "category": "active",
+        "active": true,
+        "terminal": false,
+        "milestones": [
+          "replied"
+        ]
+      },
+      {
+        "id": "negotiation",
+        "name": "Commercial Negotiation",
+        "category": "active",
+        "active": true,
+        "terminal": false,
+        "milestones": [
+          "meeting"
+        ]
+      },
+      {
+        "id": "contract_awarded",
+        "name": "Contract Awarded",
+        "category": "converted",
+        "active": false,
+        "terminal": true,
+        "milestones": [
+          "opportunity"
+        ]
+      },
+      {
+        "id": "lost",
+        "name": "Declined / Lost",
+        "category": "closed",
+        "active": false,
+        "terminal": true,
+        "milestones": []
+      }
+    ],
+    "initial_stage": "inquiry",
+    "fields": [
+      {
+        "key": "company",
+        "label": "Client Organization",
+        "type": "text",
+        "required": true,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "contact",
+        "label": "Primary Stakeholder",
+        "type": "text",
+        "required": true,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "title",
+        "label": "Role / Title",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "email",
+        "label": "Email",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "industry",
+        "label": "Client Sector",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "acv",
+        "label": "Project Contract Value",
+        "type": "currency",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "currency"
+      },
+      {
+        "key": "opportunity_brief",
+        "label": "Engagement Brief",
+        "type": "long_text",
+        "required": false,
+        "card": true,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "pain_points",
+        "label": "Client Gaps & Needs",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "desired_outcome",
+        "label": "Target Deliverables",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "tech_stack",
+        "label": "Client Tech Stack",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "qualification_notes",
+        "label": "Budget & Terms",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "opportunity_owner",
+        "label": "Engagement Lead",
+        "type": "text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "source",
+        "label": "Referral Source",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "priority",
+        "label": "Deal Priority",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "next_action",
+        "label": "Next Deliverable",
+        "type": "text",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "text"
+      },
+      {
+        "key": "next_action_date",
+        "label": "Target Date",
+        "type": "date",
+        "required": false,
+        "card": true,
+        "table": true,
+        "intake": true,
+        "format": "date"
+      },
+      {
+        "key": "notes",
+        "label": "Engagement Notes",
+        "type": "long_text",
+        "required": false,
+        "card": false,
+        "table": false,
+        "intake": true,
+        "format": "text"
+      }
+    ],
+    "navigation": [
+      {
+        "id": "pipeline",
+        "label": "Pipeline"
+      },
+      {
+        "id": "intake",
+        "label": "New Opportunity"
+      },
+      {
+        "id": "analytics",
+        "label": "Analytics"
+      },
+      {
+        "id": "intelligence",
+        "label": "Intelligence"
+      }
+    ],
+    "features": {
+      "create_records": true,
+      "edit_records": true,
+      "activities": true,
+      "intelligence": true,
+      "reset_demo_data": true,
+      "resume_matching": false,
+      "screening_qa": false,
+      "role_intelligence_docx": false
+    },
+    "integrations": {
+      "google_workspace": false,
+      "openai": false,
+      "twilio": false,
+      "gmail": false
+    },
+    "labels": {
+      "record_singular": "Client Opportunity",
+      "record_plural": "Client Opportunities",
+      "stage": "Deal Stage",
+      "create": "New Opportunity",
+      "save": "Save Opportunity",
+      "add_note": "Log Interaction",
+      "reset": "Reset Demo Data",
+      "intelligence": "Client Intelligence"
+    },
+    "metrics": [
+      "meeting_booking_rate",
+      "reply_rate",
+      "reply_to_meeting_rate",
+      "total",
+      "active",
+      "pipeline_value"
+    ],
+    "dashboard_modules": [
+      "metrics",
+      "funnel",
+      "table"
+    ],
+    "seed": "b2b_services_prospects"
+  }
+}

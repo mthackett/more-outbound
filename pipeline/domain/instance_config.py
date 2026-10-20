@@ -5,9 +5,21 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 Milestone = Literal['contacted', 'replied', 'meeting', 'opportunity']
 Metric = Literal['meeting_booking_rate', 'reply_rate', 'reply_to_meeting_rate', 'total', 'active', 'pipeline_value']
 FIELD_TYPES = {
-    'company': 'text', 'contact': 'text', 'title': 'text', 'acv': 'currency',
-    'source': 'text', 'notes': 'long_text', 'next_action': 'text',
-    'next_action_date': 'date', 'industry': 'text',
+    # Core Identity & Account
+    'company': 'text', 'contact': 'text', 'title': 'text', 'email': 'text',
+    'website': 'text', 'industry': 'text', 'company_size': 'text', 'tech_stack': 'text',
+    # Opportunity Context
+    'opportunity_brief': 'long_text', 'pain_points': 'long_text', 'desired_outcome': 'long_text',
+    'icp_fit': 'text', 'intent_signals': 'long_text', 'acv': 'currency',
+    'qualification_notes': 'long_text', 'opportunity_owner': 'text',
+    # Pipeline, Attribution & Execution
+    'source': 'text', 'priority': 'text', 'next_action': 'text',
+    'next_action_date': 'date', 'follow_up_status': 'text', 'notes': 'long_text',
+    'last_activity_date': 'date',
+    # Structured Intelligence
+    'fit_rationale': 'long_text', 'opportunity_rationale': 'long_text',
+    'suggested_action': 'text', 'suggested_angle': 'long_text',
+    'discovery_questions': 'long_text', 'objections': 'long_text',
 }
 
 
@@ -95,7 +107,7 @@ class InstanceCapabilities(StrictConfig):
     schema_version: Literal[1] = 1
     mode: Literal['private', 'demo'] = 'private'
     storage: Literal['google', 'memory'] = 'google'
-    seed: Literal['empty', 'b2b_prospects'] = 'empty'
+    seed: Literal['empty', 'b2b_prospects', 'sales_rep_prospects', 'b2b_services_prospects'] = 'empty'
     stages: list[StageConfig] = Field(default_factory=list)
     initial_stage: str = ''
     fields: list[FieldConfig] = Field(default_factory=list)

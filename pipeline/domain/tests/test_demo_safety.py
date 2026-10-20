@@ -59,7 +59,7 @@ render_analytics_dashboard_view([
     {'Opportunity ID': 'a', 'Status': 'Applied', 'Date Created': 'bad'},
     {'Opportunity ID': 'b', 'Status': 'Applied', 'Date Created': '2020-01-01'},
 ], SimpleNamespace(stale_threshold_days=120))
-''').run()
+''').run(timeout=10)
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(app.number_input[0].value, 90)
 

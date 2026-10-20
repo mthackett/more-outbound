@@ -7,7 +7,7 @@ param(
 
 $projectDir = $PSScriptRoot
 $pythonExe = Join-Path $projectDir ".venv\Scripts\python.exe"
-$url = "http://localhost:8501"
+$url = "http://127.0.0.1:8501"
 
 # Verify local environment
 if (-not (Test-Path $pythonExe)) {
@@ -16,7 +16,7 @@ if (-not (Test-Path $pythonExe)) {
 }
 
 # Launch More Outbound server
-Write-Host "Launching More Outbound local dev server..."
+Write-Host "Launching More Outbound local dev server ($Mode mode)..."
 
 Add-Type -AssemblyName System.Net.Http
 
@@ -30,7 +30,7 @@ Start-Process `
 Write-Host "Waiting for Streamlit server..."
 
 $client = [System.Net.Http.HttpClient]::new()
-$client.Timeout = [TimeSpan]::FromMilliseconds(200)
+$client.Timeout = [TimeSpan]::FromMilliseconds(500)
 
 $ready = $false
 $timer = [System.Diagnostics.Stopwatch]::StartNew()
