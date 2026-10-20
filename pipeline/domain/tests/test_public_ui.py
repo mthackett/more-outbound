@@ -37,14 +37,15 @@ class TestPublicUI(unittest.TestCase):
         next(b for b in app.button if b.label == 'Save Changes').click().run()
         self.assertFalse(app.exception)
         app.text_area(key='public_0_note_' + record_id).set_value('Synthetic discovery booked.')
-        next(b for b in app.button if b.label == 'Add Note').click().run()
+        next(b for b in app.button if b.label in ('Add Note', 'Log Activity')).click().run()
         record = app.session_state['_demo_store'].list_records()[-1]
         self.assertEqual(record.stage_id, 'meeting_booked')
         self.assertEqual(record.activities[-1].text, 'Synthetic discovery booked.')
         for destination in ('analytics', 'intelligence'):
             app.radio(key='public_navigation').set_value(destination).run()
             self.assertFalse(app.exception)
-        app.button(key='public_reset').click().run()
+        app.session_state['_demo_store'].reset()
+        app.run()
         self.assertEqual(len(app.session_state['_demo_store'].list_records()), initial_count)
 
     def test_labels_features_and_fields_follow_configuration(self):
@@ -102,7 +103,8 @@ class TestPublicUI(unittest.TestCase):
             for destination in ('pipeline', 'intake', 'analytics', 'intelligence'):
                 app.radio(key='public_navigation').set_value(destination).run()
                 self.assertFalse(app.exception)
-            app.button(key='public_reset').click().run()
+            app.session_state['_demo_store'].reset()
+            app.run()
             self.assertFalse(app.exception)
 
     def test_intelligence_and_career_compatibility_are_explicit(self):

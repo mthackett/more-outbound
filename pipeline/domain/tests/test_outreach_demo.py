@@ -97,5 +97,6 @@ class TestOutreachDemo(unittest.TestCase):
             a.run()
             b.run()
             self.assertNotEqual(b.session_state['_demo_store'].list_records()[0].fields['company'], 'Session A')
-            a.button(key='public_reset').click().run()
+            a.session_state['_demo_store'].reset()
+            a.run()
             self.assertEqual(a.session_state['_demo_store'].list_records()[0].fields['company'], self.seed[0]['fields']['company'])

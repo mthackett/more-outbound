@@ -21,7 +21,7 @@ SALES_PROSPECTS_DATA = [
     # 1-4: Identified
     {
         "company": "Lumina HealthTech", "contact": "Elena Rostova", "title": "VP of Revenue Operations",
-        "email": "elena.rostova@lumina-health.invalid", "website": "https://lumina-health.invalid",
+        "email": "elena.rostova@luminahealth.com", "website": "https://luminahealth.com",
         "industry": "HealthTech", "company_size": "250-500", "tech_stack": "Salesforce · HubSpot · Gong",
         "opportunity_brief": "Rapidly scaling clinical analytics sales team; looking to unify cross-region pipeline visibility and standardize next-action discipline.",
         "pain_points": "SDRs spend 45% of their working hours manually researching hospital systems; significant conversion drop-off after Stage 1.",
@@ -35,13 +35,13 @@ SALES_PROSPECTS_DATA = [
         "fit_rationale": "Perfect ICP match with high rep density and existing Salesforce infrastructure.",
         "opportunity_rationale": "Elena joined 60 days ago and announced an overhaul of sales productivity tools for Q4.",
         "suggested_action": "Reach out with executive benchmarking study on clinical sales cycle velocity.",
-        "suggested_angle": "Showcase how account briefs reduce prep time from 40 mins to 5 mins per enterprise target.",
+        "suggested_angle": "Showcase how standardized account briefs accelerate pre-call context prep for clinical sales targets.",
         "discovery_questions": "How do your enterprise reps currently prepare account context before clinical discovery calls?",
-        "objections": "Security review concerns (reassure that More Outbound can operate in isolated client sandboxes)."
+        "objections": "Security review concerns regarding data privacy (confirm strict tenant isolation and SOC 2 alignment)."
     },
     {
         "company": "Veloce Logistics", "contact": "Marcus Vance", "title": "Director of Sales Enablement",
-        "email": "m.vance@velocelogistics.invalid", "website": "https://velocelogistics.invalid",
+        "email": "m.vance@velocelogistics.com", "website": "https://velocelogistics.com",
         "industry": "Supply Chain & Logistics", "company_size": "500-1000", "tech_stack": "Salesforce · Outreach · Snowflake",
         "opportunity_brief": "Freight brokerage expanding cold outbound into mid-market shippers across the Midwest.",
         "pain_points": "High broker turnover causing lost account intelligence and dropped follow-ups with major manufacturers.",
@@ -57,11 +57,11 @@ SALES_PROSPECTS_DATA = [
         "suggested_action": "Connect on LinkedIn with freight shipper intelligence angle.",
         "suggested_angle": "Showcase how rep ramp time dropped 35% in logistics sales teams.",
         "discovery_questions": "What happens to account notes when a mid-market rep leaves the team?",
-        "objections": "We already have Outreach (explain that More Outbound organizes pipeline intelligence before sending)."
+        "objections": "We already use a sequencer (clarify how pipeline intelligence organizes account context before execution)."
     },
     {
         "company": "Beacon Robotics", "contact": "Priya Patel", "title": "Head of Commercial Strategy",
-        "email": "p.patel@beaconrobotics.invalid", "website": "https://beaconrobotics.invalid",
+        "email": "p.patel@beaconrobotics.com", "website": "https://beaconrobotics.com",
         "industry": "Industrial Automation", "company_size": "100-250", "tech_stack": "HubSpot · Apollo · Notion",
         "opportunity_brief": "Warehouse robotics OEM transitioning from founder-led sales to dedicated outbound team.",
         "pain_points": "Engineers conducting discovery without standardized qualification criteria.",
@@ -81,7 +81,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Syntropy Analytics", "contact": "David Sterling", "title": "VP of Customer Growth",
-        "email": "dsterling@syntropyanalytics.invalid", "website": "https://syntropyanalytics.invalid",
+        "email": "dsterling@syntropyanalytics.com", "website": "https://syntropyanalytics.com",
         "industry": "Enterprise Software", "company_size": "250-500", "tech_stack": "Salesforce · Marketo · BigQuery",
         "opportunity_brief": "Data observability vendor aiming to identify cross-sell opportunities in Fortune 500 accounts.",
         "pain_points": "Account data siloed between customer success telemetry and sales CRM records.",
@@ -103,7 +103,7 @@ SALES_PROSPECTS_DATA = [
     # 5-7: Qualified
     {
         "company": "Kestrel Cyber", "contact": "Amara Okafor", "title": "VP of Enterprise Sales",
-        "email": "amara.okafor@kestrelcyber.invalid", "website": "https://kestrelcyber.invalid",
+        "email": "amara.okafor@kestrelcyber.com", "website": "https://kestrelcyber.com",
         "industry": "Cybersecurity", "company_size": "500-1000", "tech_stack": "Salesforce · Gong · ZoomInfo",
         "opportunity_brief": "Cloud security vendor with 20 SDRs struggling with message personalization at scale.",
         "pain_points": "Cold email reply rates dropped below 1.5% due to generic outreach copy.",
@@ -123,7 +123,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Crestline Financial", "contact": "Julian Weber", "title": "Managing Director, Advisory Sales",
-        "email": "jweber@crestlinefin.invalid", "website": "https://crestlinefin.invalid",
+        "email": "jweber@crestlinefin.com", "website": "https://crestlinefin.com",
         "industry": "Fintech & WealthTech", "company_size": "1000+", "tech_stack": "Microsoft Dynamics · Seismic · Bloomberg",
         "opportunity_brief": "Institutional advisory firm modernizing family office outreach workflows.",
         "pain_points": "Highly manual prospect tracking in spreadsheets; lack of next-action discipline across partners.",
@@ -143,7 +143,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Meridian Cloud", "contact": "Chloe Zhao", "title": "Director of GTM Operations",
-        "email": "chloe.zhao@meridiancloud.invalid", "website": "https://meridiancloud.invalid",
+        "email": "chloe.zhao@meridiancloud.com", "website": "https://meridiancloud.com",
         "industry": "Cloud Infrastructure", "company_size": "250-500", "tech_stack": "Salesforce · HubSpot · Mixmax",
         "opportunity_brief": "Multi-cloud optimization provider accelerating mid-market outbound pipeline.",
         "pain_points": "AEs and SDRs out of sync on target account qualification rules.",
@@ -165,7 +165,7 @@ SALES_PROSPECTS_DATA = [
     # 8-10: Ready for Outreach (Scenario 1: High-fit prospect ready for first outreach)
     {
         "company": "Octave Media", "contact": "Lucas Moreau", "title": "VP of Brand Partnerships",
-        "email": "lmoreau@octavemedia.invalid", "website": "https://octavemedia.invalid",
+        "email": "lmoreau@octavemedia.com", "website": "https://octavemedia.com",
         "industry": "AdTech & Digital Media", "company_size": "100-250", "tech_stack": "HubSpot · SalesLoft · Datanyze",
         "opportunity_brief": "High-growth creator media agency seeking enterprise brand sponsors.",
         "pain_points": "Outreach lacks brand-specific campaign context; low response from Fortune 500 CMOs.",
@@ -185,7 +185,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Highline Energy", "contact": "Karin Lindholm", "title": "Head of Commercial Sales",
-        "email": "karin.lindholm@highlineenergy.invalid", "website": "https://highlineenergy.invalid",
+        "email": "karin.lindholm@highlineenergy.com", "website": "https://highlineenergy.com",
         "industry": "CleanTech & Energy", "company_size": "500-1000", "tech_stack": "Salesforce · LinkedIn Sales Nav · Marketo",
         "opportunity_brief": "Commercial solar & battery storage provider targeting industrial facility managers.",
         "pain_points": "Long qualification cycles; reps fail to surface utility tariff signals early.",
@@ -205,7 +205,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Polaris Supply", "contact": "Gabriel Santos", "title": "VP of Revenue",
-        "email": "gsantos@polarissupply.invalid", "website": "https://polarissupply.invalid",
+        "email": "gsantos@polarissupply.com", "website": "https://polarissupply.com",
         "industry": "Logistics & Procurement", "company_size": "250-500", "tech_stack": "HubSpot · ZoomInfo · Slack",
         "opportunity_brief": "B2B wholesale distributor building outbound sales team from scratch.",
         "pain_points": "Relying on inbound word-of-mouth; no structured outbound cadence or playbooks.",
@@ -227,7 +227,7 @@ SALES_PROSPECTS_DATA = [
     # 11-20: Contacted (Scenario 2: Awaiting reply; Scenario 6: Requiring follow-up)
     {
         "company": "Aura Biosciences", "contact": "Dr. Aris Thorne", "title": "Chief Commercial Officer",
-        "email": "athorne@aurabio.invalid", "website": "https://aurabio.invalid",
+        "email": "athorne@aurabio.com", "website": "https://aurabio.com",
         "industry": "Biotech & Pharma", "company_size": "100-250", "tech_stack": "Veeva CRM · HubSpot",
         "opportunity_brief": "Pre-clinical genomics lab scaling commercial partnerships with research universities.",
         "pain_points": "Complex technical selling requirements; reps lack structured discovery question prompts.",
@@ -247,7 +247,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Northstar Retail", "contact": "Siddharth Nair", "title": "VP of Omnichannel Systems",
-        "email": "snair@northstarretail.invalid", "website": "https://northstarretail.invalid",
+        "email": "snair@northstarretail.com", "website": "https://northstarretail.com",
         "industry": "Retail & E-commerce", "company_size": "1000+", "tech_stack": "Salesforce · Shopify Plus · Segment",
         "opportunity_brief": "Regional department store chain modernizing B2B corporate gifting and wholesale division.",
         "pain_points": "Corporate gifting pipeline fragmented between retail POS and regional corporate reps.",
@@ -267,7 +267,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Kinetic Commerce", "contact": "Tasha Robinson", "title": "Head of Merchant Sales",
-        "email": "trobinson@kineticcommerce.invalid", "website": "https://kineticcommerce.invalid",
+        "email": "trobinson@kineticcommerce.com", "website": "https://kineticcommerce.com",
         "industry": "Fintech & Payments", "company_size": "250-500", "tech_stack": "Salesforce · Gong · SalesLoft",
         "opportunity_brief": "Point-of-sale payment processor prospecting independent retail hospitality groups.",
         "pain_points": "High cold call resistance from restaurant owners; need multi-touch signal-driven outreach.",
@@ -287,7 +287,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Zephyr Bio", "contact": "Matthias Bauer", "title": "Director of Commercial Operations",
-        "email": "mbauer@zephyrbio.invalid", "website": "https://zephyrbio.invalid",
+        "email": "mbauer@zephyrbio.com", "website": "https://zephyrbio.com",
         "industry": "MedTech", "company_size": "100-250", "tech_stack": "HubSpot · ZoomInfo · Asana",
         "opportunity_brief": "Surgical optics manufacturer expanding hospital procurement outreach.",
         "pain_points": "Value analysis committees reject proposals due to insufficient clinical economic data.",
@@ -307,7 +307,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Granite Data", "contact": "Hannah Berg", "title": "VP of Global Outbound",
-        "email": "hberg@granitedata.invalid", "website": "https://granitedata.invalid",
+        "email": "hberg@granitedata.com", "website": "https://granitedata.com",
         "industry": "Data & Cloud Infrastructure", "company_size": "500-1000", "tech_stack": "Salesforce · Outreach · Snowflake",
         "opportunity_brief": "Database migration tooling firm targeting legacy on-premise Oracle installations.",
         "pain_points": "Reps struggle to identify which enterprise accounts are actively planning cloud migrations.",
@@ -327,7 +327,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Cobalt Security", "contact": "Devon Miller", "title": "Head of Sales Development",
-        "email": "dmiller@cobaltsec.invalid", "website": "https://cobaltsec.invalid",
+        "email": "dmiller@cobaltsec.com", "website": "https://cobaltsec.com",
         "industry": "Cybersecurity", "company_size": "250-500", "tech_stack": "HubSpot · Apollo · Gong",
         "opportunity_brief": "Managed detection and response (MDR) provider expanding into regional banking sector.",
         "pain_points": "Community banks ignore generic cybersecurity pitches; require regulatory compliance angles.",
@@ -347,7 +347,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Silverline Systems", "contact": "Craig Sterling", "title": "VP of Revenue Strategy",
-        "email": "c.sterling@silverlinesys.invalid", "website": "https://silverlinesys.invalid",
+        "email": "c.sterling@silverlinesys.com", "website": "https://silverlinesys.com",
         "industry": "Industrial Software", "company_size": "100-250", "tech_stack": "Salesforce · HubSpot",
         "opportunity_brief": "Field service management software provider targeting commercial HVAC contractors.",
         "pain_points": "Contractor owners operate in the field and rarely open standard corporate marketing emails.",
@@ -367,7 +367,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Ironclad Logistics", "contact": "Rachel Kim", "title": "Director of National Accounts",
-        "email": "rkim@ironcladlogistics.invalid", "website": "https://ironcladlogistics.invalid",
+        "email": "rkim@ironcladlogistics.com", "website": "https://ironcladlogistics.com",
         "industry": "Transportation", "company_size": "500-1000", "tech_stack": "Salesforce · SalesLoft",
         "opportunity_brief": "Dedicated fleet carrier looking to win multi-year retail distribution contracts.",
         "pain_points": "RFPs arriving unannounced with short turnaround windows; reps lack account background.",
@@ -387,7 +387,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Horizon Defense", "contact": "Col. Frank Baxter (Ret.)", "title": "VP of Government Business",
-        "email": "fbaxter@horizondefense.invalid", "website": "https://horizondefense.invalid",
+        "email": "fbaxter@horizondefense.com", "website": "https://horizondefense.com",
         "industry": "Aerospace & Defense", "company_size": "250-500", "tech_stack": "Microsoft Dynamics · Deltek",
         "opportunity_brief": "Unmanned aerial surveillance firm targeting federal and state border protection agencies.",
         "pain_points": "Federal procurement cycles are 18+ months; staff rotations lose historical context.",
@@ -407,7 +407,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Vanguard Payments", "contact": "Simon Cross", "title": "Head of Enterprise Partnerships",
-        "email": "scross@vanguardpayments.invalid", "website": "https://vanguardpayments.invalid",
+        "email": "scross@vanguardpayments.com", "website": "https://vanguardpayments.com",
         "industry": "Fintech", "company_size": "500-1000", "tech_stack": "Salesforce · Gong · HubSpot",
         "opportunity_brief": "Cross-border payment infrastructure provider expanding into Tier 2 marketplace platforms.",
         "pain_points": "Partnership reps struggle to qualify marketplace transaction volumes before discovery calls.",
@@ -429,7 +429,7 @@ SALES_PROSPECTS_DATA = [
     # 21-27: Replied (Scenarios 3, 4, 5)
     {
         "company": "Apex BioLabs", "contact": "Dr. Miriam Al-Mansoor", "title": "VP of Research Partnerships",
-        "email": "m.almansoor@apexbio.invalid", "website": "https://apexbio.invalid",
+        "email": "m.almansoor@apexbio.com", "website": "https://apexbio.com",
         "industry": "Life Sciences", "company_size": "250-500", "tech_stack": "Veeva · HubSpot · Slack",
         "opportunity_brief": "Contract research organization (CRO) partnering with biotech drug discovery teams.",
         "pain_points": "High competition for oncology study contracts; proposals lack sponsor pipeline relevance.",
@@ -449,7 +449,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Solas Energy", "contact": "Brian O'Connor", "title": "Director of Distributed Generation",
-        "email": "boconnor@solasenergy.invalid", "website": "https://solasenergy.invalid",
+        "email": "boconnor@solasenergy.com", "website": "https://solasenergy.com",
         "industry": "Renewable Energy", "company_size": "100-250", "tech_stack": "Salesforce · SolarGraf · Outreach",
         "opportunity_brief": "Commercial rooftop solar EPC prospecting corporate real estate portfolios.",
         "pain_points": "Reps waste time contacting building tenants who don't own the property roof rights.",
@@ -469,7 +469,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Kinetix Robotics", "contact": "Sven Lindemann", "title": "VP of Commercial Automation",
-        "email": "slindemann@kinetixrobotics.invalid", "website": "https://kinetixrobotics.invalid",
+        "email": "slindemann@kinetixrobotics.com", "website": "https://kinetixrobotics.com",
         "industry": "Manufacturing Automation", "company_size": "250-500", "tech_stack": "Microsoft Dynamics · HubSpot",
         "opportunity_brief": "Robotic welding cell manufacturer targeting automotive Tier 1 suppliers.",
         "pain_points": "Long, disjointed sales cycles; lack of visibility into plant manager decision processes.",
@@ -489,7 +489,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Triton Fleet", "contact": "Arthur Pendelton", "title": "VP of Commercial Fleet Sales",
-        "email": "apendelton@tritonfleet.invalid", "website": "https://tritonfleet.invalid",
+        "email": "apendelton@tritonfleet.com", "website": "https://tritonfleet.com",
         "industry": "Automotive & Fleet", "company_size": "500-1000", "tech_stack": "Salesforce · Geotab · ZoomInfo",
         "opportunity_brief": "Commercial fleet telematics and dashcam vendor targeting municipal utilities.",
         "pain_points": "Reps miss municipal procurement budget cycles; pricing requests require formal breakdown.",
@@ -509,7 +509,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Vortex Dynamics", "contact": "Claire Beauchamp", "title": "Head of Strategic Accounts",
-        "email": "cbeauchamp@vortexdynamics.invalid", "website": "https://vortexdynamics.invalid",
+        "email": "cbeauchamp@vortexdynamics.com", "website": "https://vortexdynamics.com",
         "industry": "Aerospace & Engineering", "company_size": "250-500", "tech_stack": "Salesforce · Deltek · Teams",
         "opportunity_brief": "Turbine inspection drone manufacturer prospecting utility power plant operators.",
         "pain_points": "Scenario 5 (Budget Objection): Plant budgets committed for current fiscal year; interested but frozen.",
@@ -529,7 +529,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Aegis Health Systems", "contact": "Dr. Leonard Vance", "title": "VP of Population Health",
-        "email": "lvance@aegishealth.invalid", "website": "https://aegishealth.invalid",
+        "email": "lvance@aegishealth.com", "website": "https://aegishealth.com",
         "industry": "Healthcare Services", "company_size": "1000+", "tech_stack": "Epic · Salesforce · Microsoft 365",
         "opportunity_brief": "Integrated health network expanding Medicare Advantage risk-sharing contracts.",
         "pain_points": "Payer contract team lacks clear pipeline tracking for regional employer group plans.",
@@ -549,7 +549,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Celerity Freight", "contact": "Jason Burke", "title": "VP of Enterprise Brokerage",
-        "email": "jburke@celerityfreight.invalid", "website": "https://celerityfreight.invalid",
+        "email": "jburke@celerityfreight.com", "website": "https://celerityfreight.com",
         "industry": "Freight & Logistics", "company_size": "500-1000", "tech_stack": "McLeod · Salesforce · ZoomInfo",
         "opportunity_brief": "Intermodal freight provider targeting Tier 1 automotive parts distributors.",
         "pain_points": "Shippers demanding dedicated lane contracts; spot market volatility hurting margins.",
@@ -571,7 +571,7 @@ SALES_PROSPECTS_DATA = [
     # 28-32: Meeting Booked (Scenario 7: Discovery meeting booked)
     {
         "company": "ZeoTech Materials", "contact": "Dr. Henrik Lindqvist", "title": "VP of Business Development",
-        "email": "hlindqvist@zeotech.invalid", "website": "https://zeotech.invalid",
+        "email": "hlindqvist@zeotech.com", "website": "https://zeotech.com",
         "industry": "Specialty Chemicals", "company_size": "250-500", "tech_stack": "SAP · HubSpot · Teams",
         "opportunity_brief": "Advanced catalyst manufacturer prospecting semiconductor fabrication plants.",
         "pain_points": "Long technical evaluations; reps lose momentum between lab testing and commercial procurement.",
@@ -585,13 +585,13 @@ SALES_PROSPECTS_DATA = [
         "fit_rationale": "Extremely high contract values ($250k+ annual chemical supply agreements).",
         "opportunity_rationale": "CHIPS Act fab construction timelines require early chemical supplier lock-in.",
         "suggested_action": "Review Henrik's recent technical paper on wafer cleaning chemistry before call.",
-        "suggested_angle": "How More Outbound preserves technical qualification data during 12-month evaluations.",
+        "suggested_angle": "How structured pipeline intelligence preserves technical qualification data during extended 12-month evaluations.",
         "discovery_questions": "What milestone must be met for a fab customer to move from lab testing to pilot production?",
         "objections": "Security of confidential chemical formulations (highlight zero cloud storage)."
     },
     {
         "company": "Kestrel BioTherapeutics", "contact": "Camilla Vasquez", "title": "Director of Commercial Strategy",
-        "email": "c.vasquez@kestrelbio.invalid", "website": "https://kestrelbio.invalid",
+        "email": "c.vasquez@kestrelbio.com", "website": "https://kestrelbio.com",
         "industry": "Biopharmaceuticals", "company_size": "100-250", "tech_stack": "Veeva · Salesforce · ZoomInfo",
         "opportunity_brief": "Rare disease biopharma preparing for commercial launch of orphan neurological therapy.",
         "pain_points": "Identifying specialized treatment centers and regional key opinion leaders (KOLs).",
@@ -611,7 +611,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Merit Financial", "contact": "Warren Hastings", "title": "Head of Institutional Sales",
-        "email": "whastings@meritfinancial.invalid", "website": "https://meritfinancial.invalid",
+        "email": "whastings@meritfinancial.com", "website": "https://meritfinancial.com",
         "industry": "Asset Management", "company_size": "500-1000", "tech_stack": "Salesforce · FactSet · Bloomberg",
         "opportunity_brief": "Fixed income asset manager targeting corporate pension fund consultants.",
         "pain_points": "Pension consultant relationships managed in fragmented personal Outlook notes.",
@@ -631,7 +631,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Veloce Automation", "contact": "Gianna Rossi", "title": "VP of Robotics Sales",
-        "email": "grossi@veloceauto.invalid", "website": "https://veloceauto.invalid",
+        "email": "grossi@veloceauto.com", "website": "https://veloceauto.com",
         "industry": "Industrial Robotics", "company_size": "250-500", "tech_stack": "Salesforce · HubSpot · SAP",
         "opportunity_brief": "Autonomous mobile robot (AMR) manufacturer expanding into e-commerce fulfillment centers.",
         "pain_points": "Reps struggle to quantify warehouse labor cost savings during preliminary discovery.",
@@ -651,7 +651,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Sentry Risk", "contact": "Malcolm Davies", "title": "Chief Commercial Officer",
-        "email": "mdavies@sentryrisk.invalid", "website": "https://sentryrisk.invalid",
+        "email": "mdavies@sentryrisk.com", "website": "https://sentryrisk.com",
         "industry": "InsurTech", "company_size": "100-250", "tech_stack": "HubSpot · ZoomInfo · Slack",
         "opportunity_brief": "Commercial property risk modeling platform prospecting regional insurance carriers.",
         "pain_points": "Catastrophe risk modeling sales cycles stall in actuarial validation reviews.",
@@ -673,11 +673,11 @@ SALES_PROSPECTS_DATA = [
     # 33-36: Opportunity Created (Scenario 8: Qualified opportunity created after discovery)
     {
         "company": "Apex Cloud Systems", "contact": "Rachel Thorne", "title": "VP of Revenue Operations",
-        "email": "rthorne@apexcloudsys.invalid", "website": "https://apexcloudsys.invalid",
+        "email": "rthorne@apexcloudsys.com", "website": "https://apexcloudsys.com",
         "industry": "Enterprise Software", "company_size": "500-1000", "tech_stack": "Salesforce · Gong · Outreach · Snowflake",
         "opportunity_brief": "Global SaaS vendor with 50 AEs; successfully completed discovery and technical validation.",
         "pain_points": "Pipeline conversion leaks between Stage 2 and Stage 4; lack of actionable next action discipline.",
-        "desired_outcome": "Deploy More Outbound workspace across 50 enterprise AEs and 15 sales managers.",
+        "desired_outcome": "Deploy standardized pipeline intelligence workspace across 50 enterprise AEs and 15 sales managers.",
         "icp_fit": "High", "intent_signals": "Active pilot evaluation underway with 5 champion reps",
         "qualification_notes": "Scenario 8: Discovery completed. Opportunity created with $60k ACV. Economic buyer approved.",
         "opportunity_owner": "Sarah Jenkins", "source": "Executive Referral", "priority": "High",
@@ -693,7 +693,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Cobalt BioAnalytics", "contact": "Dr. Ethan Cole", "title": "Chief Business Officer",
-        "email": "ecole@cobaltbio.invalid", "website": "https://cobaltbio.invalid",
+        "email": "ecole@cobaltbio.com", "website": "https://cobaltbio.com",
         "industry": "Biotech & Genomics", "company_size": "250-500", "tech_stack": "Veeva · HubSpot · AWS",
         "opportunity_brief": "Next-gen sequencing platform provider; qualified opportunity created for pharmaceutical partnerships team.",
         "pain_points": "Sponsor engagement history lost across multiple business development directors.",
@@ -713,7 +713,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Vanguard Logistics", "contact": "Travis Sterling", "title": "SVP of Commercial Logistics",
-        "email": "tsterling@vanguardlog.invalid", "website": "https://vanguardlog.invalid",
+        "email": "tsterling@vanguardlog.com", "website": "https://vanguardlog.com",
         "industry": "Supply Chain", "company_size": "1000+", "tech_stack": "Salesforce · McLeod · ZoomInfo",
         "opportunity_brief": "National freight network deploying outbound workspace to 4 regional sales hubs.",
         "pain_points": "Regional brokers operating in silos; duplication of outreach to enterprise shippers.",
@@ -733,7 +733,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Meridian Robotics", "contact": "Aria Montgomery", "title": "VP of Global Sales",
-        "email": "amontgomery@meridianrobotics.invalid", "website": "https://meridianrobotics.invalid",
+        "email": "amontgomery@meridianrobotics.com", "website": "https://meridianrobotics.com",
         "industry": "Robotics & Automation", "company_size": "500-1000", "tech_stack": "Salesforce · HubSpot · PowerBI",
         "opportunity_brief": "Collaborative robot manufacturer deploying opportunity workspace to EMEA and Americas sales forces.",
         "pain_points": "International distributors dropping leads; lack of pipeline conversion visibility.",
@@ -755,17 +755,17 @@ SALES_PROSPECTS_DATA = [
     # 37-38: Disqualified (Scenario 9: Disqualified with documented reason)
     {
         "company": "Kestrel Retail Media", "contact": "Derrick Vance", "title": "Director of Media Sales",
-        "email": "dvance@kestrelrm.invalid", "website": "https://kestrelrm.invalid",
+        "email": "dvance@kestrelrm.com", "website": "https://kestrelrm.com",
         "industry": "Retail & Advertising", "company_size": "50-100", "tech_stack": "Pipedrive · Mailchimp",
         "opportunity_brief": "Local retail signage agency looking for a cheap mass-email blast tool.",
         "pain_points": "Wanted to scrape local business emails and send 10,000 unverified cold blasts per day.",
-        "desired_outcome": "Low-cost bulk email sender (incompatible with More Outbound qualification standards).",
+        "desired_outcome": "Low-cost bulk email sender (incompatible with targeted account qualification standards).",
         "icp_fit": "Low", "intent_signals": "Downsized sales team from 12 to 3 reps",
         "qualification_notes": "Scenario 9 (Disqualified): Prospect is looking for bulk spam blast software. Refused account qualification and consultative outreach practices. Documented disqualification.",
         "opportunity_owner": "Alex Rivera", "source": "Web Form Lead", "priority": "Low",
         "next_action": "Archive record; no further outreach warranted",
         "next_action_date": DATE_OVERDUE, "follow_up_status": "Disqualified",
-        "notes": "Disqualified on Oct 16. Derrick explicitly stated: 'We just want to blast 10,000 emails a day with no personalization.' Politely explained that More Outbound is designed for targeted B2B intelligence, not unverified spam.",
+        "notes": "Disqualified on Oct 16. Derrick explicitly stated: 'We just want to blast 10,000 emails a day with no personalization.' Politely explained that our platform is designed for targeted B2B intelligence, not unverified mass spam.",
         "fit_rationale": "Unqualified: sub-scale team, negative sales culture, looking for spam execution.",
         "opportunity_rationale": "No revenue opportunity; clear violation of consultative B2B outreach standards.",
         "suggested_action": "Do not pursue. Mark as disqualified.",
@@ -775,7 +775,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Zephyr Logistics", "contact": "Oliver King", "title": "VP of Operations",
-        "email": "oking@zephyrlogistics.invalid", "website": "https://zephyrlogistics.invalid",
+        "email": "oking@zephyrlogistics.com", "website": "https://zephyrlogistics.com",
         "industry": "Freight Brokerage", "company_size": "250-500", "tech_stack": "Salesforce · ZoomInfo",
         "opportunity_brief": "Regional freight carrier acquired by multi-national conglomerate last month.",
         "pain_points": "Parent company mandated migration to global corporate ERP and locked all third-party software.",
@@ -797,7 +797,7 @@ SALES_PROSPECTS_DATA = [
     # 39-40: No Response (Scenario 10: No response after multiple attempts)
     {
         "company": "Aura Industrial Solutions", "contact": "Bradley Cooper", "title": "Director of Procurement Sales",
-        "email": "bcooper@auraindustrial.invalid", "website": "https://auraindustrial.invalid",
+        "email": "bcooper@auraindustrial.com", "website": "https://auraindustrial.com",
         "industry": "Industrial Supplies", "company_size": "100-250", "tech_stack": "NetSuite · Outlook",
         "opportunity_brief": "Pumps and valves distributor targeting regional water treatment facilities.",
         "pain_points": "Traditional catalog business struggling to generate outbound pipeline for new automated valve line.",
@@ -817,7 +817,7 @@ SALES_PROSPECTS_DATA = [
     },
     {
         "company": "Crestline Heavy Equipment", "contact": "Douglas Fletcher", "title": "VP of Commercial Sales",
-        "email": "dfletcher@crestlineequipment.invalid", "website": "https://crestlineequipment.invalid",
+        "email": "dfletcher@crestlineequipment.com", "website": "https://crestlineequipment.com",
         "industry": "Heavy Machinery", "company_size": "250-500", "tech_stack": "Salesforce · CDK Global",
         "opportunity_brief": "Earthmoving equipment dealership prospecting commercial site preparation contractors.",
         "pain_points": "High dealer inventory carrying costs; need faster qualification of active subdivision developers.",
@@ -1008,7 +1008,7 @@ def build_b2b_services_prospects():
             "company": company,
             "contact": contact,
             "title": title,
-            "email": f"{contact.lower().replace(' ', '.')}@{company.lower().replace(' ', '')}.invalid",
+            "email": f"{contact.lower().replace(' ', '.')}@{company.lower().replace(' ', '')}.com",
             "industry": industry,
             "acv": val,
             "opportunity_brief": brief,

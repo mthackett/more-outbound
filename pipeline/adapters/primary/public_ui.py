@@ -114,20 +114,21 @@ STAGE_STYLES = {
 PUBLIC_THEME_CSS = """
 <style>
     .block-container {
-        padding-top: 2.2rem;
+        padding-top: 1.6rem;
         padding-bottom: 2rem;
+        max-width: 1360px;
     }
     .demo-main-title {
-        font-size: 1.85rem;
+        font-size: 1.75rem;
         font-weight: 800;
         color: #F8FAFC;
         margin-bottom: 0.15rem;
         letter-spacing: -0.015em;
     }
     .demo-sub-title {
-        font-size: 0.90rem;
+        font-size: 0.88rem;
         color: #94A3B8;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0.75rem;
         line-height: 1.4;
     }
     /* Compact headline KPI cards: centered labels and values */
@@ -185,13 +186,29 @@ PUBLIC_THEME_CSS = """
         text-align: center !important;
         width: 100% !important;
     }
-    /* Workspace Card Container Styling */
-    .opp-workspace-card {
+    /* Card expander styling */
+    div[data-testid="stExpander"] {
         background-color: #0B132B;
         border: 1px solid #1E293B;
         border-radius: 8px;
-        padding: 14px 16px;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
+        transition: border-color 0.15s ease;
+    }
+    div[data-testid="stExpander"]:hover {
+        border-color: #334155;
+    }
+    div[data-testid="stExpander"] details summary {
+        padding: 8px 12px !important;
+    }
+    div[data-testid="stExpander"] details summary p {
+        line-height: 1.45;
+    }
+    /* Compact form styling */
+    div[data-testid="stForm"] {
+        border: 1px solid #1E293B;
+        border-radius: 6px;
+        padding: 8px 10px;
+        background-color: #0F172A;
     }
 </style>
 """
@@ -353,130 +370,145 @@ def render_opportunity_workspace(config, storage, record, stages, prefix):
     discovery_questions = record.fields.get('discovery_questions', '')
     objections = record.fields.get('objections', '')
 
-    stage_name = stages.get(record.stage_id, record.stage_id)
-    st_style = STAGE_STYLES.get(record.stage_id, {'bg': '#1E293B', 'fg': '#CBD5E1', 'border': '#334155'})
-
-    # --- SECTION A: OPPORTUNITY OVERVIEW ---
-    pills_html = [
-        f"<span style='background:{st_style['bg']}; color:{st_style['fg']}; border:1px solid {st_style['border']}; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;'>{stage_name}</span>"
-    ]
-    if acv is not None:
+    def human_date(d_str):
+        if not d_str:
+            return ""
         try:
-            pills_html.append(f"<span style='background:#064E3B33; color:#34D399; border:1px solid #05966955; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:700;'>${float(acv):,.0f} ACV</span>")
-        except (ValueError, TypeError):
-            pass
-    if icp_fit:
-        icp_color = '#38BDF8' if icp_fit == 'High' else '#FBBF24'
-        pills_html.append(f"<span style='background:#0F172A; color:{icp_color}; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:600;'>🎯 {icp_fit} Fit</span>")
-    if priority:
-        pills_html.append(f"<span style='background:#0F172A; color:#E2E8F0; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;'>⚡ {priority} Priority</span>")
-    if source:
-        pills_html.append(f"<span style='background:#0F172A; color:#94A3B8; border:1px solid #334155; padding:3px 10px; border-radius:9999px; font-size:0.78rem; font-weight:500;'>📡 {source}</span>")
+            dt = datetime.date.fromisoformat(str(d_str)[:10])
+            return dt.strftime("%b %d, %Y")
+        except Exception:
+            return str(d_str)[:10]
 
-    st.markdown(f"<div style='margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 6px;'>{''.join(pills_html)}</div>", unsafe_allow_html=True)
-
+    # --- SECTION B: OPPORTUNITY BRIEF (Prominent & Clean) ---
     if brief:
         st.markdown(
             f"""
-            <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%); border-left: 4px solid #6366F1; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;">
-                <div style="font-size: 0.74rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px;">Opportunity Brief</div>
-                <div style="font-size: 0.92rem; color: #F8FAFC; line-height: 1.45; font-weight: 500;">{brief}</div>
+            <div style="background: rgba(30, 41, 59, 0.45); border-left: 3px solid #6366F1; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px;">
+                <div style="font-size: 0.70rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Opportunity Brief</div>
+                <div style="font-size: 0.88rem; color: #F1F5F9; line-height: 1.45;">{brief}</div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # --- SECTION B: NEXT ACTION (HERO CONTAINER) ---
-    today_str = datetime.date.today().isoformat()
-    is_overdue = bool(next_action_date and str(next_action_date) < today_str and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'))
-    is_today = bool(next_action_date and str(next_action_date) == today_str)
-    due_badge = f"<span style='color:#FB7185; font-weight:700;'>⚠️ Due {next_action_date} (Overdue)</span>" if is_overdue else (f"<span style='color:#FBBF24; font-weight:700;'>📅 Due Today</span>" if is_today else f"<span style='color:#CBD5E1;'>📅 {next_action_date or 'No date set'}</span>")
+    # --- SECTION C: RECOMMENDED NEXT ACTION (Hero Callout) ---
+    today = datetime.date.today()
+    is_overdue = False
+    is_today = False
+    formatted_due = "No due date"
+    if next_action_date:
+        try:
+            act_d = datetime.date.fromisoformat(str(next_action_date))
+            days_diff = (act_d - today).days
+            d_fmt = act_d.strftime("%b %d, %Y")
+            if days_diff < 0 and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'):
+                is_overdue = True
+                formatted_due = f"<span style='color:#FB7185; font-weight:700;'>⚠️ Due {d_fmt} ({abs(days_diff)}d overdue)</span>"
+            elif days_diff == 0:
+                is_today = True
+                formatted_due = f"<span style='color:#FBBF24; font-weight:700;'>📅 Due Today ({d_fmt})</span>"
+            elif days_diff == 1:
+                formatted_due = f"<span style='color:#38BDF8; font-weight:600;'>📅 Due Tomorrow ({d_fmt})</span>"
+            else:
+                formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {d_fmt}</span>"
+        except Exception:
+            formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {next_action_date}</span>"
+
+    box_bg = "rgba(239, 68, 68, 0.08)" if is_overdue else ("rgba(245, 158, 11, 0.08)" if is_today else "rgba(99, 102, 241, 0.07)")
+    box_border = "rgba(239, 68, 68, 0.35)" if is_overdue else ("rgba(245, 158, 11, 0.35)" if is_today else "rgba(99, 102, 241, 0.30)")
+    accent_color = "#FB7185" if is_overdue else ("#FBBF24" if is_today else "#818CF8")
 
     action_box_html = f"""
-    <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <div>
-            <div style="font-size: 0.72rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px;">Recommended Next Action</div>
-            <div style="font-size: 0.95rem; font-weight: 600; color: #F8FAFC; margin-top: 2px;">🎯 {next_action or 'Identify next milestone'}</div>
+    <div style="background: {box_bg}; border: 1px solid {box_border}; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <div style="flex: 1; min-width: 250px;">
+            <div style="font-size: 0.70rem; font-weight: 700; color: {accent_color}; text-transform: uppercase; letter-spacing: 0.5px;">Recommended Next Action</div>
+            <div style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC; margin-top: 2px;">🎯 {next_action or 'Identify next milestone'}</div>
         </div>
-        <div style="font-size: 0.82rem; text-align: right;">
-            <div>{due_badge}</div>
-            <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 2px;">Status: {follow_up_status or 'Active'}</div>
+        <div style="font-size: 0.80rem; text-align: right; flex-shrink: 0;">
+            <div>{formatted_due}</div>
+            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 1px;">Status: <b style="color:#CBD5E1;">{follow_up_status or 'Active'}</b></div>
         </div>
     </div>
     """
     st.markdown(action_box_html, unsafe_allow_html=True)
 
-    # Two-Column Workspace Layout
+    # Balanced Two-Column Workspace Layout (Section 2.D)
     col_left, col_right = st.columns([1, 1])
 
     with col_left:
-        # --- SECTION C: ACCOUNT & QUALIFICATION DETAILS ---
-        st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;'>Account Profile & Qualification</div>", unsafe_allow_html=True)
-        
-        details_items = []
-        if contact:
-            details_items.append(f"<b>Contact:</b> {contact}" + (f" ({title})" if title else ""))
-        if email:
-            details_items.append(f"<b>Email:</b> <code style='font-size:0.78rem;'>{email}</code>")
-        if industry:
-            details_items.append(f"<b>Industry:</b> {industry}")
-        if company_size:
-            details_items.append(f"<b>Size:</b> {company_size}")
+        # --- 1. Account Profile (2-column key/value grid) ---
+        tech_badges = ""
         if tech_stack:
-            details_items.append(f"<b>Tech:</b> {tech_stack}")
-        if owner:
-            details_items.append(f"<b>Owner:</b> {owner}")
+            t_items = [t.strip() for t in tech_stack.split('·')]
+            tech_badges = " ".join([f"<span style='background:#1E293B; border:1px solid #334155; color:#38BDF8; padding:1px 5px; border-radius:3px; font-size:0.72rem; font-weight:500;'>{t}</span>" for t in t_items])
 
-        if details_items:
-            st.markdown(
-                f"<div style='background:#0F172A; border:1px solid #1E293B; border-radius:6px; padding:8px 12px; font-size:0.83rem; color:#CBD5E1; line-height:1.7; margin-bottom:10px;'>"
-                + " &nbsp;·&nbsp; ".join(details_items)
-                + "</div>",
-                unsafe_allow_html=True
-            )
+        profile_grid_html = f"""
+        <div style="font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Account Profile</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 12px; background: #0F172A; border: 1px solid #1E293B; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.80rem;">
+            <div><span style="color:#64748B; font-weight:600;">Contact:</span> <span style="color:#F8FAFC;">{contact or '—'}</span></div>
+            <div><span style="color:#64748B; font-weight:600;">Job Title:</span> <span style="color:#F8FAFC;">{title or '—'}</span></div>
+            <div><span style="color:#64748B; font-weight:600;">Email:</span> <span style="color:#94A3B8; font-family:monospace; font-size:0.76rem;">{email or '—'}</span></div>
+            <div><span style="color:#64748B; font-weight:600;">Industry:</span> <span style="color:#F8FAFC;">{industry or '—'}</span></div>
+            <div><span style="color:#64748B; font-weight:600;">Company Size:</span> <span style="color:#F8FAFC;">{company_size or '—'}</span></div>
+            <div><span style="color:#64748B; font-weight:600;">Owner:</span> <span style="color:#F8FAFC;">{owner or '—'}</span></div>
+            <div><span style="color:#64748B; font-weight:600;">Lead Source:</span> <span style="color:#F8FAFC;">{source or '—'}</span></div>
+            <div><span style="color:#64748B; font-weight:600;">Tech Stack:</span> {tech_badges or '—'}</div>
+        </div>
+        """
+        st.markdown(profile_grid_html, unsafe_allow_html=True)
 
+        # --- 2. Business Needs and Qualification ---
+        st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;'>Needs & Qualification</div>", unsafe_allow_html=True)
+        needs_html = "<div style='background:#0F172A; border:1px solid #1E293B; border-radius:6px; padding:8px 12px; margin-bottom:10px; font-size:0.81rem;'>"
         if pain_points:
-            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Pain Points & Needs:</b> {pain_points}</div>", unsafe_allow_html=True)
+            needs_html += f"<div style='margin-bottom:6px;'><span style='color:#FCA5A5; font-weight:600;'>Pain Points & Needs:</span> <span style='color:#E2E8F0;'>{pain_points}</span></div>"
         if desired_outcome:
-            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Desired Outcome:</b> {desired_outcome}</div>", unsafe_allow_html=True)
+            needs_html += f"<div style='margin-bottom:6px;'><span style='color:#34D399; font-weight:600;'>Desired Outcome:</span> <span style='color:#E2E8F0;'>{desired_outcome}</span></div>"
         if intent:
-            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Intent Signals:</b> {intent}</div>", unsafe_allow_html=True)
+            signals = [s.strip() for s in intent.split('·')]
+            sig_pills = " ".join([f"<span style='background:#1E293B; border:1px solid #334155; color:#FBBF24; padding:1px 6px; border-radius:3px; font-size:0.73rem; display:inline-block; margin:2px 2px;'>⚡ {s}</span>" for s in signals])
+            needs_html += f"<div style='margin-top:4px;'><span style='color:#94A3B8; font-weight:600;'>Intent Signals:</span> {sig_pills}</div>"
         if qual_notes:
-            st.markdown(f"<div style='font-size:0.82rem; color:#CBD5E1; margin-bottom:6px;'><b>Qualification Notes:</b> {qual_notes}</div>", unsafe_allow_html=True)
+            needs_html += f"<div style='margin-top:6px; border-top:1px solid #1E293B; padding-top:4px; font-size:0.77rem; color:#94A3B8;'><b>Qualification Note:</b> {qual_notes}</div>"
+        needs_html += "</div>"
+        st.markdown(needs_html, unsafe_allow_html=True)
 
-        # --- SECTION D: ACCOUNT INTELLIGENCE ---
-        if fit_rationale or opp_rationale or suggested_angle or discovery_questions or objections:
-            st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.4px; margin-top:14px; margin-bottom:6px;'>Account Intelligence</div>", unsafe_allow_html=True)
-            
+        # --- 3. Immediately Visible Account Intelligence ---
+        if fit_rationale or opp_rationale or suggested_angle:
+            st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;'>Account Intelligence</div>", unsafe_allow_html=True)
+            intel_html = "<div style='background:#0F172A; border:1px solid #1E293B; border-radius:6px; padding:8px 12px; margin-bottom:8px; font-size:0.81rem;'>"
             if fit_rationale:
-                st.markdown(f"<div style='background:#0F172A; border-left:3px solid #38BDF8; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#E2E8F0;'><b>💡 Fit Rationale:</b> {fit_rationale}</div>", unsafe_allow_html=True)
+                intel_html += f"<div style='margin-bottom:6px; border-left:2px solid #38BDF8; padding-left:8px;'><span style='color:#38BDF8; font-weight:600;'>Why This Account:</span> <span style='color:#E2E8F0;'>{fit_rationale}</span></div>"
             if opp_rationale:
-                st.markdown(f"<div style='background:#0F172A; border-left:3px solid #FBBF24; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#E2E8F0;'><b>⏰ Why Contact Now:</b> {opp_rationale}</div>", unsafe_allow_html=True)
+                intel_html += f"<div style='margin-bottom:6px; border-left:2px solid #FBBF24; padding-left:8px;'><span style='color:#FBBF24; font-weight:600;'>Why Now:</span> <span style='color:#E2E8F0;'>{opp_rationale}</span></div>"
             if suggested_angle:
-                st.markdown("<div style='font-size:0.80rem; font-weight:600; color:#94A3B8; margin-top:6px; margin-bottom:2px;'>💬 Suggested Outreach Angle (Click copy icon in top-right of block):</div>", unsafe_allow_html=True)
-                st.code(suggested_angle, language="text")
-            if discovery_questions:
-                st.markdown(f"<div style='background:#0F172A; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#CBD5E1;'><b>❓ Discovery Questions:</b> {discovery_questions}</div>", unsafe_allow_html=True)
-            if objections:
-                st.markdown(f"<div style='background:#0F172A; border-radius:4px; padding:6px 10px; margin-bottom:6px; font-size:0.82rem; color:#CBD5E1;'><b>🛡️ Potential Objections:</b> {objections}</div>", unsafe_allow_html=True)
+                intel_html += f"<div style='border-top:1px solid #1E293B; padding-top:6px;'><span style='color:#818CF8; font-weight:600;'>Suggested Outreach Angle:</span><div style='color:#F8FAFC; background:#1E293B; border-radius:4px; padding:6px 8px; margin-top:3px; line-height:1.4;'>{suggested_angle}</div></div>"
+            intel_html += "</div>"
+            st.markdown(intel_html, unsafe_allow_html=True)
+
+        # --- 4. Secondary Intelligence (Discovery Preparation & Objections) ---
+        if discovery_questions or objections:
+            with st.expander("Discovery Preparation & Potential Objections", expanded=False):
+                if discovery_questions:
+                    st.markdown(f"<div style='font-size:0.80rem; color:#CBD5E1; margin-bottom:6px;'><b style='color:#38BDF8;'>Discovery Questions:</b><br>{discovery_questions}</div>", unsafe_allow_html=True)
+                if objections:
+                    st.markdown(f"<div style='font-size:0.80rem; color:#CBD5E1;'><b style='color:#FB7185;'>Potential Objections & Handling:</b><br>{objections}</div>", unsafe_allow_html=True)
 
     with col_right:
-        # --- SECTION E: ACTIVITIES AND TIMELINE ---
-        st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;'>Pipeline Stage & Action Tracking</div>", unsafe_allow_html=True)
-
-        # Quick Stage Update
+        # --- 1. Pipeline Stage & Quick Movement ---
+        st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;'>Pipeline Stage</div>", unsafe_allow_html=True)
         with st.form(f"{prefix}_stage_form_{record.id}"):
-            col_st1, col_st2 = st.columns([3, 2])
+            col_st1, col_st2 = st.columns([7, 3])
             with col_st1:
                 new_stage = st.selectbox(
                     config.labels.stage,
                     list(stages),
                     index=list(stages).index(record.stage_id) if record.stage_id in stages else 0,
                     format_func=stages.get,
-                    key=f"{prefix}_stage_{record.id}"
+                    key=f"{prefix}_stage_{record.id}",
+                    label_visibility="collapsed"
                 )
             with col_st2:
-                st.write("")
                 save_stage = st.form_submit_button(config.labels.save, use_container_width=True)
             if save_stage:
                 try:
@@ -484,54 +516,77 @@ def render_opportunity_workspace(config, storage, record, stages, prefix):
                 except ValueError as exc:
                     st.error(str(exc))
                 else:
-                    st.session_state['_demo_flash'] = 'Stage updated.'
+                    st.session_state['_demo_flash'] = f'Moved to {stages.get(new_stage, new_stage)}.'
                     st.rerun()
 
-        # Log Activity Form
+        # --- 2. Activity Logging ---
         if config.features.activities:
+            st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-top:8px; margin-bottom:4px;'>Log Activity</div>", unsafe_allow_html=True)
             with st.form(f"{prefix}_activity_{record.id}", clear_on_submit=True):
-                col_act1, col_act2 = st.columns([2, 1])
+                text = st.text_area('Activity Summary / Note', max_chars=2000, key=f"{prefix}_note_{record.id}", height=60, label_visibility="collapsed", placeholder="Enter call notes, email summary, or next step details...")
+                col_act1, col_act2 = st.columns([3, 2])
                 with col_act1:
-                    text = st.text_area('Activity Summary / Note', max_chars=2000, key=f"{prefix}_note_{record.id}", height=70)
-                with col_act2:
                     kind = st.selectbox(
                         'Activity Type',
                         ['call', 'email', 'contacted', 'replied', 'meeting', 'note', 'follow_up'],
                         format_func=lambda v: {'call': '📞 Call', 'email': '✉️ Email', 'contacted': '📤 Contacted', 'replied': '💬 Replied', 'meeting': '📅 Meeting', 'note': '📝 Note', 'follow_up': '🔄 Follow-up'}.get(v, v.title()),
-                        key=f"{prefix}_kind_{record.id}"
+                        key=f"{prefix}_kind_{record.id}",
+                        label_visibility="collapsed"
                     )
+                with col_act2:
                     add = st.form_submit_button(config.labels.add_note, use_container_width=True)
-                if add:
+                if add and text.strip():
                     try:
-                        storage.add_activity(record.id, kind, text)
+                        storage.add_activity(record.id, kind, text.strip())
                     except ValueError as exc:
                         st.error(str(exc))
                     else:
                         st.rerun()
 
-        # Chronological Timeline
-        if record.activities:
-            st.caption('Activity Timeline')
-            kind_icons = {'call': '📞', 'email': '✉️', 'contacted': '📤', 'replied': '💬', 'meeting': '📅', 'opportunity': '🏆', 'note': '📝', 'follow_up': '🔄'}
-            timeline_items = []
-            for act in reversed(record.activities):
-                icon = kind_icons.get(act.kind, '📝')
-                time_str = act.occurred_at[:10] if hasattr(act, 'occurred_at') and act.occurred_at else ''
-                timeline_items.append(
-                    f"<div style='border-left: 2px solid #334155; padding-left: 10px; margin-bottom: 8px; font-size: 0.81rem;'>"
-                    f"<div style='color: #94A3B8; font-size: 0.72rem;'>{icon} <b>{act.kind.replace('_', ' ').title()}</b> &nbsp;·&nbsp; {time_str}</div>"
-                    f"<div style='color: #E2E8F0; margin-top: 2px;'>{act.text}</div>"
+        # --- 3. Unified Reverse-Chronological Activity Timeline ---
+        st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-top:8px; margin-bottom:6px;'>Activity & Progression Timeline</div>", unsafe_allow_html=True)
+        
+        events = []
+        for act in getattr(record, 'activities', []):
+            events.append({
+                'time': act.occurred_at or '',
+                'kind': act.kind,
+                'title': act.kind.replace('_', ' ').title(),
+                'text': act.text,
+                'is_stage': False
+            })
+        for stg in getattr(record, 'stage_history', []):
+            events.append({
+                'time': stg.entered_at or '',
+                'kind': 'stage_change',
+                'title': f"Moved to {stages.get(stg.stage_id, stg.stage_id)}",
+                'text': '',
+                'is_stage': True
+            })
+        events.sort(key=lambda e: e['time'], reverse=True)
+
+        if events:
+            kind_icons = {
+                'call': '📞', 'email': '✉️', 'contacted': '📤', 'replied': '💬',
+                'meeting': '📅', 'opportunity': '🏆', 'note': '📝', 'follow_up': '🔄',
+                'stage_change': '🚀'
+            }
+            timeline_html = "<div style='max-height: 250px; overflow-y: auto; padding-right: 4px;'>"
+            for ev in events:
+                icon = kind_icons.get(ev['kind'], '•')
+                t_str = human_date(ev['time'][:10]) if ev['time'] else 'Initial'
+                border_color = "#6366F1" if ev['is_stage'] else "#334155"
+                text_block = f"<div style='color: #CBD5E1; margin-top: 2px;'>{ev['text']}</div>" if ev['text'] else ""
+                timeline_html += (
+                    f"<div style='border-left: 2px solid {border_color}; padding-left: 10px; margin-bottom: 8px; font-size: 0.80rem;'>"
+                    f"<div style='color: #94A3B8; font-size: 0.72rem;'>{icon} <b style='color:#F1F5F9;'>{ev['title']}</b> &nbsp;·&nbsp; {t_str}</div>"
+                    f"{text_block}"
                     f"</div>"
                 )
-            st.markdown(f"<div style='max-height: 220px; overflow-y: auto;'>{''.join(timeline_items)}</div>", unsafe_allow_html=True)
-
-        if record.stage_history:
-            st.caption('Stage Progression History')
-            st.dataframe(
-                [{'Stage': stages.get(e.stage_id, e.stage_id), 'Entered': e.entered_at[:10] if e.entered_at else '—'} for e in record.stage_history],
-                hide_index=True,
-                width="stretch"
-            )
+            timeline_html += "</div>"
+            st.markdown(timeline_html, unsafe_allow_html=True)
+        else:
+            st.caption("No activities recorded yet.")
 
 
 def pipeline(config, storage, prefix):
@@ -603,75 +658,93 @@ def pipeline(config, storage, prefix):
         intent = record.fields.get('intent_signals', '')
         next_action = record.fields.get('next_action', '')
         next_action_date = record.fields.get('next_action_date', '')
+        priority = record.fields.get('priority', '')
 
-        # Line 1: Header (Account — Contact (Title) · Stage)
-        if company and contact:
-            line1 = f"**{company}** — {contact}" + (f" ({title})" if title else "")
-        elif company:
-            line1 = f"**{company}**" + (f" — {title}" if title else "")
-        elif contact:
-            line1 = f"**{contact}**" + (f" ({title})" if title else "")
-        else:
-            line1 = f"**{config.labels.record_singular} #{record.id}**"
-        line1 += f" &nbsp;·&nbsp; `{stage_name}`"
+        # Line 1: Header (Company — Contact (Title) · Stage)
+        header_text = f"**{company}**"
+        if contact:
+            header_text += f" — {contact}" + (f" ({title})" if title else "")
+        header_text += f" &nbsp;·&nbsp; `{stage_name}`"
 
-        # Line 2: Opportunity Context (Brief + Badges)
-        line2_parts = []
-        if brief:
-            short_brief = brief.strip()
-            if len(short_brief) > 125:
-                short_brief = short_brief[:122] + "..."
-            line2_parts.append(f"> {short_brief}")
+        # Line 2: Opportunity Brief (Clean, readable text, no blockquote clipping)
+        clean_brief = brief.strip()
+        if len(clean_brief) > 130:
+            clean_brief = clean_brief[:127] + "..."
 
-        context_badges = []
+        # Line 3: Badges + Action Footer
+        badges = []
         if icp_fit:
-            context_badges.append(f"🎯 {icp_fit} Fit")
+            badges.append(f"🎯 {icp_fit} Fit")
         if intent:
-            short_intent = intent.split('·')[0].strip()
-            if len(short_intent) > 28:
-                short_intent = short_intent[:25] + "..."
-            context_badges.append(f"⚡ {short_intent}")
+            top_intent = intent.split('·')[0].strip()
+            if len(top_intent) > 28:
+                top_intent = top_intent[:25] + "..."
+            badges.append(f"⚡ {top_intent}")
         if tech_stack:
-            short_tech = tech_stack.split('·')[0].strip()
-            context_badges.append(f"🛠️ {short_tech}")
-        elif industry:
-            context_badges.append(f"🏢 {industry}")
+            top_tech = tech_stack.split('·')[0].strip()
+            badges.append(f"🛠️ {top_tech}")
+        badges_str = " &nbsp;·&nbsp; ".join(badges)
 
-        if context_badges:
-            line2_parts.append(" &nbsp;|&nbsp; " + " · ".join(context_badges))
-
-        line2_str = "".join(line2_parts)
-
-        # Line 3: Action Footer (Next Action · Due Date · ACV)
-        line3_items = []
+        footer_items = []
         if next_action:
-            short_na = next_action if len(next_action) <= 55 else next_action[:52] + "..."
-            line3_items.append(f"👉 **Next:** {short_na}")
+            short_na = next_action if len(next_action) <= 46 else next_action[:43] + "..."
+            footer_items.append(f"**Next:** {short_na}")
         if next_action_date:
-            today_str = datetime.date.today().isoformat()
-            if str(next_action_date) < today_str and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'):
-                line3_items.append(f":red[⚠️ Due {next_action_date} (Overdue)]")
-            elif str(next_action_date) == today_str:
-                line3_items.append(f":orange[📅 Due Today]")
-            else:
-                line3_items.append(f"📅 {next_action_date}")
+            try:
+                d = datetime.date.fromisoformat(str(next_action_date))
+                diff = (d - datetime.date.today()).days
+                if diff < 0 and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'):
+                    footer_items.append(f":red[⚠️ Due {d.strftime('%b %d')} ({abs(diff)}d overdue)]")
+                elif diff == 0:
+                    footer_items.append(":orange[📅 Due Today]")
+                else:
+                    footer_items.append(f"📅 {d.strftime('%b %d')}")
+            except Exception:
+                footer_items.append(f"📅 {next_action_date}")
         if acv is not None:
             try:
-                acv_val = float(acv)
-                line3_items.append(f":green[${acv_val:,.0f} ACV]")
-            except (ValueError, TypeError):
-                line3_items.append(f":green[{acv}]")
+                footer_items.append(f":green[${float(acv):,.0f} ACV]")
+            except Exception:
+                footer_items.append(f":green[{acv}]")
 
-        line3_str = " &nbsp;·&nbsp; ".join(line3_items)
-        card_header = f"{line1}\n\n{line2_str}\n\n{line3_str}" if line2_str else f"{line1}\n\n{line3_str}"
+        footer_str = " &nbsp;·&nbsp; ".join(footer_items)
+
+        card_header = f"{header_text}\n\n{clean_brief}\n\n{badges_str} &nbsp;|&nbsp; {footer_str}"
 
         with st.expander(card_header):
             is_editing = st.session_state.get(f'{prefix}_editing_{record.id}', False)
 
-            # Top Header Bar with Edit Toggle Button
+            # Top Header Bar with Edit Action (Section 2.A)
+            contact_info = f"{contact}" + (f", {title}" if title else "") if contact else ""
+            st_style = STAGE_STYLES.get(record.stage_id, {'bg': '#1E293B', 'fg': '#CBD5E1', 'border': '#334155'})
+            pills = [
+                f"<span style='background:{st_style['bg']}; color:{st_style['fg']}; border:1px solid {st_style['border']}; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;'>{stage_name}</span>"
+            ]
+            if acv is not None:
+                try:
+                    pills.append(f"<span style='background:#064E3B33; color:#34D399; border:1px solid #05966955; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;'>${float(acv):,.0f} ACV</span>")
+                except Exception:
+                    pass
+            if icp_fit:
+                icp_color = '#38BDF8' if icp_fit == 'High' else '#FBBF24'
+                pills.append(f"<span style='background:#0F172A; color:{icp_color}; border:1px solid #334155; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:600;'>🎯 {icp_fit} Fit</span>")
+            if priority:
+                pills.append(f"<span style='background:#0F172A; color:#E2E8F0; border:1px solid #334155; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:500;'>⚡ {priority} Priority</span>")
+
+            pills_str = " ".join(pills)
+
             col_bar1, col_bar2 = st.columns([5, 1])
             with col_bar1:
-                st.markdown(f"#### 💼 {company} — Opportunity Workspace")
+                st.markdown(
+                    f"""
+                    <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
+                        <span style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC;">{company}</span>
+                        <span style="font-size: 0.83rem; color: #94A3B8;">{contact_info}</span>
+                        <div style="display: inline-flex; align-items: center; gap: 5px; margin-left: 4px;">{pills_str}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
             with col_bar2:
                 if st.button("✏️ Edit" if not is_editing else "✖️ View", key=f"{prefix}_btn_toggle_{record.id}", use_container_width=True):
                     st.session_state[f'{prefix}_editing_{record.id}'] = not is_editing
@@ -679,7 +752,7 @@ def pipeline(config, storage, prefix):
 
             if is_editing:
                 # Section F: Edit Mode
-                st.markdown("<div style='font-size:0.80rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:8px;'>✏️ Edit Opportunity Details</div>", unsafe_allow_html=True)
+                st.markdown("<div style='font-size:0.78rem; font-weight:700; color:#818CF8; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;'>✏️ Edit Opportunity Details</div>", unsafe_allow_html=True)
                 with st.form(f"{prefix}_edit_{record.id}"):
                     values = input_fields(config, f"{prefix}_{record.id}", record.fields)
                     stage = st.selectbox(
@@ -850,16 +923,6 @@ def render_public(config):
     st.sidebar.markdown("<div style='font-size:0.72rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;'>Navigation</div>", unsafe_allow_html=True)
     nav = {n.id: n.label for n in config.navigation}
     destination = st.sidebar.radio('Navigate', list(nav), format_func=nav.get, key='public_navigation')
-
-    # Optional reset button if enabled in feature config (for programmatic test compatibility)
-    if config.features.reset_demo_data and st.sidebar.button(config.labels.reset, key='public_reset', use_container_width=True):
-        storage.reset()
-        st.session_state['_demo_epoch'] = st.session_state.get('_demo_epoch', 0) + 1
-        for key in list(st.session_state):
-            if key.startswith('public_') and key not in ('public_navigation', 'public_reset'):
-                del st.session_state[key]
-        st.session_state['_demo_flash'] = 'Demo data reset for this session.'
-        st.rerun()
 
     st.sidebar.caption(f"**{config.display_name}** · Public Demo")
 

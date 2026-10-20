@@ -272,7 +272,7 @@
       "edit_records": true,
       "activities": true,
       "intelligence": true,
-      "reset_demo_data": true,
+      "reset_demo_data": false,
       "resume_matching": false,
       "screening_qa": false,
       "role_intelligence_docx": false
