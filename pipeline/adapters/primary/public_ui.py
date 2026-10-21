@@ -250,6 +250,18 @@ PUBLIC_THEME_CSS = """
     div[data-testid="stExpander"] details summary p {
         line-height: 1.45;
     }
+    /* Pipeline Card Company Names: MO Brand Blue */
+    div[data-testid="stExpander"] details summary p > strong:first-child,
+    div[data-testid="stExpander"] summary p > strong:first-child,
+    div[data-testid="stExpander"] summary span[style*="blue"] strong,
+    div[data-testid="stExpander"] summary span[style*="rgb(28, 131, 225)"] strong,
+    div[data-testid="stExpander"] summary span[style*="rgb(0, 104, 201)"] strong {
+        color: #818CF8 !important;
+    }
+    div[data-testid="stExpander"]:hover summary p > strong:first-child,
+    div[data-testid="stExpander"]:hover summary span[style*="blue"] strong {
+        color: #A5B4FC !important;
+    }
     /* Compact form styling */
     div[data-testid="stForm"] {
         border: 1px solid #1E293B;
@@ -976,7 +988,7 @@ def pipeline(config, storage, prefix, reference=None):
         phone = record.fields.get('phone', '')
 
         # Line 1: Header (Company — Contact (Title) · Phone · Stage)
-        header_text = f"**{escape_markdown(company)}**"
+        header_text = f":blue[**{escape_markdown(company)}**]"
         if contact:
             header_text += f" — {escape_markdown(contact)}" + (f" ({escape_markdown(title)})" if title else "")
         if phone:
@@ -1058,7 +1070,7 @@ def pipeline(config, storage, prefix, reference=None):
                 st.markdown(
                     f"""
                     <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
-                        <span style="font-size: 1.15rem; font-weight: 700; color: #F8FAFC;">{company}</span>
+                        <span style="font-size: 1.15rem; font-weight: 700; color: #818CF8;">{company}</span>
                         <span style="font-size: 0.83rem; color: #94A3B8;">{contact_info}</span>
                         <div style="display: inline-flex; align-items: center; gap: 5px; margin-left: 4px;">{pills_str}</div>
                     </div>
