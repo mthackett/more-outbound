@@ -1,1054 +1,1204 @@
 [
-  {
-    "id": "b2b-001",
+ {
+  "id": "b2b-001",
+  "stage_id": "inquiry",
+  "created_at": "today-34T10:00",
+  "fields": {
+   "company": "Acme Global Consulting",
+   "contact": "Jonathan Vance",
+   "title": "Managing Director",
+   "email": "jonathan.vance@acmeglobalconsulting.example.com",
+   "industry": "Management Consulting",
+   "acv": 120000,
+   "opportunity_brief": "Enterprise digital transformation roadmap and change enablement.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Client Referral",
+   "priority": "High",
+   "next_action": "Review project deliverables with Jonathan Vance",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+  },
+  "stage_history": [
+   {
     "stage_id": "inquiry",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Acme Global Consulting",
-      "contact": "Jonathan Vance",
-      "title": "Managing Director",
-      "email": "jonathan.vance@acmeglobalconsulting.example.com",
-      "industry": "Management Consulting",
-      "acv": 120000,
-      "opportunity_brief": "Enterprise digital transformation roadmap and change enablement.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Client Referral",
-      "priority": "High",
-      "next_action": "Review project deliverables with Jonathan Vance",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-001-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Jonathan Vance.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-34T10:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-001-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Jonathan Vance. Engagement thesis: Enterprise digital transformation roadmap and change enablement.",
+    "occurred_at": "today-34T11:30"
+   }
+  ]
+ },
+ {
+  "id": "b2b-002",
+  "stage_id": "inquiry",
+  "created_at": "today-33T10:00",
+  "fields": {
+   "company": "Stratum Advisory Partners",
+   "contact": "Beatrice Sterling",
+   "title": "Senior Partner",
+   "email": "beatrice.sterling@stratumadvisorypartners.example.com",
+   "industry": "Financial Advisory",
+   "acv": 95000,
+   "opportunity_brief": "M&A post-merger integration framework for regional healthcare network.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Executive Inbound",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Beatrice Sterling",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-002",
+  "stage_history": [
+   {
     "stage_id": "inquiry",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Stratum Advisory Partners",
-      "contact": "Beatrice Sterling",
-      "title": "Senior Partner",
-      "email": "beatrice.sterling@stratumadvisorypartners.example.com",
-      "industry": "Financial Advisory",
-      "acv": 95000,
-      "opportunity_brief": "M&A post-merger integration framework for regional healthcare network.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Executive Inbound",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Beatrice Sterling",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-002-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Beatrice Sterling.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-33T10:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-002-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Beatrice Sterling. Engagement thesis: M&A post-merger integration framework for regional healthcare network.",
+    "occurred_at": "today-33T11:30"
+   }
+  ]
+ },
+ {
+  "id": "b2b-003",
+  "stage_id": "inquiry",
+  "created_at": "today-32T10:00",
+  "fields": {
+   "company": "Nexus Supply Chain Advisors",
+   "contact": "Carlos Mendez",
+   "title": "VP of Client Services",
+   "email": "carlos.mendez@nexussupplychainadvisors.example.com",
+   "industry": "Logistics Consulting",
+   "acv": 85000,
+   "opportunity_brief": "Warehouse automation feasibility and RFP vendor evaluation.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Executive Inbound",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Carlos Mendez",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-003",
+  "stage_history": [
+   {
     "stage_id": "inquiry",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Nexus Supply Chain Advisors",
-      "contact": "Carlos Mendez",
-      "title": "VP of Client Services",
-      "email": "carlos.mendez@nexussupplychainadvisors.example.com",
-      "industry": "Logistics Consulting",
-      "acv": 85000,
-      "opportunity_brief": "Warehouse automation feasibility and RFP vendor evaluation.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Executive Inbound",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Carlos Mendez",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-003-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Carlos Mendez.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-32T10:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-003-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Carlos Mendez. Engagement thesis: Warehouse automation feasibility and RFP vendor evaluation.",
+    "occurred_at": "today-32T11:30"
+   }
+  ]
+ },
+ {
+  "id": "b2b-004",
+  "stage_id": "scoping",
+  "created_at": "today-31T10:00",
+  "fields": {
+   "company": "Veritas Regulatory Solutions",
+   "contact": "Dr. Rachel Green",
+   "title": "Head of Compliance Advisory",
+   "email": "dr..rachel.green@veritasregulatorysolutions.example.com",
+   "industry": "Healthcare & Pharma",
+   "acv": 140000,
+   "opportunity_brief": "FDA regulatory submission readiness audit for commercial biotech client.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Client Referral",
+   "priority": "High",
+   "next_action": "Review project deliverables with Dr. Rachel Green",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-004",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-31T10:00"
+   },
+   {
     "stage_id": "scoping",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Veritas Regulatory Solutions",
-      "contact": "Dr. Rachel Green",
-      "title": "Head of Compliance Advisory",
-      "email": "dr..rachel.green@veritasregulatorysolutions.example.com",
-      "industry": "Healthcare & Pharma",
-      "acv": 140000,
-      "opportunity_brief": "FDA regulatory submission readiness audit for commercial biotech client.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Client Referral",
-      "priority": "High",
-      "next_action": "Review project deliverables with Dr. Rachel Green",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-004-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Dr. Rachel Green.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-27T11:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-004-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Dr. Rachel Green for Veritas Regulatory Solutions.",
+    "occurred_at": "today-31T11:30"
+   },
+   {
+    "id": "act-b2b-004-02",
+    "kind": "note",
+    "text": "Initial requirements scoping interview conducted with Dr. Rachel Green. Scope aligned with advisory capabilities.",
+    "occurred_at": "today-27T11:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-005",
+  "stage_id": "scoping",
+  "created_at": "today-30T10:00",
+  "fields": {
+   "company": "Helios Clean Energy Advisory",
+   "contact": "Torsten Lind",
+   "title": "Director of Sustainable Infrastructure",
+   "email": "torsten.lind@helioscleanenergyadvisory.example.com",
+   "industry": "Clean Energy",
+   "acv": 110000,
+   "opportunity_brief": "Commercial solar microgrid feasibility and ESG reporting program.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Executive Inbound",
+   "priority": "High",
+   "next_action": "Review project deliverables with Torsten Lind",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-005",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-30T10:00"
+   },
+   {
     "stage_id": "scoping",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Helios Clean Energy Advisory",
-      "contact": "Torsten Lind",
-      "title": "Director of Sustainable Infrastructure",
-      "email": "torsten.lind@helioscleanenergyadvisory.example.com",
-      "industry": "Clean Energy",
-      "acv": 110000,
-      "opportunity_brief": "Commercial solar microgrid feasibility and ESG reporting program.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Executive Inbound",
-      "priority": "High",
-      "next_action": "Review project deliverables with Torsten Lind",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-005-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Torsten Lind.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-26T11:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-005-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Torsten Lind for Helios Clean Energy Advisory.",
+    "occurred_at": "today-30T11:30"
+   },
+   {
+    "id": "act-b2b-005-02",
+    "kind": "note",
+    "text": "Initial requirements scoping interview conducted with Torsten Lind. Scope aligned with advisory capabilities.",
+    "occurred_at": "today-26T11:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-006",
+  "stage_id": "scoping",
+  "created_at": "today-29T10:00",
+  "fields": {
+   "company": "Pinnacle Cloud Architects",
+   "contact": "Deepak Sharma",
+   "title": "Chief Architect",
+   "email": "deepak.sharma@pinnaclecloudarchitects.example.com",
+   "industry": "IT Services",
+   "acv": 130000,
+   "opportunity_brief": "Multi-cloud migration architecture and zero-trust security audit.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Executive Inbound",
+   "priority": "High",
+   "next_action": "Review project deliverables with Deepak Sharma",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-006",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-29T10:00"
+   },
+   {
     "stage_id": "scoping",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Pinnacle Cloud Architects",
-      "contact": "Deepak Sharma",
-      "title": "Chief Architect",
-      "email": "deepak.sharma@pinnaclecloudarchitects.example.com",
-      "industry": "IT Services",
-      "acv": 130000,
-      "opportunity_brief": "Multi-cloud migration architecture and zero-trust security audit.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Executive Inbound",
-      "priority": "High",
-      "next_action": "Review project deliverables with Deepak Sharma",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-006-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Deepak Sharma.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-25T11:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-006-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Deepak Sharma for Pinnacle Cloud Architects.",
+    "occurred_at": "today-29T11:30"
+   },
+   {
+    "id": "act-b2b-006-02",
+    "kind": "note",
+    "text": "Initial requirements scoping interview conducted with Deepak Sharma. Scope aligned with advisory capabilities.",
+    "occurred_at": "today-25T11:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-007",
+  "stage_id": "proposal_dev",
+  "created_at": "today-28T10:00",
+  "fields": {
+   "company": "Vanguard Strategic Talent",
+   "contact": "Claire Dupont",
+   "title": "Executive Search Partner",
+   "email": "claire.dupont@vanguardstrategictalent.example.com",
+   "industry": "Human Capital",
+   "acv": 65000,
+   "opportunity_brief": "C-suite executive succession planning and leadership assessment.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Client Referral",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Claire Dupont",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-007",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-28T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-24T11:00"
+   },
+   {
     "stage_id": "proposal_dev",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Vanguard Strategic Talent",
-      "contact": "Claire Dupont",
-      "title": "Executive Search Partner",
-      "email": "claire.dupont@vanguardstrategictalent.example.com",
-      "industry": "Human Capital",
-      "acv": 65000,
-      "opportunity_brief": "C-suite executive succession planning and leadership assessment.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Client Referral",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Claire Dupont",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-007-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Claire Dupont.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-18T14:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-007-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Claire Dupont.",
+    "occurred_at": "today-28T11:30"
+   },
+   {
+    "id": "act-b2b-007-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Claire Dupont.",
+    "occurred_at": "today-24T11:00"
+   },
+   {
+    "id": "act-b2b-007-03",
+    "kind": "note",
+    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
+    "occurred_at": "today-18T14:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-008",
+  "stage_id": "proposal_dev",
+  "created_at": "today-27T10:00",
+  "fields": {
+   "company": "Apex Forensic Accounting",
+   "contact": "Franklin Pierce",
+   "title": "Lead Partner",
+   "email": "franklin.pierce@apexforensicaccounting.example.com",
+   "industry": "Accounting & Audit",
+   "acv": 75000,
+   "opportunity_brief": "Internal controls review and compliance audit for Tier 1 defense subcontractor.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Executive Inbound",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Franklin Pierce",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-008",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-27T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-23T11:00"
+   },
+   {
     "stage_id": "proposal_dev",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Apex Forensic Accounting",
-      "contact": "Franklin Pierce",
-      "title": "Lead Partner",
-      "email": "franklin.pierce@apexforensicaccounting.example.com",
-      "industry": "Accounting & Audit",
-      "acv": 75000,
-      "opportunity_brief": "Internal controls review and compliance audit for Tier 1 defense subcontractor.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Executive Inbound",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Franklin Pierce",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-008-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Franklin Pierce.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-17T14:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-008-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Franklin Pierce.",
+    "occurred_at": "today-27T11:30"
+   },
+   {
+    "id": "act-b2b-008-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Franklin Pierce.",
+    "occurred_at": "today-23T11:00"
+   },
+   {
+    "id": "act-b2b-008-03",
+    "kind": "note",
+    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
+    "occurred_at": "today-17T14:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-009",
+  "stage_id": "proposal_dev",
+  "created_at": "today-26T10:00",
+  "fields": {
+   "company": "BlueShift Brand Strategy",
+   "contact": "Simone Moreau",
+   "title": "Creative Director",
+   "email": "simone.moreau@blueshiftbrandstrategy.example.com",
+   "industry": "Marketing & Branding",
+   "acv": 55000,
+   "opportunity_brief": "Corporate rebrand and market positioning for Series B fintech platform.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Executive Inbound",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Simone Moreau",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-009",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-26T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-22T11:00"
+   },
+   {
     "stage_id": "proposal_dev",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "BlueShift Brand Strategy",
-      "contact": "Simone Moreau",
-      "title": "Creative Director",
-      "email": "simone.moreau@blueshiftbrandstrategy.example.com",
-      "industry": "Marketing & Branding",
-      "acv": 55000,
-      "opportunity_brief": "Corporate rebrand and market positioning for Series B fintech platform.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Executive Inbound",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Simone Moreau",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-009-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Simone Moreau.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-16T14:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-009-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Simone Moreau.",
+    "occurred_at": "today-26T11:30"
+   },
+   {
+    "id": "act-b2b-009-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Simone Moreau.",
+    "occurred_at": "today-22T11:00"
+   },
+   {
+    "id": "act-b2b-009-03",
+    "kind": "note",
+    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
+    "occurred_at": "today-16T14:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-010",
+  "stage_id": "proposal_dev",
+  "created_at": "today-25T10:00",
+  "fields": {
+   "company": "Crestline Industrial Engineering",
+   "contact": "Harold Chen",
+   "title": "VP of Engineering Practice",
+   "email": "harold.chen@crestlineindustrialengineering.example.com",
+   "industry": "Industrial Automation",
+   "acv": 160000,
+   "opportunity_brief": "Reshoring manufacturing plant layout and robotic automation design.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Client Referral",
+   "priority": "High",
+   "next_action": "Review project deliverables with Harold Chen",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-010",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-25T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-21T11:00"
+   },
+   {
     "stage_id": "proposal_dev",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Crestline Industrial Engineering",
-      "contact": "Harold Chen",
-      "title": "VP of Engineering Practice",
-      "email": "harold.chen@crestlineindustrialengineering.example.com",
-      "industry": "Industrial Automation",
-      "acv": 160000,
-      "opportunity_brief": "Reshoring manufacturing plant layout and robotic automation design.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Client Referral",
-      "priority": "High",
-      "next_action": "Review project deliverables with Harold Chen",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-010-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Harold Chen.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-15T14:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-010-01",
+    "kind": "note",
+    "text": "Commercial inquiry received from Harold Chen.",
+    "occurred_at": "today-25T11:30"
+   },
+   {
+    "id": "act-b2b-010-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Harold Chen.",
+    "occurred_at": "today-21T11:00"
+   },
+   {
+    "id": "act-b2b-010-03",
+    "kind": "note",
+    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
+    "occurred_at": "today-15T14:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-011",
+  "stage_id": "proposal_sent",
+  "created_at": "today-24T10:00",
+  "fields": {
+   "company": "Sentry Cyber Defense Advisory",
+   "contact": "Elena Rostova",
+   "title": "Principal Security Consultant",
+   "email": "elena.rostova@sentrycyberdefenseadvisory.example.com",
+   "industry": "Cybersecurity",
+   "acv": 105000,
+   "opportunity_brief": "SOC2 Type II audit readiness and incident response tabletop exercise.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Executive Inbound",
+   "priority": "High",
+   "next_action": "Review project deliverables with Elena Rostova",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-011",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-24T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-20T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-14T14:00"
+   },
+   {
     "stage_id": "proposal_sent",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Sentry Cyber Defense Advisory",
-      "contact": "Elena Rostova",
-      "title": "Principal Security Consultant",
-      "email": "elena.rostova@sentrycyberdefenseadvisory.example.com",
-      "industry": "Cybersecurity",
-      "acv": 105000,
-      "opportunity_brief": "SOC2 Type II audit readiness and incident response tabletop exercise.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Executive Inbound",
-      "priority": "High",
-      "next_action": "Review project deliverables with Elena Rostova",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-011-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Elena Rostova.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-011-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($105,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-9T15:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-011-01",
+    "kind": "note",
+    "text": "Requirements scoping completed with Elena Rostova.",
+    "occurred_at": "today-20T11:00"
+   },
+   {
+    "id": "act-b2b-011-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Elena Rostova.",
+    "occurred_at": "today-20T11:30"
+   },
+   {
+    "id": "act-b2b-011-03",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($105,000).",
+    "occurred_at": "today-9T15:00"
+   },
+   {
+    "id": "act-b2b-011-04",
+    "kind": "note",
+    "text": "Committee review underway. Executive summary delivered to stakeholders.",
+    "occurred_at": "today-8T10:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-012",
+  "stage_id": "proposal_sent",
+  "created_at": "today-23T10:00",
+  "fields": {
+   "company": "Meridian Operations Group",
+   "contact": "Marcus Vance",
+   "title": "Managing Director",
+   "email": "marcus.vance@meridianoperationsgroup.example.com",
+   "industry": "Operations Consulting",
+   "acv": 88000,
+   "opportunity_brief": "Lean Six Sigma supply chain waste reduction for medical device manufacturer.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Executive Inbound",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Marcus Vance",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-012",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-23T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-19T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-13T14:00"
+   },
+   {
     "stage_id": "proposal_sent",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Meridian Operations Group",
-      "contact": "Marcus Vance",
-      "title": "Managing Director",
-      "email": "marcus.vance@meridianoperationsgroup.example.com",
-      "industry": "Operations Consulting",
-      "acv": 88000,
-      "opportunity_brief": "Lean Six Sigma supply chain waste reduction for medical device manufacturer.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Executive Inbound",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Marcus Vance",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-012-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Marcus Vance.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-012-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($88,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-8T15:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-012-01",
+    "kind": "note",
+    "text": "Requirements scoping completed with Marcus Vance.",
+    "occurred_at": "today-19T11:00"
+   },
+   {
+    "id": "act-b2b-012-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Marcus Vance.",
+    "occurred_at": "today-19T11:30"
+   },
+   {
+    "id": "act-b2b-012-03",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($88,000).",
+    "occurred_at": "today-8T15:00"
+   },
+   {
+    "id": "act-b2b-012-04",
+    "kind": "note",
+    "text": "Committee review underway. Executive summary delivered to stakeholders.",
+    "occurred_at": "today-7T10:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-013",
+  "stage_id": "proposal_sent",
+  "created_at": "today-22T10:00",
+  "fields": {
+   "company": "Solas Environmental Planning",
+   "contact": "Priya Patel",
+   "title": "Head of Environmental Practice",
+   "email": "priya.patel@solasenvironmentalplanning.example.com",
+   "industry": "Environmental Engineering",
+   "acv": 72000,
+   "opportunity_brief": "Phase I environmental site assessment and municipal zoning approval.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Client Referral",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Priya Patel",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-013",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-22T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-18T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-12T14:00"
+   },
+   {
     "stage_id": "proposal_sent",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Solas Environmental Planning",
-      "contact": "Priya Patel",
-      "title": "Head of Environmental Practice",
-      "email": "priya.patel@solasenvironmentalplanning.example.com",
-      "industry": "Environmental Engineering",
-      "acv": 72000,
-      "opportunity_brief": "Phase I environmental site assessment and municipal zoning approval.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Client Referral",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Priya Patel",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-013-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Priya Patel.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-013-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($72,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-7T15:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-013-01",
+    "kind": "note",
+    "text": "Requirements scoping completed with Priya Patel.",
+    "occurred_at": "today-18T11:00"
+   },
+   {
+    "id": "act-b2b-013-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Priya Patel.",
+    "occurred_at": "today-18T11:30"
+   },
+   {
+    "id": "act-b2b-013-03",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($72,000).",
+    "occurred_at": "today-7T15:00"
+   },
+   {
+    "id": "act-b2b-013-04",
+    "kind": "note",
+    "text": "Committee review underway. Executive summary delivered to stakeholders.",
+    "occurred_at": "today-6T10:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-014",
+  "stage_id": "proposal_sent",
+  "created_at": "today-21T10:00",
+  "fields": {
+   "company": "Zephyr BioConsulting",
+   "contact": "Dr. David Sterling",
+   "title": "Director of Regulatory Strategy",
+   "email": "dr..david.sterling@zephyrbioconsulting.example.com",
+   "industry": "Life Sciences",
+   "acv": 125000,
+   "opportunity_brief": "Clinical trial protocol design and biostatistical analysis review.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Executive Inbound",
+   "priority": "High",
+   "next_action": "Review project deliverables with Dr. David Sterling",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-014",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-21T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-17T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-11T14:00"
+   },
+   {
     "stage_id": "proposal_sent",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Zephyr BioConsulting",
-      "contact": "Dr. David Sterling",
-      "title": "Director of Regulatory Strategy",
-      "email": "dr..david.sterling@zephyrbioconsulting.example.com",
-      "industry": "Life Sciences",
-      "acv": 125000,
-      "opportunity_brief": "Clinical trial protocol design and biostatistical analysis review.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Executive Inbound",
-      "priority": "High",
-      "next_action": "Review project deliverables with Dr. David Sterling",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-014-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Dr. David Sterling.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-014-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($125,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      }
-    ]
+    "entered_at": "today-6T15:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-014-01",
+    "kind": "note",
+    "text": "Requirements scoping completed with Dr. David Sterling.",
+    "occurred_at": "today-17T11:00"
+   },
+   {
+    "id": "act-b2b-014-02",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Dr. David Sterling.",
+    "occurred_at": "today-17T11:30"
+   },
+   {
+    "id": "act-b2b-014-03",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($125,000).",
+    "occurred_at": "today-6T15:00"
+   },
+   {
+    "id": "act-b2b-014-04",
+    "kind": "note",
+    "text": "Committee review underway. Executive summary delivered to stakeholders.",
+    "occurred_at": "today-5T10:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-015",
+  "stage_id": "negotiation",
+  "created_at": "today-20T10:00",
+  "fields": {
+   "company": "Cobalt Tech Integration",
+   "contact": "Amara Okafor",
+   "title": "VP of Enterprise Solutions",
+   "email": "amara.okafor@cobalttechintegration.example.com",
+   "industry": "Software Integration",
+   "acv": 115000,
+   "opportunity_brief": "Salesforce CRM to SAP S/4HANA enterprise integration and master data sync.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Executive Inbound",
+   "priority": "High",
+   "next_action": "Review project deliverables with Amara Okafor",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-015",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-20T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-16T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-10T14:00"
+   },
+   {
+    "stage_id": "proposal_sent",
+    "entered_at": "today-5T15:00"
+   },
+   {
     "stage_id": "negotiation",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Cobalt Tech Integration",
-      "contact": "Amara Okafor",
-      "title": "VP of Enterprise Solutions",
-      "email": "amara.okafor@cobalttechintegration.example.com",
-      "industry": "Software Integration",
-      "acv": 115000,
-      "opportunity_brief": "Salesforce CRM to SAP S/4HANA enterprise integration and master data sync.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Executive Inbound",
-      "priority": "High",
-      "next_action": "Review project deliverables with Amara Okafor",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "stage_id": "negotiation",
-        "entered_at": "2026-10-16T16:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-015-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Amara Okafor.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-015-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($115,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-015-03",
-        "kind": "meeting",
-        "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-        "occurred_at": "2026-10-16T16:00:00+00:00"
-      }
-    ]
+    "entered_at": "today+0T16:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-015-01",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Amara Okafor.",
+    "occurred_at": "today-16T11:00"
+   },
+   {
+    "id": "act-b2b-015-02",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($115,000).",
+    "occurred_at": "today-5T15:00"
+   },
+   {
+    "id": "act-b2b-015-03",
+    "kind": "meeting",
+    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
+    "occurred_at": "today+0T16:00"
+   },
+   {
+    "id": "act-b2b-015-04",
+    "kind": "note",
+    "text": "SOW redlines exchanged. Agreement reached on payment milestones.",
+    "occurred_at": "today+1T11:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-016",
+  "stage_id": "negotiation",
+  "created_at": "today-19T10:00",
+  "fields": {
+   "company": "Ironclad Risk Partners",
+   "contact": "Julian Weber",
+   "title": "Managing Director",
+   "email": "julian.weber@ironcladriskpartners.example.com",
+   "industry": "Risk Management",
+   "acv": 90000,
+   "opportunity_brief": "Enterprise risk management framework and supply chain continuity insurance.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Client Referral",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Julian Weber",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-016",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-19T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-15T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-9T14:00"
+   },
+   {
+    "stage_id": "proposal_sent",
+    "entered_at": "today-4T15:00"
+   },
+   {
     "stage_id": "negotiation",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Ironclad Risk Partners",
-      "contact": "Julian Weber",
-      "title": "Managing Director",
-      "email": "julian.weber@ironcladriskpartners.example.com",
-      "industry": "Risk Management",
-      "acv": 90000,
-      "opportunity_brief": "Enterprise risk management framework and supply chain continuity insurance.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Client Referral",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Julian Weber",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "stage_id": "negotiation",
-        "entered_at": "2026-10-16T16:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-016-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Julian Weber.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-016-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($90,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-016-03",
-        "kind": "meeting",
-        "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-        "occurred_at": "2026-10-16T16:00:00+00:00"
-      }
-    ]
+    "entered_at": "today+1T16:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-016-01",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Julian Weber.",
+    "occurred_at": "today-15T11:00"
+   },
+   {
+    "id": "act-b2b-016-02",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($90,000).",
+    "occurred_at": "today-4T15:00"
+   },
+   {
+    "id": "act-b2b-016-03",
+    "kind": "meeting",
+    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
+    "occurred_at": "today+1T16:00"
+   },
+   {
+    "id": "act-b2b-016-04",
+    "kind": "note",
+    "text": "SOW redlines exchanged. Agreement reached on payment milestones.",
+    "occurred_at": "today+2T11:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-017",
+  "stage_id": "negotiation",
+  "created_at": "today-18T10:00",
+  "fields": {
+   "company": "Horizon Defense Consulting",
+   "contact": "Frank Baxter",
+   "title": "Director of Federal Capture",
+   "email": "frank.baxter@horizondefenseconsulting.example.com",
+   "industry": "Government Contracting",
+   "acv": 150000,
+   "opportunity_brief": "Federal capture strategy and SBIR Phase III transition compliance.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Executive Inbound",
+   "priority": "High",
+   "next_action": "Review project deliverables with Frank Baxter",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-017",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-18T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-14T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-8T14:00"
+   },
+   {
+    "stage_id": "proposal_sent",
+    "entered_at": "today-3T15:00"
+   },
+   {
     "stage_id": "negotiation",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Horizon Defense Consulting",
-      "contact": "Frank Baxter",
-      "title": "Director of Federal Capture",
-      "email": "frank.baxter@horizondefenseconsulting.example.com",
-      "industry": "Government Contracting",
-      "acv": 150000,
-      "opportunity_brief": "Federal capture strategy and SBIR Phase III transition compliance.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Executive Inbound",
-      "priority": "High",
-      "next_action": "Review project deliverables with Frank Baxter",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "stage_id": "negotiation",
-        "entered_at": "2026-10-16T16:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-017-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Frank Baxter.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-017-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($150,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-017-03",
-        "kind": "meeting",
-        "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-        "occurred_at": "2026-10-16T16:00:00+00:00"
-      }
-    ]
+    "entered_at": "today+2T16:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-017-01",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Frank Baxter.",
+    "occurred_at": "today-14T11:00"
+   },
+   {
+    "id": "act-b2b-017-02",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($150,000).",
+    "occurred_at": "today-3T15:00"
+   },
+   {
+    "id": "act-b2b-017-03",
+    "kind": "meeting",
+    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
+    "occurred_at": "today+2T16:00"
+   },
+   {
+    "id": "act-b2b-017-04",
+    "kind": "note",
+    "text": "SOW redlines exchanged. Agreement reached on payment milestones.",
+    "occurred_at": "today+3T11:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-018",
+  "stage_id": "contract_awarded",
+  "created_at": "today-17T10:00",
+  "fields": {
+   "company": "Veloce Fleet Advisory",
+   "contact": "Chloe Zhao",
+   "title": "Head of Commercial Fleet Strategy",
+   "email": "chloe.zhao@velocefleetadvisory.example.com",
+   "industry": "Transportation",
+   "acv": 68000,
+   "opportunity_brief": "Commercial fleet electrification feasibility and charging infrastructure.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Executive Inbound",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Chloe Zhao",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-018",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-17T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-13T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-7T14:00"
+   },
+   {
+    "stage_id": "proposal_sent",
+    "entered_at": "today-2T15:00"
+   },
+   {
+    "stage_id": "negotiation",
+    "entered_at": "today+3T16:00"
+   },
+   {
     "stage_id": "contract_awarded",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Veloce Fleet Advisory",
-      "contact": "Chloe Zhao",
-      "title": "Head of Commercial Fleet Strategy",
-      "email": "chloe.zhao@velocefleetadvisory.example.com",
-      "industry": "Transportation",
-      "acv": 68000,
-      "opportunity_brief": "Commercial fleet electrification feasibility and charging infrastructure.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Executive Inbound",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Chloe Zhao",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "stage_id": "negotiation",
-        "entered_at": "2026-10-16T16:00:00+00:00"
-      },
-      {
-        "stage_id": "contract_awarded",
-        "entered_at": "2026-10-18T17:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-018-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Chloe Zhao.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-018-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($68,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-018-03",
-        "kind": "meeting",
-        "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-        "occurred_at": "2026-10-16T16:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-018-04",
-        "kind": "opportunity",
-        "text": "Master Services Agreement executed and engagement staffing confirmed.",
-        "occurred_at": "2026-10-18T17:00:00+00:00"
-      }
-    ]
+    "entered_at": "today+7T17:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-018-01",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Chloe Zhao.",
+    "occurred_at": "today-13T11:00"
+   },
+   {
+    "id": "act-b2b-018-02",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($68,000).",
+    "occurred_at": "today-2T15:00"
+   },
+   {
+    "id": "act-b2b-018-03",
+    "kind": "meeting",
+    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
+    "occurred_at": "today+3T16:00"
+   },
+   {
+    "id": "act-b2b-018-04",
+    "kind": "opportunity",
+    "text": "Master Services Agreement executed and engagement staffing confirmed.",
+    "occurred_at": "today+7T17:00"
+   },
+   {
+    "id": "act-b2b-018-05",
+    "kind": "note",
+    "text": "Kickoff meeting scheduled with client executive sponsor and consulting team.",
+    "occurred_at": "today+8T09:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-019",
+  "stage_id": "contract_awarded",
+  "created_at": "today-16T10:00",
+  "fields": {
+   "company": "Highline Retail Solutions",
+   "contact": "Lucas Moreau",
+   "title": "Director of Omnichannel Practice",
+   "email": "lucas.moreau@highlineretailsolutions.example.com",
+   "industry": "Retail Strategy",
+   "acv": 82000,
+   "opportunity_brief": "B2B wholesale portal scoping and headless e-commerce architecture.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Sarah Jenkins",
+   "source": "Client Referral",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Lucas Moreau",
+   "next_action_date": "today+0",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-019",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-16T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-12T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-6T14:00"
+   },
+   {
+    "stage_id": "proposal_sent",
+    "entered_at": "today-1T15:00"
+   },
+   {
+    "stage_id": "negotiation",
+    "entered_at": "today+4T16:00"
+   },
+   {
     "stage_id": "contract_awarded",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Highline Retail Solutions",
-      "contact": "Lucas Moreau",
-      "title": "Director of Omnichannel Practice",
-      "email": "lucas.moreau@highlineretailsolutions.example.com",
-      "industry": "Retail Strategy",
-      "acv": 82000,
-      "opportunity_brief": "B2B wholesale portal scoping and headless e-commerce architecture.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Sarah Jenkins",
-      "source": "Client Referral",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Lucas Moreau",
-      "next_action_date": "2026-10-21",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "stage_id": "negotiation",
-        "entered_at": "2026-10-16T16:00:00+00:00"
-      },
-      {
-        "stage_id": "contract_awarded",
-        "entered_at": "2026-10-18T17:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-019-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Lucas Moreau.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-019-02",
-        "kind": "replied",
-        "text": "Formal proposal deliverable submitted for committee evaluation ($82,000).",
-        "occurred_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-019-03",
-        "kind": "meeting",
-        "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-        "occurred_at": "2026-10-16T16:00:00+00:00"
-      },
-      {
-        "id": "act-b2b-019-04",
-        "kind": "opportunity",
-        "text": "Master Services Agreement executed and engagement staffing confirmed.",
-        "occurred_at": "2026-10-18T17:00:00+00:00"
-      }
-    ]
+    "entered_at": "today+8T17:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-019-01",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Lucas Moreau.",
+    "occurred_at": "today-12T11:00"
+   },
+   {
+    "id": "act-b2b-019-02",
+    "kind": "replied",
+    "text": "Formal proposal deliverable submitted for committee evaluation ($82,000).",
+    "occurred_at": "today-1T15:00"
+   },
+   {
+    "id": "act-b2b-019-03",
+    "kind": "meeting",
+    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
+    "occurred_at": "today+4T16:00"
+   },
+   {
+    "id": "act-b2b-019-04",
+    "kind": "opportunity",
+    "text": "Master Services Agreement executed and engagement staffing confirmed.",
+    "occurred_at": "today+8T17:00"
+   },
+   {
+    "id": "act-b2b-019-05",
+    "kind": "note",
+    "text": "Kickoff meeting scheduled with client executive sponsor and consulting team.",
+    "occurred_at": "today+9T09:00"
+   }
+  ]
+ },
+ {
+  "id": "b2b-020",
+  "stage_id": "lost",
+  "created_at": "today-15T10:00",
+  "fields": {
+   "company": "Polaris Change Management",
+   "contact": "Karin Lindholm",
+   "title": "Senior Change Consultant",
+   "email": "karin.lindholm@polarischangemanagement.example.com",
+   "industry": "Organizational Change",
+   "acv": 58000,
+   "opportunity_brief": "Enterprise ERP rollout change management and stakeholder communication.",
+   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
+   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
+   "tech_stack": "Microsoft 365 · Slack · Asana",
+   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
+   "opportunity_owner": "Alex Rivera",
+   "source": "Executive Inbound",
+   "priority": "Medium",
+   "next_action": "Review project deliverables with Karin Lindholm",
+   "next_action_date": "today+3",
+   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
   },
-  {
-    "id": "b2b-020",
+  "stage_history": [
+   {
+    "stage_id": "inquiry",
+    "entered_at": "today-15T10:00"
+   },
+   {
+    "stage_id": "scoping",
+    "entered_at": "today-11T11:00"
+   },
+   {
+    "stage_id": "proposal_dev",
+    "entered_at": "today-5T14:00"
+   },
+   {
+    "stage_id": "proposal_sent",
+    "entered_at": "today+0T15:00"
+   },
+   {
     "stage_id": "lost",
-    "created_at": "2026-09-20T10:00:00+00:00",
-    "fields": {
-      "company": "Polaris Change Management",
-      "contact": "Karin Lindholm",
-      "title": "Senior Change Consultant",
-      "email": "karin.lindholm@polarischangemanagement.example.com",
-      "industry": "Organizational Change",
-      "acv": 58000,
-      "opportunity_brief": "Enterprise ERP rollout change management and stakeholder communication.",
-      "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-      "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-      "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-      "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-      "opportunity_owner": "Alex Rivera",
-      "source": "Executive Inbound",
-      "priority": "Medium",
-      "next_action": "Review project deliverables with Karin Lindholm",
-      "next_action_date": "2026-10-24",
-      "notes": "Initial scoping completed on Oct 10. Commercial engagement model agreed upon."
-    },
-    "stage_history": [
-      {
-        "stage_id": "inquiry",
-        "entered_at": "2026-09-20T10:00:00+00:00"
-      },
-      {
-        "stage_id": "scoping",
-        "entered_at": "2026-09-28T11:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_dev",
-        "entered_at": "2026-10-04T14:00:00+00:00"
-      },
-      {
-        "stage_id": "proposal_sent",
-        "entered_at": "2026-10-10T15:00:00+00:00"
-      },
-      {
-        "stage_id": "lost",
-        "entered_at": "2026-10-15T12:00:00+00:00"
-      }
-    ],
-    "activities": [
-      {
-        "id": "act-b2b-020-01",
-        "kind": "contacted",
-        "text": "Initial requirements scoping interview conducted with Karin Lindholm.",
-        "occurred_at": "2026-09-28T11:00:00+00:00"
-      }
-    ]
-  }
+    "entered_at": "today+4T12:00"
+   }
+  ],
+  "activities": [
+   {
+    "id": "act-b2b-020-01",
+    "kind": "contacted",
+    "text": "Initial requirements scoping interview conducted with Karin Lindholm.",
+    "occurred_at": "today-11T11:00"
+   },
+   {
+    "id": "act-b2b-020-02",
+    "kind": "note",
+    "text": "Client decided to defer project to next fiscal year due to internal reorganization.",
+    "occurred_at": "today+4T12:00"
+   }
+  ]
+ }
 ]

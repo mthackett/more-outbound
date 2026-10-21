@@ -91,7 +91,7 @@ class TestOutreachDemo(unittest.TestCase):
             self.assertFalse(a.exception)
             self.assertFalse(b.exception)
             displayed = {m.label: m.value for m in a.metric}
-            self.assertEqual([displayed[k] for k in ('Meeting Booking Rate', 'Reply Rate', 'Reply-to-Meeting Rate')],
+            self.assertEqual([displayed[k] for k in ('Booking Rate', 'Reply Rate', 'Reply-to-Meeting')],
                              ['33.3%', '56.7%', '58.8%'])
             a.session_state['_demo_store'].update('demo-001', {'company': 'Session A'}, 'contacted')
             a.run()

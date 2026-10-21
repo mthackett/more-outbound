@@ -73,19 +73,26 @@ def pipeline_value(cohorts, current, config):
 
 
 METRIC_REGISTRY = {
-    'meeting_booking_rate': ('Meeting Booking Rate', 'percent', booking),
+    'meeting_booking_rate': ('Booking Rate', 'percent', booking),
     'reply_rate': ('Reply Rate', 'percent', replies),
-    'reply_to_meeting_rate': ('Reply-to-Meeting Rate', 'percent', replies_to_meeting),
-    'total': ('Total Prospects', 'number', lambda c, r, cfg: {'value': len(c['total'])}),
-    'active': ('Active Prospects', 'number', lambda c, r, cfg: {'value': len(active_ids(r, cfg))}),
-    'pipeline_value': ('Active Pipeline ACV', 'currency', pipeline_value),
+    'reply_to_meeting_rate': ('Reply-to-Meeting', 'percent', replies_to_meeting),
+    'total': ('Total', 'number', lambda c, r, cfg: {'value': len(c['total'])}),
+    'active': ('Active', 'number', lambda c, r, cfg: {'value': len(active_ids(r, cfg))}),
+    'pipeline_value': ('Pipeline ACV', 'currency', pipeline_value),
 }
 
 
 def calculate_metrics(records, config):
     cohorts, current = historical_cohorts(records, config)
-    return {key: {'label': METRIC_REGISTRY[key][0], 'format': METRIC_REGISTRY[key][1],
-                  **METRIC_REGISTRY[key][2](cohorts, current, config)} for key in config.metrics}
+    custom_labels = getattr(getattr(config, 'labels', None), 'metric_labels', {}) or {}
+    return {
+        key: {
+            'label': custom_labels.get(key, METRIC_REGISTRY[key][0]),
+            'format': METRIC_REGISTRY[key][1],
+            **METRIC_REGISTRY[key][2](cohorts, current, config),
+        }
+        for key in config.metrics
+    }
 
 
 def conversion_funnel(records, config):

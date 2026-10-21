@@ -1,12 +1,42 @@
 """Per-session storage. No globals, caches, filesystem writes or providers."""
 from copy import deepcopy
 from pipeline.domain.records import PipelineRecord, StageEvent, Activity, validate_fields
+from pipeline.domain.demo_dates import session_reference, materialize_seed, is_relative
 
 
 class MemoryRecordStorage:
-    def __init__(self, config, seed=()):
+    def __init__(self, config, seed=(), reference=None):
         self.config = config
-        self._seed = [PipelineRecord.model_validate(deepcopy(row)) for row in seed]
+        self.reference = reference or session_reference()
+        date_fields = [f.key for f in config.fields if f.type == 'date']
+
+        self._raw_seed = deepcopy(list(seed))
+        has_relative = False
+        for row in self._raw_seed:
+            if isinstance(row, dict):
+                if is_relative(row.get('created_at')):
+                    has_relative = True
+                    break
+                for e in row.get('stage_history') or []:
+                    if is_relative(e.get('entered_at')):
+                        has_relative = True
+                        break
+                if has_relative:
+                    break
+                for v in (row.get('fields') or {}).values():
+                    if is_relative(v):
+                        has_relative = True
+                        break
+                if has_relative:
+                    break
+
+        self._has_relative = has_relative
+        if has_relative:
+            materialized = materialize_seed(self._raw_seed, self.reference, date_fields)
+        else:
+            materialized = self._raw_seed
+
+        self._seed = [PipelineRecord.model_validate(deepcopy(row)) for row in materialized]
         ids = [r.id for r in self._seed]
         if len(ids) != len(set(ids)):
             raise ValueError('Duplicate seed IDs')
@@ -22,7 +52,13 @@ class MemoryRecordStorage:
             raise ValueError('Unknown stage')
 
     def reset(self):
-        self._records = {r.id: r.model_copy(deep=True) for r in self._seed}
+        if getattr(self, '_has_relative', False):
+            date_fields = [f.key for f in self.config.fields if f.type == 'date']
+            materialized = materialize_seed(self._raw_seed, self.reference, date_fields)
+            records = [PipelineRecord.model_validate(r) for r in materialized]
+            self._records = {r.id: r for r in records}
+        else:
+            self._records = {r.id: r.model_copy(deep=True) for r in self._seed}
 
     def list_records(self):
         return [r.model_copy(deep=True) for r in self._records.values()]

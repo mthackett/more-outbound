@@ -101,6 +101,7 @@ class LabelsConfig(StrictConfig):
     add_note: str = 'Add Note'
     reset: str = 'Reset Demo Data'
     intelligence: str = 'Intelligence'
+    metric_labels: dict[str, str] = Field(default_factory=dict)
 
 
 class InstanceCapabilities(StrictConfig):

@@ -35,8 +35,10 @@ if is_public:
         st.error(str(exc))
         st.stop()
     st.set_page_config(page_title=demo_config.page_title, layout="wide")
-    from pipeline.adapters.primary.public_ui import render_public
-    render_public(demo_config)
+    import importlib
+    import pipeline.adapters.primary.public_ui as public_ui
+    importlib.reload(public_ui)
+    public_ui.render_public(demo_config)
     st.stop()
 
 import pyperclip
@@ -150,6 +152,14 @@ st.markdown("""
         align-items: center;
         justify-content: center;
     }
+    div[data-testid="stMetric"] > div {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
     div[data-testid="stMetric"] label,
     div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
         display: flex !important;
@@ -159,6 +169,7 @@ st.markdown("""
         text-align: center !important;
     }
     div[data-testid="stMetric"] [data-testid="stMetricLabel"] > div,
+    div[data-testid="stMetric"] [data-testid="stMetricLabel"] div,
     div[data-testid="stMetric"] [data-testid="stMetricLabel"] p {
         font-size: 0.70rem !important;
         color: #94A3B8 !important;
@@ -171,6 +182,9 @@ st.markdown("""
         overflow: visible !important;
         text-overflow: clip !important;
         margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
         display: flex !important;
@@ -183,9 +197,15 @@ st.markdown("""
         font-weight: 700 !important;
         line-height: 1.2;
     }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] > div {
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] > div,
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] div,
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] p {
         text-align: center !important;
         width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin: 0 auto !important;
     }
     /* Compact two-line CRM expander card styling */
     div[data-testid="stExpander"] details {

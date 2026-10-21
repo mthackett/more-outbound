@@ -1,14 +1,31 @@
 """Configuration-driven public views. Imports no private workflow or provider."""
 import datetime
 import hashlib
+import html
 import json
 from pathlib import Path
+import re
+import importlib
 import streamlit as st
 from pipeline.adapters.primary.runtime import select_session
+import pipeline.domain.demo_dates
+import pipeline.adapters.secondary.memory_records
+import pipeline.domain.outreach_metrics
+importlib.reload(pipeline.domain.demo_dates)
+importlib.reload(pipeline.adapters.secondary.memory_records)
+importlib.reload(pipeline.domain.outreach_metrics)
 from pipeline.adapters.secondary.memory_records import MemoryRecordStorage
+from pipeline.domain.demo_dates import session_reference
 from pipeline.domain.records import format_field
 from pipeline.domain.intelligence_service import IntelligenceService
 from pipeline.domain.outreach_metrics import calculate_metrics, conversion_funnel
+
+
+def escape_markdown(text):
+    """Escape dollar signs in Markdown strings to prevent accidental KaTeX math rendering."""
+    if not text:
+        return ""
+    return re.sub(r'(?<!\\)\$', r'\$', str(text))
 
 STAGE_STYLES = {
     # Sales Rep Stages
@@ -161,6 +178,14 @@ PUBLIC_THEME_CSS = """
         border-color: #6366F1;
         background-color: #111C35;
     }
+    div[data-testid="stMetric"] > div {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
     div[data-testid="stMetric"] label,
     div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
         display: flex !important;
@@ -170,6 +195,7 @@ PUBLIC_THEME_CSS = """
         text-align: center !important;
     }
     div[data-testid="stMetric"] [data-testid="stMetricLabel"] > div,
+    div[data-testid="stMetric"] [data-testid="stMetricLabel"] div,
     div[data-testid="stMetric"] [data-testid="stMetricLabel"] p {
         font-size: 0.68rem !important;
         color: #94A3B8 !important;
@@ -182,6 +208,9 @@ PUBLIC_THEME_CSS = """
         overflow: visible !important;
         text-overflow: clip !important;
         margin: 0 auto !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
         display: flex !important;
@@ -194,9 +223,15 @@ PUBLIC_THEME_CSS = """
         font-weight: 700 !important;
         line-height: 1.2;
     }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] > div {
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] > div,
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] div,
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] p {
         text-align: center !important;
         width: 100% !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        margin: 0 auto !important;
     }
     /* Card expander styling */
     div[data-testid="stExpander"] {
@@ -226,7 +261,7 @@ PUBLIC_THEME_CSS = """
 """
 
 
-def session_storage(config, workspace_key=None):
+def session_storage(config, workspace_key=None, reference=None):
     select_session(st.session_state, 'demo')
     ws_key = workspace_key or config.pipeline_type or 'sales_rep'
     cfg_hash = hashlib.sha256(config.model_dump_json().encode()).hexdigest()[:12]
@@ -234,6 +269,7 @@ def session_storage(config, workspace_key=None):
     if '_demo_workspace_stores' not in st.session_state:
         st.session_state['_demo_workspace_stores'] = {}
     stores = st.session_state['_demo_workspace_stores']
+    ref = reference or st.session_state.get('_demo_reference') or session_reference()
     if store_key not in stores:
         seed = []
         fixtures_dir = Path(__file__).resolve().parents[2] / 'examples/fixtures'
@@ -241,7 +277,7 @@ def session_storage(config, workspace_key=None):
             seed = json.loads((fixtures_dir / 'demo_prospects.json').read_text(encoding='utf-8'))
         elif config.seed == 'b2b_services_prospects':
             seed = json.loads((fixtures_dir / 'demo_b2b_services.json').read_text(encoding='utf-8'))
-        stores[store_key] = MemoryRecordStorage(config, seed)
+        stores[store_key] = MemoryRecordStorage(config, seed, reference=ref)
     st.session_state['_demo_store'] = stores[store_key]
     return stores[store_key]
 
@@ -491,17 +527,19 @@ def record_table(config, records):
     st.dataframe(rows, hide_index=True, width="stretch")
 
 
-def pipeline_distribution_bar(config, records):
+def pipeline_distribution_bar(config, records, reference=None):
     stage_counts = {s.id: 0 for s in config.stages}
     for r in records:
         if r.stage_id in stage_counts:
             stage_counts[r.stage_id] += 1
 
-    today_str = datetime.date.today().isoformat()
-    overdue_cnt = sum(1 for r in records if r.fields.get('next_action_date') and str(r.fields.get('next_action_date')) < today_str and r.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'))
-    today_cnt = sum(1 for r in records if str(r.fields.get('next_action_date')) == today_str and r.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'))
+    ref_date = reference.date if reference else datetime.date.today()
+    today_str = ref_date.isoformat()
+    active_stage_ids = {s.id for s in config.stages if s.active}
+    overdue_cnt = sum(1 for r in records if r.fields.get('next_action_date') and str(r.fields.get('next_action_date')) < today_str and r.stage_id in active_stage_ids)
+    today_cnt = sum(1 for r in records if str(r.fields.get('next_action_date')) == today_str and r.stage_id in active_stage_ids)
     replied_cnt = sum(1 for r in records if r.stage_id in ('replied', 'proposal_sent'))
-    active_cnt = sum(1 for r in records if any(s.id == r.stage_id and s.active for s in config.stages))
+    active_cnt = sum(1 for r in records if r.stage_id in active_stage_ids)
     total_cnt = len(records)
 
     items_html = []
@@ -541,7 +579,7 @@ def pipeline_distribution_bar(config, records):
     )
 
 
-def render_opportunity_workspace(config, storage, record, stages, prefix):
+def render_opportunity_workspace(config, storage, record, stages, prefix, reference=None):
     """Read-first opportunity workspace emphasizing decisions, context, and actions."""
     company = record.fields.get('company', '')
     contact = record.fields.get('contact', '')
@@ -586,27 +624,29 @@ def render_opportunity_workspace(config, storage, record, stages, prefix):
 
     # --- SECTION B: OPPORTUNITY BRIEF (Prominent & Clean) ---
     if brief:
+        clean_brief_html = html.escape(str(brief))
         st.markdown(
             f"""
             <div style="background: rgba(30, 41, 59, 0.45); border-left: 3px solid #6366F1; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px;">
                 <div style="font-size: 0.70rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Opportunity Brief</div>
-                <div style="font-size: 0.88rem; color: #F1F5F9; line-height: 1.45;">{brief}</div>
+                <div style="font-size: 0.88rem; color: #F1F5F9; line-height: 1.45;">{clean_brief_html}</div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
     # --- SECTION C: RECOMMENDED NEXT ACTION (Hero Callout) ---
-    today = datetime.date.today()
+    today = reference.date if reference else datetime.date.today()
     is_overdue = False
     is_today = False
     formatted_due = "No due date"
+    active_stage_ids = {s.id for s in config.stages if s.active}
     if next_action_date:
         try:
-            act_d = datetime.date.fromisoformat(str(next_action_date))
+            act_d = datetime.date.fromisoformat(str(next_action_date)[:10])
             days_diff = (act_d - today).days
             d_fmt = act_d.strftime("%b %d, %Y")
-            if days_diff < 0 and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'):
+            if days_diff < 0 and record.stage_id in active_stage_ids:
                 is_overdue = True
                 formatted_due = f"<span style='color:#FB7185; font-weight:700;'>⚠️ Due {d_fmt} ({abs(days_diff)}d overdue)</span>"
             elif days_diff == 0:
@@ -627,7 +667,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix):
     <div style="background: {box_bg}; border: 1px solid {box_border}; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <div style="flex: 1; min-width: 250px;">
             <div style="font-size: 0.70rem; font-weight: 700; color: {accent_color}; text-transform: uppercase; letter-spacing: 0.5px;">Recommended Next Action</div>
-            <div style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC; margin-top: 2px;">🎯 {next_action or 'Identify next milestone'}</div>
+            <div style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC; margin-top: 2px;">🎯 {html.escape(str(next_action or 'Identify next milestone'))}</div>
         </div>
         <div style="font-size: 0.80rem; text-align: right; flex-shrink: 0;">
             <div>{formatted_due}</div>
@@ -802,11 +842,38 @@ def render_opportunity_workspace(config, storage, record, stages, prefix):
             st.caption("No activities recorded yet.")
 
 
-def pipeline(config, storage, prefix):
+def pipeline(config, storage, prefix, reference=None):
     records = storage.list_records()
     if 'metrics' in config.dashboard_modules:
         metric_cards(config, records)
-    pipeline_distribution_bar(config, records)
+    pipeline_distribution_bar(config, records, reference=reference)
+
+    # Guided Demo Walkthrough (P2 - dismissible, lightweight)
+    if not st.session_state.get('_demo_hide_walkthrough', False):
+        col_wt_text, col_wt_btn = st.columns([11, 1])
+        with col_wt_text:
+            st.markdown(
+                """
+                <div style="background: linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(30, 41, 59, 0.4) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; padding: 8px 12px; margin-bottom: 10px;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                        💡 Demo Workflow
+                    </div>
+                    <div style="font-size: 0.82rem; color: #E2E8F0; line-height: 1.4;">
+                        <strong style="color: #38BDF8;">Account Intelligence</strong> →
+                        <strong style="color: #A5B4FC;">Recommended Actions</strong> →
+                        <strong style="color: #FBBF24;">Activity Tracking</strong> →
+                        <strong style="color: #34D399;">Pipeline Progression</strong> →
+                        <strong style="color: #C084FC;">Historical Analytics</strong>.
+                        Click any prospect below to view intelligence, log notes, or change stage.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        with col_wt_btn:
+            if st.button("✕", key=prefix + "_dismiss_guide", help="Dismiss guide"):
+                st.session_state['_demo_hide_walkthrough'] = True
+                st.rerun()
 
     # Inline quick add
     with st.expander(f"+ {config.labels.create}", expanded=False):
@@ -823,28 +890,62 @@ def pipeline(config, storage, prefix):
             key=prefix + '_search'
         ).lower().strip()
     with col_filter:
+        valid_stages = ['all', *stages]
+        filter_key = prefix + '_filter'
+        if st.session_state.get(filter_key) not in valid_stages:
+            st.session_state[filter_key] = 'all'
         stage_filter = st.selectbox(
             config.labels.stage,
-            ['all', *stages],
+            valid_stages,
             format_func=lambda value: 'All stages' if value == 'all' else stages[value],
-            key=prefix + '_filter'
+            key=filter_key
         )
 
     visible = [r for r in records if (stage_filter == 'all' or stage_filter == r.stage_id)
                and (not search or search in ' '.join(str(v) for v in r.fields.values()).lower())]
 
-    total_pages = max(1, (len(visible) + 9) // 10)
+    page_size = 10
+    total_count = len(visible)
+    total_pages = max(1, (total_count + page_size - 1) // page_size)
+
+    page_key = prefix + '_page'
+    raw_page = st.session_state.get(page_key, 1)
+    try:
+        current_page = int(raw_page)
+    except (ValueError, TypeError):
+        current_page = 1
+        st.session_state[page_key] = 1
+
+    if current_page > total_pages or current_page < 1:
+        current_page = 1
+        st.session_state[page_key] = 1
+
+    page_options = list(range(1, total_pages + 1))
+    if st.session_state.get(page_key) not in page_options:
+        st.session_state[page_key] = 1
+
     with col_page:
         page = st.selectbox(
             'Page',
-            list(range(1, total_pages + 1)),
+            page_options,
             format_func=lambda p: f'Page {p} of {total_pages}',
-            key=prefix + '_page'
+            key=page_key
         )
+
+    # Accurate range display: e.g. "Showing 1–10 of 40 prospects · Page 1 of 4"
+    if total_count == 0:
+        range_str = f"Showing 0 of {len(records)} {config.labels.record_plural.lower()}"
+    else:
+        start_idx = (page - 1) * page_size + 1
+        end_idx = min(page * page_size, total_count)
+        if total_count < len(records):
+            range_str = f"Showing <b>{start_idx}–{end_idx}</b> of {total_count} (out of {len(records)} total) &nbsp;·&nbsp; Page {page} of {total_pages}"
+        else:
+            range_str = f"Showing <b>{start_idx}–{end_idx}</b> of {len(records)} {config.labels.record_plural.lower()} &nbsp;·&nbsp; Page {page} of {total_pages}"
 
     st.markdown(
         f"<div style='font-size: 0.82rem; color: #94A3B8; margin-top: -6px; margin-bottom: 8px;'>"
-        f"Showing <b>{len(visible)}</b> of {len(records)} {config.labels.record_plural.lower()} &nbsp;·&nbsp; Page {page} of {total_pages}"
+        f"{range_str}"
         f"</div>",
         unsafe_allow_html=True
     )
@@ -857,7 +958,7 @@ def pipeline(config, storage, prefix):
         with st.expander('Table'):
             record_table(config, visible)
 
-    for record in visible[(page - 1) * 10:page * 10]:
+    for record in visible[(page - 1) * page_size:page * page_size]:
         company = record.fields.get('company', '')
         contact = record.fields.get('contact', '')
         title = record.fields.get('title', '')
@@ -872,45 +973,47 @@ def pipeline(config, storage, prefix):
         next_action = record.fields.get('next_action', '')
         next_action_date = record.fields.get('next_action_date', '')
         priority = record.fields.get('priority', '')
-
         phone = record.fields.get('phone', '')
 
         # Line 1: Header (Company — Contact (Title) · Phone · Stage)
-        header_text = f"**{company}**"
+        header_text = f"**{escape_markdown(company)}**"
         if contact:
-            header_text += f" — {contact}" + (f" ({title})" if title else "")
+            header_text += f" — {escape_markdown(contact)}" + (f" ({escape_markdown(title)})" if title else "")
         if phone:
-            header_text += f" &nbsp;·&nbsp; `{phone}`"
-        header_text += f" &nbsp;·&nbsp; `{stage_name}`"
+            header_text += f" · `{phone}`"
+        header_text += f" · `{stage_name}`"
 
         # Line 2: Opportunity Brief (Clean, readable text, no blockquote clipping)
         clean_brief = brief.strip()
         if len(clean_brief) > 130:
             clean_brief = clean_brief[:127] + "..."
+        clean_brief = escape_markdown(clean_brief)
 
         # Line 3: Badges + Action Footer
         badges = []
         if icp_fit:
-            badges.append(f"🎯 {icp_fit} Fit")
+            badges.append(f"🎯 {escape_markdown(icp_fit)} Fit")
         if intent:
             top_intent = intent.split('·')[0].strip()
             if len(top_intent) > 28:
                 top_intent = top_intent[:25] + "..."
-            badges.append(f"⚡ {top_intent}")
+            badges.append(f"⚡ {escape_markdown(top_intent)}")
         if tech_stack:
             top_tech = tech_stack.split('·')[0].strip()
-            badges.append(f"🛠️ {top_tech}")
-        badges_str = " &nbsp;·&nbsp; ".join(badges)
+            badges.append(f"🛠️ {escape_markdown(top_tech)}")
+        badges_str = " · ".join(badges)
 
         footer_items = []
         if next_action:
             short_na = next_action if len(next_action) <= 46 else next_action[:43] + "..."
-            footer_items.append(f"**Next:** {short_na}")
+            footer_items.append(f"**Next:** {escape_markdown(short_na)}")
         if next_action_date:
             try:
-                d = datetime.date.fromisoformat(str(next_action_date))
-                diff = (d - datetime.date.today()).days
-                if diff < 0 and record.stage_id not in ('disqualified', 'no_response', 'contract_awarded', 'lost'):
+                d = datetime.date.fromisoformat(str(next_action_date)[:10])
+                ref_d = reference.date if reference else datetime.date.today()
+                diff = (d - ref_d).days
+                active_stage_ids = {s.id for s in config.stages if s.active}
+                if diff < 0 and record.stage_id in active_stage_ids:
                     footer_items.append(f":red[⚠️ Due {d.strftime('%b %d')} ({abs(diff)}d overdue)]")
                 elif diff == 0:
                     footer_items.append(":orange[📅 Due Today]")
@@ -920,13 +1023,13 @@ def pipeline(config, storage, prefix):
                 footer_items.append(f"📅 {next_action_date}")
         if acv is not None:
             try:
-                footer_items.append(f":green[${float(acv):,.0f} ACV]")
+                footer_items.append(f":green[\\${float(acv):,.0f} ACV]")
             except Exception:
-                footer_items.append(f":green[{acv}]")
+                footer_items.append(f":green[{escape_markdown(str(acv))}]")
 
-        footer_str = " &nbsp;·&nbsp; ".join(footer_items)
+        footer_str = " · ".join(footer_items)
 
-        card_header = f"{header_text}\n\n{clean_brief}\n\n{badges_str} &nbsp;|&nbsp; {footer_str}"
+        card_header = f"{header_text}\n\n{clean_brief}\n\n{badges_str} | {footer_str}"
 
         with st.expander(card_header):
             is_editing = st.session_state.get(f'{prefix}_editing_{record.id}', False)
@@ -998,7 +1101,7 @@ def pipeline(config, storage, prefix):
                     st.rerun()
             else:
                 # Read-First Opportunity Workspace
-                render_opportunity_workspace(config, storage, record, stages, prefix)
+                render_opportunity_workspace(config, storage, record, stages, prefix, reference=reference)
 
 
 def intelligence(config):
@@ -1074,17 +1177,32 @@ def intelligence(config):
                     st.markdown(f"<div style='background:#1E293B; border-left:3px solid #FB7185; border-radius:4px; padding:6px 10px; margin-bottom:4px; font-size:0.80rem; color:#CBD5E1; line-height:1.35;'>{obj}</div>", unsafe_allow_html=True)
 
 
+def format_metric_currency(val):
+    if val is None:
+        return '—'
+    abs_val = abs(val)
+    sign = '-' if val < 0 else ''
+    if abs_val >= 1_000_000_000:
+        formatted = f"{abs_val / 1_000_000_000:.2f}".rstrip('0').rstrip('.')
+        return f"{sign}${formatted}B"
+    if abs_val >= 1_000_000:
+        formatted = f"{abs_val / 1_000_000:.2f}".rstrip('0').rstrip('.')
+        return f"{sign}${formatted}M"
+    return f"{sign}${abs_val:,.0f}"
+
+
 def metric_cards(config, records):
     metrics = calculate_metrics(records, config)
     if not metrics:
         return
     col_count = len(metrics) if len(metrics) <= 6 else 6
     columns = st.columns(col_count)
+    custom_labels = getattr(getattr(config, 'labels', None), 'metric_labels', {}) or {}
     for index, (key, metric) in enumerate(metrics.items()):
         value = metric['value']
         display = '—' if value is None else (f'{value:.1f}%' if metric['format'] == 'percent' else
-                                           f'${value:,.0f}' if metric['format'] == 'currency' else str(value))
-        label = config.labels.record_plural if key == 'total' else metric['label']
+                                           format_metric_currency(value) if metric['format'] == 'currency' else str(value))
+        label = custom_labels.get(key, config.labels.record_plural if key == 'total' else metric['label'])
         target_col = columns[index % col_count]
         target_col.metric(label, display)
         if 'denominator' in metric:
@@ -1111,8 +1229,18 @@ def render_public(config):
             sales_path = Path(__file__).resolve().parents[3] / 'config' / 'demo_sales_rep.json'
             config = load_demo_config(sales_path)
 
+    if '_demo_reference' not in st.session_state:
+        tz_name = None
+        tz_offset = None
+        ctx = getattr(st, 'context', None)
+        if ctx is not None:
+            tz_name = getattr(ctx, 'timezone', None)
+            tz_offset = getattr(ctx, 'timezone_offset', None)
+        st.session_state['_demo_reference'] = session_reference(tz_name=tz_name, offset_minutes=tz_offset)
+    reference = st.session_state['_demo_reference']
+
     try:
-        storage = session_storage(config, active_ws)
+        storage = session_storage(config, active_ws, reference=reference)
     except (OSError, ValueError):
         st.error('Demo data does not match its configuration. No integrations were started.')
         return
@@ -1187,6 +1315,17 @@ def render_public(config):
 
     st.sidebar.caption(f"**{config.display_name}** · Public Demo")
 
+    # Sidebar Demo Reset Action (P0 - Visitor Reset)
+    if getattr(config.features, 'reset_demo_data', False):
+        st.sidebar.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+        if st.sidebar.button("🔄 Reset Demo Data", key="btn_reset_demo_data", use_container_width=True):
+            stores = st.session_state.get('_demo_workspace_stores', {})
+            for s in stores.values():
+                s.reset()
+            st.session_state['_demo_epoch'] = st.session_state.get('_demo_epoch', 0) + 1
+            st.session_state['_demo_flash'] = 'Demo data reset to initial scenario.'
+            st.rerun()
+
     if '_demo_flash' in st.session_state:
         st.success(st.session_state.pop('_demo_flash'))
 
@@ -1195,7 +1334,7 @@ def render_public(config):
     if destination == 'intake':
         intake(config, storage, prefix + '_intake')
     elif destination == 'pipeline':
-        pipeline(config, storage, prefix)
+        pipeline(config, storage, prefix, reference=reference)
     elif destination == 'intelligence':
         intelligence(config)
     else:

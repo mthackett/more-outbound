@@ -143,7 +143,7 @@ class TestPublicUI(unittest.TestCase):
         b2b_records = app.session_state['_demo_store'].list_records()
         self.assertEqual(len(b2b_records), 20)
         self.assertEqual(b2b_records[0].fields['company'], 'Acme Global Consulting')
-        self.assertIn('Client Opportunities', [s.label for s in app.metric])
+        self.assertIn('Opportunities', [s.label for s in app.metric])
 
         # Switch back to Sales Rep workspace and verify preservation of edit
         app.selectbox(key='demo_workspace_selector').set_value('sales_rep').run()

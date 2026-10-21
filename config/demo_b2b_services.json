@@ -272,7 +272,7 @@
       "edit_records": true,
       "activities": true,
       "intelligence": true,
-      "reset_demo_data": false,
+      "reset_demo_data": true,
       "resume_matching": false,
       "screening_qa": false,
       "role_intelligence_docx": false
@@ -291,7 +291,15 @@
       "save": "Save Opportunity",
       "add_note": "Log Interaction",
       "reset": "Reset Demo Data",
-      "intelligence": "Client Intelligence"
+      "intelligence": "Client Intelligence",
+      "metric_labels": {
+        "meeting_booking_rate": "Booking Rate",
+        "reply_rate": "Reply Rate",
+        "reply_to_meeting_rate": "Reply-to-Meeting",
+        "total": "Opportunities",
+        "active": "Active",
+        "pipeline_value": "Pipeline ACV"
+      }
     },
     "metrics": [
       "meeting_booking_rate",
