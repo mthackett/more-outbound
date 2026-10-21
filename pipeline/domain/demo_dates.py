@@ -117,6 +117,13 @@ def materialize_seed(rows, reference, date_fields):
             event['entered_at'] = resolve_datetime(event.get('entered_at'), reference)
         for activity in row.get('activities') or []:
             activity['occurred_at'] = resolve_datetime(activity.get('occurred_at'), reference)
+        for action in row.get('actions') or []:
+            if action.get('due_date'):
+                action['due_date'] = resolve_date(action['due_date'], reference)
+            if action.get('completed_at'):
+                action['completed_at'] = resolve_datetime(action['completed_at'], reference)
+            if action.get('created_at'):
+                action['created_at'] = resolve_datetime(action['created_at'], reference)
         fields = row.get('fields') or {}
         for key in date_fields:
             if fields.get(key) not in (None, ''):

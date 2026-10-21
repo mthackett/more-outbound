@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import datetime
 import json
 import os
 from pathlib import Path
@@ -100,3 +101,88 @@ class TestOutreachDemo(unittest.TestCase):
             a.session_state['_demo_store'].reset()
             a.run()
             self.assertEqual(a.session_state['_demo_store'].list_records()[0].fields['company'], self.seed[0]['fields']['company'])
+
+    def test_action_lifecycle_complete_reschedule_schedule_and_activity(self):
+        store = MemoryRecordStorage(self.cfg, self.seed)
+        records = store.list_records()
+        rec = next(r for r in records if r.fields.get('next_action_date') == store.reference.date.isoformat())
+        self.assertIsNotNone(rec.current_action)
+        self.assertEqual(rec.current_action.status, 'open')
+
+        # Test completing action
+        updated = store.complete_action(rec.id, note='Completed initial discovery call')
+        self.assertIsNone(updated.current_action)
+        self.assertIsNotNone(updated.latest_action)
+        self.assertEqual(updated.latest_action.status, 'completed')
+        self.assertIsNotNone(updated.latest_action.completed_at)
+        self.assertIsNone(updated.fields.get('next_action_date'))
+        self.assertIn('Completed action:', updated.activities[-1].text)
+        self.assertIn('Completed initial discovery call', updated.activities[-1].text)
+
+        # Test scheduling next action
+        future_date = (store.reference.date + datetime.timedelta(days=4)).isoformat()
+        scheduled = store.schedule_action(rec.id, 'Send security audit pack', future_date)
+        self.assertIsNotNone(scheduled.current_action)
+        self.assertEqual(scheduled.current_action.status, 'open')
+        self.assertEqual(scheduled.current_action.description, 'Send security audit pack')
+        self.assertEqual(scheduled.current_action.due_date, future_date)
+        self.assertEqual(scheduled.fields['next_action_date'], future_date)
+        self.assertIn('Scheduled next action for', scheduled.activities[-1].text)
+
+        # Test rescheduling action
+        resched_date = (store.reference.date + datetime.timedelta(days=7)).isoformat()
+        rescheduled = store.reschedule_action(rec.id, resched_date, reason='Prospect delayed meeting')
+        self.assertEqual(rescheduled.current_action.due_date, resched_date)
+        self.assertEqual(rescheduled.fields['next_action_date'], resched_date)
+        self.assertIn('Rescheduled action to', rescheduled.activities[-1].text)
+        self.assertIn('Prospect delayed meeting', rescheduled.activities[-1].text)
+
+        # Test activity logging without completing action
+        store.add_activity(rec.id, 'call', 'Brief check-in call', complete_action=False)
+        rec_check = store.list_records()
+        current_rec = next(r for r in rec_check if r.id == rec.id)
+        self.assertIsNotNone(current_rec.current_action)
+        self.assertEqual(current_rec.current_action.status, 'open')
+        self.assertEqual(current_rec.activities[-1].text, 'Brief check-in call')
+
+        # Test activity logging with explicit complete_action=True
+        store.add_activity(rec.id, 'email', 'Follow-up email with final pricing', complete_action=True)
+        rec_check2 = store.list_records()
+        current_rec2 = next(r for r in rec_check2 if r.id == rec.id)
+        self.assertIsNone(current_rec2.current_action)
+        self.assertIsNotNone(current_rec2.latest_action)
+        self.assertEqual(current_rec2.latest_action.status, 'completed')
+        self.assertIsNone(current_rec2.fields.get('next_action_date'))
+        self.assertIn('Completed action:', current_rec2.activities[-1].text)
+
+    def test_workload_rebalance_and_daily_priorities(self):
+        store = MemoryRecordStorage(self.cfg, self.seed)
+        records = store.list_records()
+        ref_today = store.reference.date.isoformat()
+        active_stage_ids = {s.id for s in self.cfg.stages if s.active}
+
+        due_today = [r for r in records if r.stage_id in active_stage_ids and r.current_action and r.current_action.status == 'open' and r.current_action.due_date == ref_today]
+        overdue = [r for r in records if r.stage_id in active_stage_ids and r.current_action and r.current_action.status == 'open' and r.current_action.due_date and r.current_action.due_date < ref_today]
+        awaiting_reply = [r for r in records if r.stage_id == 'replied']
+        future_sched = [r for r in records if r.stage_id in active_stage_ids and r.current_action and r.current_action.status == 'open' and r.current_action.due_date and r.current_action.due_date > ref_today]
+        no_action = [r for r in records if not (r.current_action and r.current_action.status == 'open')]
+
+        # Verify rebalance distribution targets:
+        # 5-7 due today, 2-3 overdue, 5-8 awaiting reply, 12-16 future scheduled
+        self.assertTrue(5 <= len(due_today) <= 7, f"Due today count {len(due_today)} not in 5-7")
+        self.assertTrue(2 <= len(overdue) <= 3, f"Overdue count {len(overdue)} not in 2-3")
+        self.assertTrue(5 <= len(awaiting_reply) <= 8, f"Awaiting reply count {len(awaiting_reply)} not in 5-8")
+        self.assertTrue(12 <= len(future_sched) <= 16, f"Future scheduled count {len(future_sched)} not in 12-16")
+        self.assertEqual(len(due_today) + len(overdue) + len(future_sched) + len(no_action), 40)
+
+        # Stage change preserves outstanding action
+        target = due_today[0]
+        initial_action_desc = target.current_action.description
+        initial_action_due = target.current_action.due_date
+        store.update(target.id, {}, 'contacted')
+        updated = next(r for r in store.list_records() if r.id == target.id)
+        self.assertEqual(updated.stage_id, 'contacted')
+        self.assertIsNotNone(updated.current_action)
+        self.assertEqual(updated.current_action.description, initial_action_desc)
+        self.assertEqual(updated.current_action.due_date, initial_action_due)
+        self.assertEqual(updated.current_action.status, 'open')

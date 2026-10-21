@@ -8,9 +8,11 @@ import re
 import importlib
 import streamlit as st
 from pipeline.adapters.primary.runtime import select_session
+import pipeline.domain.records
 import pipeline.domain.demo_dates
 import pipeline.adapters.secondary.memory_records
 import pipeline.domain.outreach_metrics
+importlib.reload(pipeline.domain.records)
 importlib.reload(pipeline.domain.demo_dates)
 importlib.reload(pipeline.adapters.secondary.memory_records)
 importlib.reload(pipeline.domain.outreach_metrics)
@@ -232,6 +234,28 @@ PUBLIC_THEME_CSS = """
         justify-content: center !important;
         align-items: center !important;
         margin: 0 auto !important;
+    }
+    div[data-testid="stMetric"] [data-testid="stMetricDelta"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+        margin: 2px auto 0 auto !important;
+        width: 100% !important;
+        font-size: 0.70rem !important;
+        color: #94A3B8 !important;
+        font-weight: 500 !important;
+    }
+    div[data-testid="stMetric"] [data-testid="stMetricDelta"] svg {
+        display: none !important;
+    }
+    div[data-testid="stMetric"] [data-testid="stMetricDelta"] div,
+    div[data-testid="stMetric"] [data-testid="stMetricDelta"] p {
+        color: #94A3B8 !important;
+        font-size: 0.70rem !important;
+        text-align: center !important;
+        margin: 0 auto !important;
+        width: 100% !important;
     }
     /* Card expander styling */
     div[data-testid="stExpander"] {
@@ -548,8 +572,21 @@ def pipeline_distribution_bar(config, records, reference=None):
     ref_date = reference.date if reference else datetime.date.today()
     today_str = ref_date.isoformat()
     active_stage_ids = {s.id for s in config.stages if s.active}
-    overdue_cnt = sum(1 for r in records if r.fields.get('next_action_date') and str(r.fields.get('next_action_date')) < today_str and r.stage_id in active_stage_ids)
-    today_cnt = sum(1 for r in records if str(r.fields.get('next_action_date')) == today_str and r.stage_id in active_stage_ids)
+
+    def has_open_action(r):
+        if r.current_action:
+            return r.current_action.status == 'open'
+        return bool(r.fields.get('next_action') or r.fields.get('next_action_date'))
+
+    def get_action_date(r):
+        if r.current_action and r.current_action.status == 'open':
+            return r.current_action.due_date or r.fields.get('next_action_date')
+        if r.current_action and r.current_action.status != 'open':
+            return None
+        return r.fields.get('next_action_date')
+
+    overdue_cnt = sum(1 for r in records if r.stage_id in active_stage_ids and has_open_action(r) and get_action_date(r) and str(get_action_date(r)) < today_str)
+    today_cnt = sum(1 for r in records if r.stage_id in active_stage_ids and has_open_action(r) and get_action_date(r) and str(get_action_date(r)) == today_str)
     replied_cnt = sum(1 for r in records if r.stage_id in ('replied', 'proposal_sent'))
     active_cnt = sum(1 for r in records if r.stage_id in active_stage_ids)
     total_cnt = len(records)
@@ -564,10 +601,10 @@ def pipeline_distribution_bar(config, records, reference=None):
 
     # Operational Priorities Alert Row
     priority_badges = [
-        f"<span style='color:#38BDF8;'><b>{active_cnt}</b> Active Opportunities</span>"
+        f"<span style='color:#38BDF8;'><b>{active_cnt}</b> Active {config.labels.record_plural}</span>"
     ]
     if overdue_cnt > 0:
-        priority_badges.append(f"<span style='color:#FB7185;'>⚠️ <b>{overdue_cnt}</b> Overdue Actions</span>")
+        priority_badges.append(f"<span style='color:#FB7185;'>⚠️ <b>{overdue_cnt}</b> Overdue</span>")
     if today_cnt > 0:
         priority_badges.append(f"<span style='color:#FBBF24;'>📅 <b>{today_cnt}</b> Due Today</span>")
     if replied_cnt > 0:
@@ -589,6 +626,7 @@ def pipeline_distribution_bar(config, records, reference=None):
         """,
         unsafe_allow_html=True
     )
+    return (overdue_cnt, today_cnt, replied_cnt, active_cnt)
 
 
 def render_opportunity_workspace(config, storage, record, stages, prefix, reference=None):
@@ -647,47 +685,164 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
             unsafe_allow_html=True
         )
 
-    # --- SECTION C: RECOMMENDED NEXT ACTION (Hero Callout) ---
+    # --- SECTION C: SCHEDULED NEXT ACTION LIFECYCLE ---
     today = reference.date if reference else datetime.date.today()
+    active_stage_ids = {s.id for s in config.stages if s.active}
+
+    curr_action = record.current_action or record.latest_action
+    if curr_action:
+        act_desc = curr_action.description
+        act_due_str = curr_action.due_date
+        act_status = curr_action.status
+    else:
+        act_desc = record.fields.get('next_action')
+        act_due_str = record.fields.get('next_action_date')
+        act_status = 'open' if (act_desc or act_due_str) else 'none'
+
+    has_open_action = (act_status == 'open' and bool(act_desc or act_due_str))
+
     is_overdue = False
     is_today = False
     formatted_due = "No due date"
-    active_stage_ids = {s.id for s in config.stages if s.active}
-    if next_action_date:
+    if act_due_str and has_open_action:
         try:
-            act_d = datetime.date.fromisoformat(str(next_action_date)[:10])
+            act_d = datetime.date.fromisoformat(str(act_due_str)[:10])
             days_diff = (act_d - today).days
             d_fmt = act_d.strftime("%b %d, %Y")
             if days_diff < 0 and record.stage_id in active_stage_ids:
                 is_overdue = True
                 formatted_due = f"<span style='color:#FB7185; font-weight:700;'>⚠️ Due {d_fmt} ({abs(days_diff)}d overdue)</span>"
-            elif days_diff == 0:
+            elif days_diff == 0 and record.stage_id in active_stage_ids:
                 is_today = True
                 formatted_due = f"<span style='color:#FBBF24; font-weight:700;'>📅 Due Today ({d_fmt})</span>"
-            elif days_diff == 1:
+            elif days_diff == 1 and record.stage_id in active_stage_ids:
                 formatted_due = f"<span style='color:#38BDF8; font-weight:600;'>📅 Due Tomorrow ({d_fmt})</span>"
             else:
                 formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {d_fmt}</span>"
         except Exception:
-            formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {next_action_date}</span>"
+            formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {act_due_str}</span>"
+    elif act_status == 'completed':
+        formatted_due = "<span style='color:#34D399; font-weight:600;'>✓ Completed</span>"
 
     box_bg = "rgba(239, 68, 68, 0.08)" if is_overdue else ("rgba(245, 158, 11, 0.08)" if is_today else "rgba(99, 102, 241, 0.07)")
     box_border = "rgba(239, 68, 68, 0.35)" if is_overdue else ("rgba(245, 158, 11, 0.35)" if is_today else "rgba(99, 102, 241, 0.30)")
     accent_color = "#FB7185" if is_overdue else ("#FBBF24" if is_today else "#818CF8")
 
+    status_pill = (
+        "<span style='background:#064E3B44; color:#34D399; border:1px solid #05966966; padding:1px 6px; border-radius:3px; font-weight:600; font-size:0.72rem;'>OPEN</span>"
+        if has_open_action else
+        ("<span style='background:#1E293B; color:#94A3B8; border:1px solid #334155; padding:1px 6px; border-radius:3px; font-weight:600; font-size:0.72rem;'>COMPLETED</span>"
+         if act_status == 'completed' else
+         "<span style='background:#1E293B; color:#64748B; border:1px solid #334155; padding:1px 6px; border-radius:3px; font-weight:500; font-size:0.72rem;'>NONE</span>")
+    )
+
     action_box_html = f"""
-    <div style="background: {box_bg}; border: 1px solid {box_border}; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+    <div style="background: {box_bg}; border: 1px solid {box_border}; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <div style="flex: 1; min-width: 250px;">
-            <div style="font-size: 0.70rem; font-weight: 700; color: {accent_color}; text-transform: uppercase; letter-spacing: 0.5px;">Recommended Next Action</div>
-            <div style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC; margin-top: 2px;">🎯 {html.escape(str(next_action or 'Identify next milestone'))}</div>
+            <div style="font-size: 0.70rem; font-weight: 700; color: {accent_color}; text-transform: uppercase; letter-spacing: 0.5px;">Scheduled Next Action</div>
+            <div style="font-size: 0.92rem; font-weight: 600; color: #F8FAFC; margin-top: 2px;">🎯 {html.escape(str(act_desc or ('Action completed' if act_status == 'completed' else 'No outstanding action')))}</div>
         </div>
         <div style="font-size: 0.80rem; text-align: right; flex-shrink: 0;">
             <div>{formatted_due}</div>
-            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 1px;">Status: <b style="color:#CBD5E1;">{follow_up_status or 'Active'}</b></div>
+            <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">Status: {status_pill}</div>
         </div>
     </div>
     """
     st.markdown(action_box_html, unsafe_allow_html=True)
+
+    # Action Lifecycle Controls
+    if has_open_action:
+        tab_comp, tab_resched, tab_new = st.tabs(["✓ Complete Action", "📅 Reschedule", "🎯 Replace / Schedule Next"])
+        with tab_comp:
+            with st.form(f"{prefix}_complete_form_{record.id}"):
+                st.caption(f"Mark **{html.escape(str(act_desc))}** as completed. You may optionally specify the next action.")
+                col_c1, col_c2 = st.columns([7, 3])
+                with col_c1:
+                    new_act_desc = st.text_input("Following Action (optional)", placeholder="e.g. Schedule discovery demo with revenue leadership...", key=f"{prefix}_na_desc_{record.id}")
+                with col_c2:
+                    new_act_due = st.date_input("Due Date", value=today + datetime.timedelta(days=3), key=f"{prefix}_na_due_{record.id}")
+                comp_note = st.text_input("Completion Note (optional)", placeholder="e.g. Call completed, prospect requested technical overview...", key=f"{prefix}_comp_note_{record.id}")
+                col_btn, _ = st.columns([3, 7])
+                with col_btn:
+                    complete_submit = st.form_submit_button("✓ Complete Action", use_container_width=True)
+                if complete_submit:
+                    try:
+                        storage.complete_action(
+                            record.id,
+                            note=comp_note,
+                            new_next_action=new_act_desc if new_act_desc.strip() else None,
+                            new_next_action_date=new_act_due if new_act_desc.strip() else None
+                        )
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.session_state['_demo_flash'] = 'Action completed.'
+                        st.rerun()
+
+        with tab_resched:
+            with st.form(f"{prefix}_resched_form_{record.id}"):
+                default_resched = today + datetime.timedelta(days=2)
+                if act_due_str:
+                    try:
+                        parsed_curr = datetime.date.fromisoformat(str(act_due_str)[:10])
+                        if parsed_curr < today:
+                            default_resched = today + datetime.timedelta(days=1)
+                    except Exception:
+                        pass
+                col_r1, col_r2 = st.columns([3, 7])
+                with col_r1:
+                    resched_due = st.date_input("New Due Date", value=default_resched, key=f"{prefix}_resched_due_{record.id}")
+                with col_r2:
+                    resched_reason = st.text_input("Reason (optional)", placeholder="e.g. Contact requested follow-up next week...", key=f"{prefix}_resched_reason_{record.id}")
+                col_btn, _ = st.columns([3, 7])
+                with col_btn:
+                    resched_submit = st.form_submit_button("📅 Reschedule Action", use_container_width=True)
+                if resched_submit:
+                    try:
+                        storage.reschedule_action(record.id, resched_due, reason=resched_reason)
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.session_state['_demo_flash'] = 'Action rescheduled.'
+                        st.rerun()
+
+        with tab_new:
+            with st.form(f"{prefix}_replace_form_{record.id}"):
+                col_n1, col_n2 = st.columns([7, 3])
+                with col_n1:
+                    sched_desc = st.text_input("New Action Description *", placeholder="e.g. Follow up on renewal proposal...", key=f"{prefix}_sched_desc_{record.id}")
+                with col_n2:
+                    sched_due = st.date_input("Due Date", value=today + datetime.timedelta(days=3), key=f"{prefix}_sched_due_{record.id}")
+                col_btn, _ = st.columns([3, 7])
+                with col_btn:
+                    sched_submit = st.form_submit_button("🎯 Save Action", use_container_width=True)
+                if sched_submit and sched_desc.strip():
+                    try:
+                        storage.schedule_action(record.id, sched_desc.strip(), sched_due)
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.session_state['_demo_flash'] = 'New action scheduled.'
+                        st.rerun()
+    else:
+        with st.expander("🎯 Schedule Next Action", expanded=True):
+            with st.form(f"{prefix}_new_action_form_{record.id}"):
+                col_n1, col_n2 = st.columns([7, 3])
+                with col_n1:
+                    sched_desc = st.text_input("Action Description *", placeholder="e.g. Follow up on proposal...", key=f"{prefix}_sched_desc_{record.id}")
+                with col_n2:
+                    sched_due = st.date_input("Due Date", value=today + datetime.timedelta(days=3), key=f"{prefix}_sched_due_{record.id}")
+                col_btn, _ = st.columns([3, 7])
+                with col_btn:
+                    sched_submit = st.form_submit_button("🎯 Schedule Action", use_container_width=True)
+                if sched_submit and sched_desc.strip():
+                    try:
+                        storage.schedule_action(record.id, sched_desc.strip(), sched_due)
+                    except ValueError as exc:
+                        st.error(str(exc))
+                    else:
+                        st.session_state['_demo_flash'] = 'Next action scheduled.'
+                        st.rerun()
 
     # Balanced Two-Column Workspace Layout (Section 2.D)
     col_left, col_right = st.columns([1, 1])
@@ -789,6 +944,9 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
             st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-top:8px; margin-bottom:4px;'>Log Activity</div>", unsafe_allow_html=True)
             with st.form(f"{prefix}_activity_{record.id}", clear_on_submit=True):
                 text = st.text_area('Activity Summary / Note', max_chars=2000, key=f"{prefix}_note_{record.id}", height=60, label_visibility="collapsed", placeholder="Enter call notes, email summary, or next step details...")
+                complete_at_same_time = False
+                if has_open_action:
+                    complete_at_same_time = st.checkbox("✓ Complete scheduled action at the same time", value=False, key=f"{prefix}_chk_comp_{record.id}")
                 col_act1, col_act2 = st.columns([3, 2])
                 with col_act1:
                     kind = st.selectbox(
@@ -802,10 +960,12 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                     add = st.form_submit_button(config.labels.add_note, use_container_width=True)
                 if add and text.strip():
                     try:
-                        storage.add_activity(record.id, kind, text.strip())
+                        storage.add_activity(record.id, kind, text.strip(), complete_action=complete_at_same_time)
                     except ValueError as exc:
                         st.error(str(exc))
                     else:
+                        if complete_at_same_time:
+                            st.session_state['_demo_flash'] = 'Activity logged and scheduled action completed.'
                         st.rerun()
 
         # --- 3. Unified Reverse-Chronological Activity Timeline ---
@@ -813,12 +973,23 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
         
         events = []
         for act in getattr(record, 'activities', []):
+            is_comp = act.text and 'Completed action:' in act.text
+            is_resched = act.text and 'Rescheduled action' in act.text
+            is_sched = act.text and 'Scheduled next action' in act.text
+            title = (
+                'Action Completed' if is_comp else
+                'Action Rescheduled' if is_resched else
+                'Action Scheduled' if is_sched else
+                act.kind.replace('_', ' ').title()
+            )
             events.append({
                 'time': act.occurred_at or '',
                 'kind': act.kind,
-                'title': act.kind.replace('_', ' ').title(),
+                'title': title,
                 'text': act.text,
-                'is_stage': False
+                'is_stage': False,
+                'is_comp': is_comp,
+                'is_action': (is_comp or is_resched or is_sched)
             })
         for stg in getattr(record, 'stage_history', []):
             events.append({
@@ -826,7 +997,9 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                 'kind': 'stage_change',
                 'title': f"Moved to {stages.get(stg.stage_id, stg.stage_id)}",
                 'text': '',
-                'is_stage': True
+                'is_stage': True,
+                'is_comp': False,
+                'is_action': False
             })
         events.sort(key=lambda e: e['time'], reverse=True)
 
@@ -838,9 +1011,9 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
             }
             timeline_html = "<div style='max-height: 250px; overflow-y: auto; padding-right: 4px;'>"
             for ev in events:
-                icon = kind_icons.get(ev['kind'], '•')
+                icon = '✅' if ev.get('is_comp') else ('📅' if ev.get('title') == 'Action Rescheduled' else ('🎯' if ev.get('title') == 'Action Scheduled' else kind_icons.get(ev['kind'], '•')))
                 t_str = human_date(ev['time'][:10]) if ev['time'] else 'Initial'
-                border_color = "#6366F1" if ev['is_stage'] else "#334155"
+                border_color = "#34D399" if ev.get('is_comp') else ("#6366F1" if ev['is_stage'] else "#334155")
                 text_block = f"<div style='color: #CBD5E1; margin-top: 2px;'>{ev['text']}</div>" if ev['text'] else ""
                 timeline_html += (
                     f"<div style='border-left: 2px solid {border_color}; padding-left: 10px; margin-bottom: 8px; font-size: 0.80rem;'>"
@@ -858,7 +1031,8 @@ def pipeline(config, storage, prefix, reference=None):
     records = storage.list_records()
     if 'metrics' in config.dashboard_modules:
         metric_cards(config, records)
-    pipeline_distribution_bar(config, records, reference=reference)
+    counts = pipeline_distribution_bar(config, records, reference=reference)
+    overdue_cnt, today_cnt, replied_cnt, active_cnt = counts if counts else (0, 0, 0, 0)
 
     # Guided Demo Walkthrough (P2 - dismissible, lightweight)
     if not st.session_state.get('_demo_hide_walkthrough', False):
@@ -893,14 +1067,32 @@ def pipeline(config, storage, prefix, reference=None):
 
     stages = {s.id: s.name for s in config.stages}
 
-    # Compact multi-column Search, Filter & Page selector
-    col_search, col_filter, col_page = st.columns([6, 3, 2])
+    # Compact multi-column Search, Priority, Stage Filter & Page selector
+    col_search, col_prio, col_filter, col_page = st.columns([5, 3, 3, 2])
     with col_search:
         search = st.text_input(
             f'Search {config.labels.record_plural.lower()}',
-            placeholder=f'Search {config.labels.record_plural.lower()} by company, contact, or keywords...',
+            placeholder=f'Search by company, contact, or keywords...',
             key=prefix + '_search'
         ).lower().strip()
+    with col_prio:
+        priority_options = ['all', 'due_today', 'overdue', 'awaiting_reply', 'active']
+        prio_key = prefix + '_priority_filter'
+        if st.session_state.get(prio_key) not in priority_options:
+            st.session_state[prio_key] = 'all'
+        priority_labels = {
+            'all': 'All Priorities',
+            'due_today': f'📅 Due Today ({today_cnt})',
+            'overdue': f'⚠️ Overdue ({overdue_cnt})',
+            'awaiting_reply': f'💬 Awaiting Follow-up ({replied_cnt})',
+            'active': f'⚡ Active {config.labels.record_plural} ({active_cnt})'
+        }
+        priority_filter = st.selectbox(
+            'Daily Priority',
+            priority_options,
+            format_func=lambda val: priority_labels.get(val, val),
+            key=prio_key
+        )
     with col_filter:
         valid_stages = ['all', *stages]
         filter_key = prefix + '_filter'
@@ -913,7 +1105,39 @@ def pipeline(config, storage, prefix, reference=None):
             key=filter_key
         )
 
-    visible = [r for r in records if (stage_filter == 'all' or stage_filter == r.stage_id)
+    ref_date = reference.date if reference else datetime.date.today()
+    today_str = ref_date.isoformat()
+    active_stage_ids = {s.id for s in config.stages if s.active}
+
+    def has_open_action(r):
+        if r.current_action:
+            return r.current_action.status == 'open'
+        return bool(r.fields.get('next_action') or r.fields.get('next_action_date'))
+
+    def get_action_date(r):
+        if r.current_action and r.current_action.status == 'open':
+            return r.current_action.due_date or r.fields.get('next_action_date')
+        if r.current_action and r.current_action.status != 'open':
+            return None
+        return r.fields.get('next_action_date')
+
+    def matches_priority(r):
+        if priority_filter == 'all':
+            return True
+        is_open = has_open_action(r)
+        act_d = get_action_date(r)
+        if priority_filter == 'due_today':
+            return r.stage_id in active_stage_ids and is_open and act_d and str(act_d) == today_str
+        elif priority_filter == 'overdue':
+            return r.stage_id in active_stage_ids and is_open and act_d and str(act_d) < today_str
+        elif priority_filter == 'awaiting_reply':
+            return r.stage_id in ('replied', 'proposal_sent')
+        elif priority_filter == 'active':
+            return r.stage_id in active_stage_ids
+        return True
+
+    visible = [r for r in records if matches_priority(r)
+               and (stage_filter == 'all' or stage_filter == r.stage_id)
                and (not search or search in ' '.join(str(v) for v in r.fields.values()).lower())]
 
     page_size = 10
@@ -982,66 +1206,77 @@ def pipeline(config, storage, prefix, reference=None):
         icp_fit = record.fields.get('icp_fit', '')
         tech_stack = record.fields.get('tech_stack', '')
         intent = record.fields.get('intent_signals', '')
-        next_action = record.fields.get('next_action', '')
-        next_action_date = record.fields.get('next_action_date', '')
         priority = record.fields.get('priority', '')
         phone = record.fields.get('phone', '')
 
-        # Line 1: Header (Company — Contact (Title) · Phone · Stage)
-        header_text = f":blue[**{escape_markdown(company)}**]"
+        # Row 1: Company, contact, stage
+        r1_parts = [f":blue[**{escape_markdown(company)}**]"]
         if contact:
-            header_text += f" — {escape_markdown(contact)}" + (f" ({escape_markdown(title)})" if title else "")
+            r1_parts.append(f"{escape_markdown(contact)}" + (f" ({escape_markdown(title)})" if title else ""))
         if phone:
-            header_text += f" · `{phone}`"
-        header_text += f" · `{stage_name}`"
+            r1_parts.append(f"`{phone}`")
+        r1_parts.append(f"`{stage_name}`")
+        row1 = " — ".join(r1_parts[:2])
+        if len(r1_parts) > 2:
+            row1 += " · " + " · ".join(r1_parts[2:])
 
-        # Line 2: Opportunity Brief (Clean, readable text, no blockquote clipping)
-        clean_brief = brief.strip()
+        # Row 2: Account summary
+        clean_brief = brief.strip() if brief else "No account brief provided."
         if len(clean_brief) > 130:
             clean_brief = clean_brief[:127] + "..."
-        clean_brief = escape_markdown(clean_brief)
+        row2 = escape_markdown(clean_brief)
 
-        # Line 3: Badges + Action Footer
+        # Row 3: Fit, intent signals, technology
         badges = []
         if icp_fit:
             badges.append(f"🎯 {escape_markdown(icp_fit)} Fit")
         if intent:
             top_intent = intent.split('·')[0].strip()
-            if len(top_intent) > 28:
-                top_intent = top_intent[:25] + "..."
             badges.append(f"⚡ {escape_markdown(top_intent)}")
         if tech_stack:
             top_tech = tech_stack.split('·')[0].strip()
             badges.append(f"🛠️ {escape_markdown(top_tech)}")
-        badges_str = " · ".join(badges)
+        row3 = " · ".join(badges) if badges else "🎯 Account Intelligence Ready"
 
+        # Row 4: Next action, due date, ACV
         footer_items = []
-        if next_action:
-            short_na = next_action if len(next_action) <= 46 else next_action[:43] + "..."
+        curr_act = record.current_action or record.latest_action
+        act_d = curr_act.description if curr_act and curr_act.status == 'open' else record.fields.get('next_action')
+        act_due = curr_act.due_date if curr_act and curr_act.status == 'open' else record.fields.get('next_action_date')
+        act_stat = curr_act.status if curr_act else ('open' if act_d else 'none')
+
+        if act_d and act_stat == 'open':
+            short_na = act_d if len(act_d) <= 44 else act_d[:41] + "..."
             footer_items.append(f"**Next:** {escape_markdown(short_na)}")
-        if next_action_date:
+        elif act_stat == 'completed':
+            footer_items.append("✅ **Next:** Completed")
+        else:
+            footer_items.append("— No next action scheduled")
+
+        if act_due and act_stat == 'open':
             try:
-                d = datetime.date.fromisoformat(str(next_action_date)[:10])
-                ref_d = reference.date if reference else datetime.date.today()
-                diff = (d - ref_d).days
-                active_stage_ids = {s.id for s in config.stages if s.active}
+                d = datetime.date.fromisoformat(str(act_due)[:10])
+                diff = (d - ref_date).days
                 if diff < 0 and record.stage_id in active_stage_ids:
                     footer_items.append(f":red[⚠️ Due {d.strftime('%b %d')} ({abs(diff)}d overdue)]")
-                elif diff == 0:
+                elif diff == 0 and record.stage_id in active_stage_ids:
                     footer_items.append(":orange[📅 Due Today]")
+                elif diff == 1 and record.stage_id in active_stage_ids:
+                    footer_items.append(f"📅 Due Tomorrow ({d.strftime('%b %d')})")
                 else:
-                    footer_items.append(f"📅 {d.strftime('%b %d')}")
+                    footer_items.append(f"📅 Due {d.strftime('%b %d')}")
             except Exception:
-                footer_items.append(f"📅 {next_action_date}")
+                footer_items.append(f"📅 Due {act_due}")
+
         if acv is not None:
             try:
                 footer_items.append(f":green[\\${float(acv):,.0f} ACV]")
             except Exception:
                 footer_items.append(f":green[{escape_markdown(str(acv))}]")
 
-        footer_str = " · ".join(footer_items)
+        row4 = " · ".join(footer_items)
 
-        card_header = f"{header_text}\n\n{clean_brief}\n\n{badges_str} | {footer_str}"
+        card_header = f"{row1}\n\n{row2}\n\n{row3}\n\n{row4}"
 
         with st.expander(card_header):
             is_editing = st.session_state.get(f'{prefix}_editing_{record.id}', False)
@@ -1216,9 +1451,8 @@ def metric_cards(config, records):
                                            format_metric_currency(value) if metric['format'] == 'currency' else str(value))
         label = custom_labels.get(key, config.labels.record_plural if key == 'total' else metric['label'])
         target_col = columns[index % col_count]
-        target_col.metric(label, display)
-        if 'denominator' in metric:
-            target_col.caption(f"{metric['numerator']} / {metric['denominator']} unique prospects")
+        delta_str = f"{metric['numerator']} / {metric['denominator']} unique prospects" if 'denominator' in metric else None
+        target_col.metric(label, display, delta=delta_str, delta_color="off")
 
 
 def render_public(config):
@@ -1323,7 +1557,7 @@ def render_public(config):
     # Sidebar Navigation
     st.sidebar.markdown("<div style='font-size:0.72rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;'>Navigation</div>", unsafe_allow_html=True)
     nav = {n.id: n.label for n in config.navigation}
-    destination = st.sidebar.radio('Navigate', list(nav), format_func=nav.get, key='public_navigation')
+    destination = st.sidebar.radio('Navigate', list(nav), format_func=nav.get, key='public_navigation', label_visibility='collapsed')
 
     st.sidebar.caption(f"**{config.display_name}** · Public Demo")
 

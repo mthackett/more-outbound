@@ -23,6 +23,16 @@ class Activity(BaseModel):
     occurred_at: str = Field(default_factory=timestamp)
 
 
+class ActionItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    record_id: Any = None
+    description: str
+    due_date: Any = None
+    status: Literal['open', 'completed', 'canceled'] = 'open'
+    completed_at: Any = None
+    created_at: str = Field(default_factory=timestamp)
+
+
 class PipelineRecord(BaseModel):
     model_config = ConfigDict(extra='forbid')
     id: str = Field(default_factory=lambda: str(uuid4()), min_length=1)
@@ -31,6 +41,18 @@ class PipelineRecord(BaseModel):
     created_at: str = Field(default_factory=timestamp)
     stage_history: list[StageEvent] = Field(default_factory=list)
     activities: list[Activity] = Field(default_factory=list)
+    actions: list[ActionItem] = Field(default_factory=list)
+
+    @property
+    def current_action(self) -> Any:
+        for a in reversed(self.actions):
+            if a.status == 'open':
+                return a
+        return None
+
+    @property
+    def latest_action(self) -> Any:
+        return self.actions[-1] if self.actions else None
 
 
 def validate_fields(config, values):
