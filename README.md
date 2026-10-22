@@ -110,3 +110,7 @@ The runner uses disposable source copies, synthetic fixtures, no dotenv loading,
 ## Hosting and limitations
 
 See [Demo deployment](docs/demo-deployment.md). Procfile and Railway explicitly launch demo mode; `nixpacks.toml` installs only `requirements-demo.txt` and `.python-version` pins Python 3.12. Public edits are session-local, disappear when that session expires or the server restarts, and never update private Sheets/Drive. Reloading a fresh session restores the seed data. Do not enter sensitive data into a public demonstration. Hosting-provider deployment and authenticated Google verification require separate operational checks; this release does not add private-instance authentication.
+
+## License
+
+Copyright © 2026 Matthew Hackett. All rights reserved; see [LICENSE](LICENSE). The code is published for viewing as a portfolio project.
