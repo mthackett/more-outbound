@@ -93,10 +93,8 @@ Before processing live applications, confirm the following settings:
     ```
 
 - [ ] **3. Candidate Resume Storage in Drive**:
-  * Your configured Google Drive resume folder (`GOOGLE_RESUMES_FOLDER_ID`) currently holds:
-    * `Jordan Avery Revenue Operations Analyst Resume`
-  * If targeting additional tracks (e.g., *GTM Engineering*, *Business Analytics*, *Solutions Implementation*), create Google Docs inside that folder with matching naming conventions:
-    `<Name> <Role Track> Resume`.
+  * Put one Google Doc per role track in the Drive folder set by `GOOGLE_RESUMES_FOLDER_ID`. Nothing is hard-coded; the app lists whatever Docs are in that folder and matches them to job titles by keywords in the filename.
+  * Name each Doc `<Name> <Role Track> Resume`, e.g. `Jordan Avery Revenue Operations Analyst Resume`. Recognized tracks include *Revenue Operations*, *GTM Engineering*, *Business Analytics* and *Solutions Implementation*.
 
 - [ ] **4. Candidate Profile Guardrails**:
   * Located in `pipeline/domain/models.py`:

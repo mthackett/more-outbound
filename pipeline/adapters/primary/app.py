@@ -1852,99 +1852,11 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
         all_screening_qa = st.session_state.get("crm_cached_qa", [])
         all_requirements = st.session_state.get("crm_cached_requirements", [])
     else:
-        opportunities = [
-            {
-                "Opportunity ID": "demo-1",
-                "Company Name": "Larkfield Software",
-                "Job Title": "Sales Operations Analyst",
-                "Status": "Application Rejected",
-                "Category": "Target",
-                "Applied Via": "LinkedIn",
-                "Priority": "High",
-                "Salary Expectation": "$135,000",
-                "Stage History": [
-                    {"stage": "Processed", "entered_at": "2026-09-22T08:14:00"},
-                    {"stage": "Applied", "entered_at": "2026-09-22T08:31:00"},
-                    {"stage": "Application Rejected", "entered_at": "2026-09-24T14:07:00"}
-                ],
-                "stage_history": [
-                    {"stage": "Processed", "entered_at": "2026-09-22T08:14:00"},
-                    {"stage": "Applied", "entered_at": "2026-09-22T08:31:00"},
-                    {"stage": "Application Rejected", "entered_at": "2026-09-24T14:07:00"}
-                ],
-                "Target Pay Range": "$125,000 - $130,000",
-                "Date Created": "2026-09-22",
-                "Employment Arrangement": "Employee",
-                "Worker Classification": "",
-                "Pay Basis": "Annual",
-                "Contract Duration": "",
-                "Contract Value": "",
-                "Staffing Agency": "",
-                "Client Company": "",
-                "Extension Possible": "",
-                "FTE Conversion": "",
-                "Selected Resume": "Jordan Avery Revenue Operations Analyst Resume",
-                "Drive Folder Link": "https://drive.google.com",
-                "Notes": "Sarah Jenkins (Recruiter) - Position closed internally; stay in touch for Q4 headcount."
-            },
-            {
-                "Opportunity ID": "demo-2",
-                "Company Name": "Vantor Cloud",
-                "Job Title": "Senior GTM Systems Architect",
-                "Status": "Recruiter Screen",
-                "Category": "Stretch",
-                "Applied Via": "Company Website",
-                "Priority": "Medium",
-                "Salary Expectation": "$85/hr",
-                "Employment Arrangement": "Contract",
-                "Worker Classification": "W2",
-                "Pay Basis": "Hourly",
-                "Contract Duration": "6-month contract",
-                "Contract Value": "$78,000 - $83,200",
-                "Staffing Agency": "Summit Talent Group",
-                "Client Company": "Vantor Cloud",
-                "Extension Possible": "Yes",
-                "FTE Conversion": "Yes",
-                "Stage History": [
-                    {"stage": "Processed", "entered_at": "2026-09-23T10:00:00"},
-                    {"stage": "Applied", "entered_at": "2026-09-23T11:15:00"},
-                    {"stage": "Recruiter Screen", "entered_at": "2026-09-26T09:30:00"}
-                ],
-                "stage_history": [
-                    {"stage": "Processed", "entered_at": "2026-09-23T10:00:00"},
-                    {"stage": "Applied", "entered_at": "2026-09-23T11:15:00"},
-                    {"stage": "Recruiter Screen", "entered_at": "2026-09-26T09:30:00"}
-                ],
-                "Target Pay Range": "$75.00 – $80.00 / hr ($156,000 – $166,400/yr)",
-                "Date Created": "2026-09-23",
-                "Selected Resume": "Jordan Avery GTM Engineer Resume",
-                "Drive Folder Link": "https://drive.google.com",
-                "Notes": "Screening with talent partner Alex. Highlight multi-cloud pipeline architectures."
-            }
-        ]
-        all_screening_qa = []
-        all_requirements = [
-            {
-                "opportunity_id": "demo-1",
-                "required_tech_stack": "{Salesforce,SQL,Excel,Looker}",
-                "preferred_tech_stack": "{dbt,Python,Snowflake}",
-                "core_pain_points": "Legacy manual spreadsheets and inconsistent ARR reporting across sales and finance.",
-                "years_experience_required": "3-5 years",
-                "is_remote": "TRUE",
-                "salary_min": "125000",
-                "salary_max": "130000"
-            },
-            {
-                "opportunity_id": "demo-2",
-                "required_tech_stack": "{Workato,HubSpot,Salesforce,Zapier,APIs}",
-                "preferred_tech_stack": "{Python,BigQuery,Segment}",
-                "core_pain_points": "Scaling integration throughput and automating lead routing without dropped payloads.",
-                "years_experience_required": "5+ years",
-                "is_remote": "TRUE",
-                "salary_min": "156000",
-                "salary_max": "166400"
-            }
-        ]
+        # Sheets is not connected: show an empty tracker instead of sample rows, so placeholder
+        # data can never be mistaken for real applications. PRIVATE_OFFLINE uses mock storage instead.
+        st.info("Google Sheets isn't connected, so there are no applications to show. Check "
+                "GOOGLE_SPREADSHEET_ID and your Google credentials, or set PRIVATE_OFFLINE=true for a "
+                "synthetic preview.")
 
     # Load dynamic pipeline configuration (Sources & Priorities)
     pipeline_cfg = PipelineConfigService.load_config()
