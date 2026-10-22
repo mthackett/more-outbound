@@ -38,7 +38,7 @@ class TestNamespaceLaunch(unittest.TestCase):
         with patch.dict(os.environ, {'PIPELINE_MODE': 'demo', 'DEMO_MODE': 'true'}):
             app = AppTest.from_file(str(root / 'job_pipeline/adapters/primary/app.py'), default_timeout=20).run()
             self.assertFalse(app.exception)
-            self.assertEqual(len(app.session_state['_demo_store'].list_records()), 40)
+            self.assertEqual(len(app.session_state['_demo_store'].list_records()), 92)
 
     def test_launch_modes_use_same_source_and_override_conflicting_environment(self):
         with patch.dict(os.environ, {'PIPELINE_MODE': 'private', 'DEMO_MODE': 'false'}):
@@ -49,6 +49,9 @@ class TestNamespaceLaunch(unittest.TestCase):
         self.assertEqual(env['PIPELINE_MODE'], 'demo')
         self.assertEqual(env['DEMO_MODE'], 'true')
         self.assertEqual(private_env['PIPELINE_MODE'], 'private')
+        # Only the public demo hides Streamlit's developer toolbar.
+        self.assertIn('--client.toolbarMode', public)
+        self.assertNotIn('--client.toolbarMode', private)
 
     def test_private_seed_fallback_does_not_move_or_rewrite(self):
         import pipeline.domain.story_bank as module

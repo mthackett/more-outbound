@@ -5,22 +5,17 @@ import html
 import json
 from pathlib import Path
 import re
-import importlib
 import streamlit as st
+from pipeline.adapters.primary.demo_widgets import SYNTHETIC_NOTE, contact_action_buttons, render_sidebar_widgets
 from pipeline.adapters.primary.runtime import select_session
-import pipeline.domain.records
-import pipeline.domain.demo_dates
-import pipeline.adapters.secondary.memory_records
-import pipeline.domain.outreach_metrics
-importlib.reload(pipeline.domain.records)
-importlib.reload(pipeline.domain.demo_dates)
-importlib.reload(pipeline.adapters.secondary.memory_records)
-importlib.reload(pipeline.domain.outreach_metrics)
 from pipeline.adapters.secondary.memory_records import MemoryRecordStorage
-from pipeline.domain.demo_dates import session_reference
-from pipeline.domain.records import format_field
+from pipeline.domain.demo_dates import local_date, session_reference
+from pipeline.domain.records import due_state, format_field, open_next_action
 from pipeline.domain.intelligence_service import IntelligenceService
-from pipeline.domain.outreach_metrics import calculate_metrics, conversion_funnel
+from pipeline.domain.outreach_metrics import (
+    METRIC_REGISTRY, calculate_metrics, conversion_funnel, milestone_labels, stage_breakdown,
+    trailing_periods, weekly_series,
+)
 
 
 def escape_markdown(text):
@@ -235,27 +230,113 @@ PUBLIC_THEME_CSS = """
         align-items: center !important;
         margin: 0 auto !important;
     }
-    div[data-testid="stMetric"] [data-testid="stMetricDelta"] {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        text-align: center !important;
-        margin: 2px auto 0 auto !important;
-        width: 100% !important;
-        font-size: 0.70rem !important;
-        color: #94A3B8 !important;
-        font-weight: 500 !important;
+    /* Tooltips dismiss themselves. A click that reruns the script can replace the hovered
+       button before its mouse-out fires, orphaning the tooltip; rapid clicks stacked several.
+       Each tooltip mounts fresh, so this animation restarts on every hover. */
+    @keyframes mo-tooltip-autohide {
+        0% { opacity: 0; visibility: visible; }
+        10% { opacity: 1; }
+        75% { opacity: 1; }
+        100% { opacity: 0; visibility: hidden; }
     }
-    div[data-testid="stMetric"] [data-testid="stMetricDelta"] svg {
+    div[role="tooltip"]:has([data-testid="stTooltipContent"]) {
+        animation: mo-tooltip-autohide 1.8s ease-in-out forwards;
+        pointer-events: none;
+    }
+    /* Only the newest tooltip is ever shown: hide any that a later one has superseded. */
+    div[data-overlay-container]:has(~ div[data-overlay-container] [data-testid="stTooltipContent"])
+        div[role="tooltip"]:has([data-testid="stTooltipContent"]) {
         display: none !important;
     }
-    div[data-testid="stMetric"] [data-testid="stMetricDelta"] div,
-    div[data-testid="stMetric"] [data-testid="stMetricDelta"] p {
-        color: #94A3B8 !important;
-        font-size: 0.70rem !important;
-        text-align: center !important;
-        margin: 0 auto !important;
-        width: 100% !important;
+    /* Phones: KPI cards two per row instead of one tall stack */
+    @media (max-width: 640px) {
+        div[data-testid="stHorizontalBlock"]:has(> div[data-testid="stColumn"] [data-testid="stMetric"]) {
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+        div[data-testid="stHorizontalBlock"]:has(> div[data-testid="stColumn"] [data-testid="stMetric"]) > div[data-testid="stColumn"] {
+            flex: 1 1 calc(50% - 8px) !important;
+            min-width: calc(50% - 8px) !important;
+            width: calc(50% - 8px) !important;
+        }
+    }
+    /* Record header pills wrap as whole pills; profile values wrap inside their grid cell */
+    .mo-pills > span { white-space: nowrap; }
+    .mo-profile-grid > div { min-width: 0; overflow-wrap: anywhere; }
+    /* Shared panel + uppercase section label used by analytics and widgets */
+    .mo-panel {
+        background: #0F172A;
+        border: 1px solid #1E293B;
+        border-radius: 8px;
+        padding: 14px 16px;
+    }
+    .mo-label {
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: #94A3B8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+    }
+    /* Side-by-side panels that always share one height; stack on narrow screens */
+    .mo-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: stretch;
+        margin-bottom: 14px;
+    }
+    @media (max-width: 900px) {
+        .mo-grid-2 { grid-template-columns: 1fr; }
+    }
+    /* Trailing-period comparison tiles */
+    .mo-tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    .mo-tile {
+        background: #0F172A;
+        border: 1px solid #1E293B;
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
+    .mo-tile-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #94A3B8;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        min-height: 1.9em;
+    }
+    .mo-tile-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        line-height: 1.25;
+    }
+    .mo-delta { font-size: 0.72rem; font-weight: 600; }
+    .mo-delta-up { color: #34D399; }
+    .mo-delta-down { color: #FB7185; }
+    .mo-delta-flat { color: #94A3B8; }
+    .mo-delta-prior { color: #64748B; font-weight: 500; margin-top: 1px; }
+    .mo-table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+    .mo-table th {
+        text-align: right; color: #94A3B8; font-weight: 700; font-size: 0.68rem;
+        text-transform: uppercase; letter-spacing: 0.3px; padding: 6px 8px; border-bottom: 1px solid #1E293B;
+    }
+    .mo-table th:first-child, .mo-table td:first-child { text-align: left; }
+    .mo-table td { text-align: right; color: #F1F5F9; padding: 7px 8px; border-bottom: 1px solid #1E293B; }
+    .mo-table tr:last-child td { border-bottom: none; }
+    .mo-table td .mo-delta { display: block; font-size: 0.68rem; }
+    .mo-table-wrap { overflow-x: auto; }
+    /* Section headings: consistent, compact hierarchy */
+    [data-testid="stHeading"] h3 {
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+        padding-top: 0.6rem !important;
+        padding-bottom: 0.35rem !important;
     }
     /* Card expander styling */
     div[data-testid="stExpander"] {
@@ -325,9 +406,10 @@ def render_single_field(field, prefix, values, height=None, placeholder=None):
     label = field.label + (' *' if field.required else '')
     key = prefix + '_' + field.key
     val = values.get(field.key)
-    if field.type == 'currency':
+    if field.type in ('currency', 'number'):
         num_val = float(val) if val is not None and str(val).strip() != '' else None
-        return st.number_input(label, min_value=0.0, value=num_val, key=key)
+        step = 1.0 if field.type == 'number' else 100.0
+        return st.number_input(label, min_value=0.0, value=num_val, step=step, key=key)
     elif field.type == 'date':
         val_date = val or None
         if isinstance(val_date, str):
@@ -494,7 +576,7 @@ def intake(config, storage, prefix):
         values = input_fields(config, prefix, intake=True)
         col_btn1, col_btn2 = st.columns([3, 7])
         with col_btn1:
-            submitted = st.form_submit_button(config.labels.create, use_container_width=True)
+            submitted = st.form_submit_button(config.labels.create, width='stretch')
     if submitted:
         try:
             storage.create(values)
@@ -563,39 +645,54 @@ def record_table(config, records):
     st.dataframe(rows, hide_index=True, width="stretch")
 
 
+def value_suffix(config):
+    """How a record's value reads on cards: annual contract value for SaaS, a contract for services."""
+    return 'contract' if config.pipeline_type == 'b2b_services' else 'ACV'
+
+
+def awaiting_stage_ids(config):
+    """Stages where the counterpart has responded and the ball is in our court."""
+    return {s.id for s in config.stages if 'replied' in s.milestones and s.active}
+
+
+def daily_priority_sets(config, records, reference=None):
+    """Record ids per Daily Priority bucket, shared by the summary bar and filter."""
+    today = reference.date if reference else datetime.date.today()
+    active = {s.id for s in config.stages if s.active}
+    awaiting = awaiting_stage_ids(config)
+    sets = {'overdue': set(), 'due_today': set(), 'awaiting_reply': set(), 'active': set()}
+    for r in records:
+        if r.stage_id in awaiting:
+            sets['awaiting_reply'].add(r.id)
+        if r.stage_id not in active:
+            continue
+        sets['active'].add(r.id)
+        state, _ = due_state(open_next_action(r)[1], today)
+        if state == 'overdue':
+            sets['overdue'].add(r.id)
+        elif state == 'today':
+            sets['due_today'].add(r.id)
+    return sets
+
+
 def pipeline_distribution_bar(config, records, reference=None):
     stage_counts = {s.id: 0 for s in config.stages}
     for r in records:
         if r.stage_id in stage_counts:
             stage_counts[r.stage_id] += 1
 
-    ref_date = reference.date if reference else datetime.date.today()
-    today_str = ref_date.isoformat()
-    active_stage_ids = {s.id for s in config.stages if s.active}
-
-    def has_open_action(r):
-        if r.current_action:
-            return r.current_action.status == 'open'
-        return bool(r.fields.get('next_action') or r.fields.get('next_action_date'))
-
-    def get_action_date(r):
-        if r.current_action and r.current_action.status == 'open':
-            return r.current_action.due_date or r.fields.get('next_action_date')
-        if r.current_action and r.current_action.status != 'open':
-            return None
-        return r.fields.get('next_action_date')
-
-    overdue_cnt = sum(1 for r in records if r.stage_id in active_stage_ids and has_open_action(r) and get_action_date(r) and str(get_action_date(r)) < today_str)
-    today_cnt = sum(1 for r in records if r.stage_id in active_stage_ids and has_open_action(r) and get_action_date(r) and str(get_action_date(r)) == today_str)
-    replied_cnt = sum(1 for r in records if r.stage_id in ('replied', 'proposal_sent'))
-    active_cnt = sum(1 for r in records if r.stage_id in active_stage_ids)
+    priority_sets = daily_priority_sets(config, records, reference)
+    overdue_cnt = len(priority_sets['overdue'])
+    today_cnt = len(priority_sets['due_today'])
+    replied_cnt = len(priority_sets['awaiting_reply'])
+    active_cnt = len(priority_sets['active'])
     total_cnt = len(records)
 
     items_html = []
     for s in config.stages:
         cnt = stage_counts.get(s.id, 0)
         style = STAGE_STYLES.get(s.id, {'fg': '#94A3B8'})
-        items_html.append(f"<span style='color: #94A3B8;'>{s.name}:</span> <b style='color: {style['fg']};'>{cnt}</b>")
+        items_html.append(f"<span style='white-space: nowrap;'><span style='color: #94A3B8;'>{s.name}:</span> <b style='color: {style['fg']};'>{cnt}</b></span>")
 
     breakdown_str = " &nbsp;·&nbsp; ".join(items_html)
 
@@ -689,38 +786,30 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
     today = reference.date if reference else datetime.date.today()
     active_stage_ids = {s.id for s in config.stages if s.active}
 
-    curr_action = record.current_action or record.latest_action
-    if curr_action:
-        act_desc = curr_action.description
-        act_due_str = curr_action.due_date
-        act_status = curr_action.status
-    else:
-        act_desc = record.fields.get('next_action')
-        act_due_str = record.fields.get('next_action_date')
-        act_status = 'open' if (act_desc or act_due_str) else 'none'
-
-    has_open_action = (act_status == 'open' and bool(act_desc or act_due_str))
+    act_desc, act_due_str = open_next_action(record)
+    has_open_action = bool(act_desc or act_due_str)
+    latest = record.latest_action
+    act_status = 'open' if has_open_action else (latest.status if latest else 'none')
+    if not has_open_action and latest:
+        act_desc = latest.description
 
     is_overdue = False
     is_today = False
     formatted_due = "No due date"
-    if act_due_str and has_open_action:
-        try:
-            act_d = datetime.date.fromisoformat(str(act_due_str)[:10])
-            days_diff = (act_d - today).days
-            d_fmt = act_d.strftime("%b %d, %Y")
-            if days_diff < 0 and record.stage_id in active_stage_ids:
-                is_overdue = True
-                formatted_due = f"<span style='color:#FB7185; font-weight:700;'>⚠️ Due {d_fmt} ({abs(days_diff)}d overdue)</span>"
-            elif days_diff == 0 and record.stage_id in active_stage_ids:
-                is_today = True
-                formatted_due = f"<span style='color:#FBBF24; font-weight:700;'>📅 Due Today ({d_fmt})</span>"
-            elif days_diff == 1 and record.stage_id in active_stage_ids:
-                formatted_due = f"<span style='color:#38BDF8; font-weight:600;'>📅 Due Tomorrow ({d_fmt})</span>"
-            else:
-                formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {d_fmt}</span>"
-        except Exception:
-            formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {act_due_str}</span>"
+    state, days_diff = due_state(act_due_str, today)
+    if state and has_open_action:
+        d_fmt = datetime.date.fromisoformat(str(act_due_str)[:10]).strftime("%b %d, %Y")
+        is_active = record.stage_id in active_stage_ids
+        if state == 'overdue' and is_active:
+            is_overdue = True
+            formatted_due = f"<span style='color:#FB7185; font-weight:700;'>⚠️ Due {d_fmt} ({abs(days_diff)}d overdue)</span>"
+        elif state == 'today' and is_active:
+            is_today = True
+            formatted_due = f"<span style='color:#FBBF24; font-weight:700;'>📅 Due Today ({d_fmt})</span>"
+        elif state == 'tomorrow' and is_active:
+            formatted_due = f"<span style='color:#38BDF8; font-weight:600;'>📅 Due Tomorrow ({d_fmt})</span>"
+        else:
+            formatted_due = f"<span style='color:#CBD5E1;'>📅 Due {d_fmt}</span>"
     elif act_status == 'completed':
         formatted_due = "<span style='color:#34D399; font-weight:600;'>✓ Completed</span>"
 
@@ -764,7 +853,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                 comp_note = st.text_input("Completion Note (optional)", placeholder="e.g. Call completed, prospect requested technical overview...", key=f"{prefix}_comp_note_{record.id}")
                 col_btn, _ = st.columns([3, 7])
                 with col_btn:
-                    complete_submit = st.form_submit_button("✓ Complete Action", use_container_width=True)
+                    complete_submit = st.form_submit_button("✓ Complete Action", width='stretch')
                 if complete_submit:
                     try:
                         storage.complete_action(
@@ -796,7 +885,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                     resched_reason = st.text_input("Reason (optional)", placeholder="e.g. Contact requested follow-up next week...", key=f"{prefix}_resched_reason_{record.id}")
                 col_btn, _ = st.columns([3, 7])
                 with col_btn:
-                    resched_submit = st.form_submit_button("📅 Reschedule Action", use_container_width=True)
+                    resched_submit = st.form_submit_button("📅 Reschedule Action", width='stretch')
                 if resched_submit:
                     try:
                         storage.reschedule_action(record.id, resched_due, reason=resched_reason)
@@ -815,7 +904,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                     sched_due = st.date_input("Due Date", value=today + datetime.timedelta(days=3), key=f"{prefix}_sched_due_{record.id}")
                 col_btn, _ = st.columns([3, 7])
                 with col_btn:
-                    sched_submit = st.form_submit_button("🎯 Save Action", use_container_width=True)
+                    sched_submit = st.form_submit_button("🎯 Save Action", width='stretch')
                 if sched_submit and sched_desc.strip():
                     try:
                         storage.schedule_action(record.id, sched_desc.strip(), sched_due)
@@ -834,7 +923,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                     sched_due = st.date_input("Due Date", value=today + datetime.timedelta(days=3), key=f"{prefix}_sched_due_{record.id}")
                 col_btn, _ = st.columns([3, 7])
                 with col_btn:
-                    sched_submit = st.form_submit_button("🎯 Schedule Action", use_container_width=True)
+                    sched_submit = st.form_submit_button("🎯 Schedule Action", width='stretch')
                 if sched_submit and sched_desc.strip():
                     try:
                         storage.schedule_action(record.id, sched_desc.strip(), sched_due)
@@ -871,7 +960,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
 
         profile_grid_html = f"""
         <div style="font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Account Profile</div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 12px; background: #0F172A; border: 1px solid #1E293B; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.80rem;">
+        <div class="mo-profile-grid" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 12px; background: #0F172A; border: 1px solid #1E293B; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 0.80rem;">
             {''.join(profile_items)}
         </div>
         """
@@ -918,7 +1007,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
         # --- 1. Pipeline Stage & Quick Movement ---
         st.markdown("<div style='font-size:0.74rem; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;'>Pipeline Stage</div>", unsafe_allow_html=True)
         with st.form(f"{prefix}_stage_form_{record.id}"):
-            col_st1, col_st2 = st.columns([7, 3])
+            col_st1, col_st2 = st.columns([3, 2])
             with col_st1:
                 new_stage = st.selectbox(
                     config.labels.stage,
@@ -929,7 +1018,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                     label_visibility="collapsed"
                 )
             with col_st2:
-                save_stage = st.form_submit_button(config.labels.save, use_container_width=True)
+                save_stage = st.form_submit_button(config.labels.save, width='stretch')
             if save_stage:
                 try:
                     storage.update(record.id, {}, new_stage)
@@ -957,7 +1046,7 @@ def render_opportunity_workspace(config, storage, record, stages, prefix, refere
                         label_visibility="collapsed"
                     )
                 with col_act2:
-                    add = st.form_submit_button(config.labels.add_note, use_container_width=True)
+                    add = st.form_submit_button(config.labels.add_note, width='stretch')
                 if add and text.strip():
                     try:
                         storage.add_activity(record.id, kind, text.strip(), complete_action=complete_at_same_time)
@@ -1039,7 +1128,7 @@ def pipeline(config, storage, prefix, reference=None):
         col_wt_text, col_wt_btn = st.columns([11, 1])
         with col_wt_text:
             st.markdown(
-                """
+                f"""
                 <div style="background: linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(30, 41, 59, 0.4) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; padding: 8px 12px; margin-bottom: 10px;">
                     <div style="font-size: 0.72rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
                         💡 Demo Workflow
@@ -1050,7 +1139,7 @@ def pipeline(config, storage, prefix, reference=None):
                         <strong style="color: #FBBF24;">Activity Tracking</strong> →
                         <strong style="color: #34D399;">Pipeline Progression</strong> →
                         <strong style="color: #C084FC;">Historical Analytics</strong>.
-                        Click any prospect below to view intelligence, log notes, or change stage.
+                        Click any {html.escape(config.labels.record_singular.lower())} below to view intelligence, log notes, or change stage.
                     </div>
                 </div>
                 """,
@@ -1106,37 +1195,10 @@ def pipeline(config, storage, prefix, reference=None):
         )
 
     ref_date = reference.date if reference else datetime.date.today()
-    today_str = ref_date.isoformat()
     active_stage_ids = {s.id for s in config.stages if s.active}
+    priority_ids = daily_priority_sets(config, records, reference).get(priority_filter)
 
-    def has_open_action(r):
-        if r.current_action:
-            return r.current_action.status == 'open'
-        return bool(r.fields.get('next_action') or r.fields.get('next_action_date'))
-
-    def get_action_date(r):
-        if r.current_action and r.current_action.status == 'open':
-            return r.current_action.due_date or r.fields.get('next_action_date')
-        if r.current_action and r.current_action.status != 'open':
-            return None
-        return r.fields.get('next_action_date')
-
-    def matches_priority(r):
-        if priority_filter == 'all':
-            return True
-        is_open = has_open_action(r)
-        act_d = get_action_date(r)
-        if priority_filter == 'due_today':
-            return r.stage_id in active_stage_ids and is_open and act_d and str(act_d) == today_str
-        elif priority_filter == 'overdue':
-            return r.stage_id in active_stage_ids and is_open and act_d and str(act_d) < today_str
-        elif priority_filter == 'awaiting_reply':
-            return r.stage_id in ('replied', 'proposal_sent')
-        elif priority_filter == 'active':
-            return r.stage_id in active_stage_ids
-        return True
-
-    visible = [r for r in records if matches_priority(r)
+    visible = [r for r in records if (priority_ids is None or r.id in priority_ids)
                and (stage_filter == 'all' or stage_filter == r.stage_id)
                and (not search or search in ' '.join(str(v) for v in r.fields.values()).lower())]
 
@@ -1164,7 +1226,7 @@ def pipeline(config, storage, prefix, reference=None):
         page = st.selectbox(
             'Page',
             page_options,
-            format_func=lambda p: f'Page {p} of {total_pages}',
+            format_func=str,
             key=page_key
         )
 
@@ -1240,37 +1302,33 @@ def pipeline(config, storage, prefix, reference=None):
 
         # Row 4: Next action, due date, ACV
         footer_items = []
-        curr_act = record.current_action or record.latest_action
-        act_d = curr_act.description if curr_act and curr_act.status == 'open' else record.fields.get('next_action')
-        act_due = curr_act.due_date if curr_act and curr_act.status == 'open' else record.fields.get('next_action_date')
-        act_stat = curr_act.status if curr_act else ('open' if act_d else 'none')
+        act_d, act_due = open_next_action(record)
+        latest = record.latest_action
 
-        if act_d and act_stat == 'open':
+        if act_d:
             short_na = act_d if len(act_d) <= 44 else act_d[:41] + "..."
             footer_items.append(f"**Next:** {escape_markdown(short_na)}")
-        elif act_stat == 'completed':
+        elif latest and latest.status == 'completed':
             footer_items.append("✅ **Next:** Completed")
         else:
             footer_items.append("— No next action scheduled")
 
-        if act_due and act_stat == 'open':
-            try:
-                d = datetime.date.fromisoformat(str(act_due)[:10])
-                diff = (d - ref_date).days
-                if diff < 0 and record.stage_id in active_stage_ids:
-                    footer_items.append(f":red[⚠️ Due {d.strftime('%b %d')} ({abs(diff)}d overdue)]")
-                elif diff == 0 and record.stage_id in active_stage_ids:
-                    footer_items.append(":orange[📅 Due Today]")
-                elif diff == 1 and record.stage_id in active_stage_ids:
-                    footer_items.append(f"📅 Due Tomorrow ({d.strftime('%b %d')})")
-                else:
-                    footer_items.append(f"📅 Due {d.strftime('%b %d')}")
-            except Exception:
-                footer_items.append(f"📅 Due {act_due}")
+        state, diff = due_state(act_due, ref_date)
+        if state:
+            d_label = datetime.date.fromisoformat(str(act_due)[:10]).strftime('%b %d')
+            is_active = record.stage_id in active_stage_ids
+            if state == 'overdue' and is_active:
+                footer_items.append(f":red[⚠️ Due {d_label} ({abs(diff)}d overdue)]")
+            elif state == 'today' and is_active:
+                footer_items.append(":orange[📅 Due Today]")
+            elif state == 'tomorrow' and is_active:
+                footer_items.append(f"📅 Due Tomorrow ({d_label})")
+            else:
+                footer_items.append(f"📅 Due {d_label}")
 
         if acv is not None:
             try:
-                footer_items.append(f":green[\\${float(acv):,.0f} ACV]")
+                footer_items.append(f":green[\\${float(acv):,.0f} {value_suffix(config)}]")
             except Exception:
                 footer_items.append(f":green[{escape_markdown(str(acv))}]")
 
@@ -1278,7 +1336,7 @@ def pipeline(config, storage, prefix, reference=None):
 
         card_header = f"{row1}\n\n{row2}\n\n{row3}\n\n{row4}"
 
-        with st.expander(card_header):
+        with st.expander(card_header, expanded=st.session_state.get(f'{prefix}_focus') == record.id):
             is_editing = st.session_state.get(f'{prefix}_editing_{record.id}', False)
 
             # Top Header Bar with Edit Action (Section 2.A)
@@ -1289,7 +1347,7 @@ def pipeline(config, storage, prefix, reference=None):
             ]
             if acv is not None:
                 try:
-                    pills.append(f"<span style='background:#064E3B33; color:#34D399; border:1px solid #05966955; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;'>${float(acv):,.0f} ACV</span>")
+                    pills.append(f"<span style='background:#064E3B33; color:#34D399; border:1px solid #05966955; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700;'>${float(acv):,.0f} {value_suffix(config)}</span>")
                 except Exception:
                     pass
             if icp_fit:
@@ -1300,20 +1358,22 @@ def pipeline(config, storage, prefix, reference=None):
 
             pills_str = " ".join(pills)
 
-            col_bar1, col_bar2 = st.columns([5, 1])
+            col_bar1, col_actions, col_bar2 = st.columns([5, 3, 1.4], vertical_alignment='center')
             with col_bar1:
                 st.markdown(
                     f"""
                     <div style="display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
                         <span style="font-size: 1.15rem; font-weight: 700; color: #818CF8;">{company}</span>
                         <span style="font-size: 0.83rem; color: #94A3B8;">{contact_info}</span>
-                        <div style="display: inline-flex; align-items: center; gap: 5px; margin-left: 4px;">{pills_str}</div>
+                        <div class="mo-pills" style="display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-left: 4px;">{pills_str}</div>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
+            with col_actions:
+                contact_action_buttons(storage, record, prefix)
             with col_bar2:
-                if st.button("✏️ Edit" if not is_editing else "✖️ View", key=f"{prefix}_btn_toggle_{record.id}", use_container_width=True):
+                if st.button("✏️ Edit" if not is_editing else "✖️ View", key=f"{prefix}_btn_toggle_{record.id}", width='stretch'):
                     st.session_state[f'{prefix}_editing_{record.id}'] = not is_editing
                     st.rerun()
 
@@ -1331,9 +1391,9 @@ def pipeline(config, storage, prefix, reference=None):
                     )
                     col_save, col_cancel = st.columns([1, 1])
                     with col_save:
-                        save = st.form_submit_button(config.labels.save, use_container_width=True)
+                        save = st.form_submit_button(config.labels.save, width='stretch')
                     with col_cancel:
-                        cancel = st.form_submit_button("Cancel", use_container_width=True)
+                        cancel = st.form_submit_button("Cancel", width='stretch')
                 if save:
                     try:
                         storage.update(record.id, values, stage)
@@ -1371,7 +1431,7 @@ def intelligence(config):
         return
 
     for item in cards:
-        with st.expander(f"📘 {item.title}", expanded=True):
+        with st.expander(f"📘 {item.title}", expanded=False):
             st.markdown(
                 f"""
                 <div style="background:#0F172A; border-left:4px solid #6366F1; border-radius:6px; padding:10px 14px; margin-bottom:12px;">
@@ -1450,16 +1510,14 @@ def metric_cards(config, records):
         display = '—' if value is None else (f'{value:.1f}%' if metric['format'] == 'percent' else
                                            format_metric_currency(value) if metric['format'] == 'currency' else str(value))
         label = custom_labels.get(key, config.labels.record_plural if key == 'total' else metric['label'])
-        target_col = columns[index % col_count]
-        delta_str = f"{metric['numerator']} / {metric['denominator']} unique prospects" if 'denominator' in metric else None
-        target_col.metric(label, display, delta=delta_str, delta_color="off")
+        columns[index % col_count].metric(label, display)
 
 
 def render_public(config):
     import os
     workspace_options = {
-        'sales_rep': 'Sales Rep (Outbound Prospecting)',
-        'b2b_services': 'B2B Services (Client Opportunities)',
+        'sales_rep': 'Sales Rep · Outbound',
+        'b2b_services': 'B2B Services · Client Deals',
     }
     default_ws = 'b2b_services' if config.pipeline_type == 'b2b_services' else 'sales_rep'
     active_ws = st.session_state.get('demo_workspace_selector', default_ws)
@@ -1547,8 +1605,8 @@ def render_public(config):
     st.sidebar.markdown(
         """
         <div style="background: #0F172A; border: 1px solid #1E293B; border-left: 3px solid #6366F1; border-radius: 6px; padding: 7px 10px; margin-bottom: 12px; font-size: 0.77rem; color: #94A3B8; line-height: 1.35;">
-            <strong style="color: #F8FAFC;">Demo Sandbox</strong><br>
-            Isolated visitor session. No live integrations or messages are sent.
+            <strong style="color: #F8FAFC;">Demo Sandbox · Synthetic Data</strong><br>
+            All companies, contacts and figures are fictitious. Calls and emails are simulated; nothing is sent.
         </div>
         """,
         unsafe_allow_html=True
@@ -1559,23 +1617,14 @@ def render_public(config):
     nav = {n.id: n.label for n in config.navigation}
     destination = st.sidebar.radio('Navigate', list(nav), format_func=nav.get, key='public_navigation', label_visibility='collapsed')
 
-    st.sidebar.caption(f"**{config.display_name}** · Public Demo")
-
-    # Sidebar Demo Reset Action (P0 - Visitor Reset)
-    if getattr(config.features, 'reset_demo_data', False):
-        st.sidebar.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
-        if st.sidebar.button("🔄 Reset Demo Data", key="btn_reset_demo_data", use_container_width=True):
-            stores = st.session_state.get('_demo_workspace_stores', {})
-            for s in stores.values():
-                s.reset()
-            st.session_state['_demo_epoch'] = st.session_state.get('_demo_epoch', 0) + 1
-            st.session_state['_demo_flash'] = 'Demo data reset to initial scenario.'
-            st.rerun()
+    # Widget keys are scoped per workspace so filters, pages and open forms never leak across workspaces.
+    prefix = f"public_{st.session_state.get('_demo_epoch', 0)}_{active_ws}"
+    render_sidebar_widgets(config, storage, reference, prefix)
+    st.sidebar.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
+    st.sidebar.caption(f"**{config.display_name}** · Public Demo  \nAll demo data is synthetic.")
 
     if '_demo_flash' in st.session_state:
         st.success(st.session_state.pop('_demo_flash'))
-
-    prefix = 'public_' + str(st.session_state.get('_demo_epoch', 0))
 
     if destination == 'intake':
         intake(config, storage, prefix + '_intake')
@@ -1584,17 +1633,267 @@ def render_public(config):
     elif destination == 'intelligence':
         intelligence(config)
     else:
-        st.subheader(nav[destination])
-        records = storage.list_records()
-        if 'metrics' in config.dashboard_modules:
-            metric_cards(config, records)
-        if 'funnel' in config.dashboard_modules:
-            st.subheader('Historical Conversion Funnel')
-            funnel_rows = conversion_funnel(records, config)
-            render_visual_conversion_funnel(funnel_rows)
-            with st.expander('Conversion Funnel Data Table', expanded=True):
-                st.dataframe(funnel_rows, hide_index=True, width="stretch")
-            st.caption('Each step counts unique records that achieved every preceding milestone. Later stage moves retain earlier achievements.')
-        if 'table' in config.dashboard_modules:
+        analytics(config, storage, nav[destination], reference=reference)
+
+    st.markdown(f"<div style='margin-top:28px; padding-top:10px; border-top:1px solid #1E293B; font-size:0.75rem; "
+                f"color:#64748B; text-align:center;'>🧪 {SYNTHETIC_NOTE} No calls, emails or messages are sent.</div>",
+                unsafe_allow_html=True)
+
+
+def stage_breakdown_html(config, rows):
+    """Current count and value per stage; closed stages are dimmed.
+
+    Lost/disqualified value is not pipeline, so closed stages show counts only and
+    bars scale to open and won stages.
+    """
+    max_value = max((r['Value'] for r in rows if not r['Closed']), default=0) or 1
+    has_values = any(r['Value'] for r in rows if not r['Closed'])
+    lines = []
+    divider_done = False
+    for r in rows:
+        style = STAGE_STYLES.get(r['stage_id'], {'fg': '#94A3B8'})
+        opacity = '1' if r['Active'] else '0.55'
+        if not r['Active'] and not divider_done:
+            divider_done = True
+            lines.append("<div style='font-size:0.66rem; font-weight:700; color:#64748B; text-transform:uppercase; "
+                         "letter-spacing:0.5px; border-top:1px solid #1E293B; padding-top:6px; margin:8px 0 6px;'>"
+                         "Closed / converted · not in active pipeline</div>")
+        shown = 0 if r['Closed'] else r['Value']
+        width = shown / max_value * 100 if shown else 0
+        value_str = format_metric_currency(shown) if shown else '—'
+        bar = (f"<div style='flex:1; min-width:60px; background:#1E293B; height:8px; border-radius:4px; overflow:hidden;'>"
+               f"<div style='background:{style['fg']}; width:{width:.1f}%; height:100%;'></div></div>"
+               f"<div style='width:68px; text-align:right; color:#34D399; font-weight:600;'>{value_str}</div>") if has_values else ""
+        lines.append(
+            f"<div style='display:flex; align-items:center; gap:10px; margin-bottom:7px; font-size:0.81rem; opacity:{opacity};'>"
+            f"<div style='width:170px; flex-shrink:0; color:#E2E8F0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;'>"
+            f"<span style='display:inline-block; width:8px; height:8px; border-radius:50%; background:{style['fg']}; margin-right:6px;'></span>"
+            f"{html.escape(r['Stage'])}</div>"
+            f"<div style='width:28px; text-align:right; color:#F8FAFC; font-weight:700;'>{r['Count']}</div>"
+            f"{bar}</div>"
+        )
+    return (f"<div class='mo-panel'><div class='mo-label'>Current {html.escape(config.labels.record_plural)} by Stage</div>"
+            + "".join(lines) + "</div>")
+
+
+def top_open_html(config, records, reference=None, limit=5):
+    """Largest active records by value, with their next action and due date."""
+    active = {s.id for s in config.stages if s.active and not s.terminal}
+    stages = {s.id: s.name for s in config.stages}
+    today = reference.date if reference else datetime.date.today()
+
+    def value(r):
+        v = r.fields.get('acv')
+        return v if isinstance(v, (int, float)) and not isinstance(v, bool) else 0
+
+    top = sorted((r for r in records if r.stage_id in active and value(r)), key=value, reverse=True)[:limit]
+    due_styles = {'overdue': '#FB7185', 'today': '#FBBF24'}
+    lines = []
+    for r in top:
+        desc, due = open_next_action(r)
+        state, diff = due_state(due, today)
+        due_html = ''
+        if state:
+            text = f"{abs(diff)}d overdue" if state == 'overdue' else ('Due today' if state == 'today' else f"Due in {diff}d")
+            due_html = f"<span style='color:{due_styles.get(state, '#94A3B8')}; font-weight:600;'>{text}</span>"
+        style = STAGE_STYLES.get(r.stage_id, {'fg': '#94A3B8'})
+        lines.append(
+            "<div style='padding:7px 0; border-bottom:1px solid #1E293B; font-size:0.81rem;'>"
+            "<div style='display:flex; justify-content:space-between; gap:8px;'>"
+            f"<span style='color:#818CF8; font-weight:700;'>{html.escape(str(r.fields.get('company') or r.fields.get('contact') or '—'))}</span>"
+            f"<span style='color:#34D399; font-weight:700;'>{format_metric_currency(value(r))}</span></div>"
+            "<div style='display:flex; justify-content:space-between; gap:8px; color:#94A3B8; font-size:0.76rem; margin-top:2px;'>"
+            f"<span><span style='color:{style['fg']};'>{html.escape(stages.get(r.stage_id, r.stage_id))}</span>"
+            f"{' · ' + html.escape(desc[:60] + ('…' if len(desc) > 60 else '')) if desc else ''}</span>"
+            f"<span style='white-space:nowrap;'>{due_html}</span></div></div>"
+        )
+    body = "".join(lines) or "<div style='color:#64748B; font-size:0.81rem;'>No open records with a value yet.</div>"
+    return (f"<div class='mo-panel'><div class='mo-label'>Largest Open {html.escape(config.labels.record_plural)}</div>"
+            + body + "</div>")
+
+
+# Trend views per workspace: which period metrics to show and what to call them.
+TREND_VIEWS = {
+    'b2b_services': {
+        'new_label': 'New Inquiries', 'value_label': 'Value Won',
+        'tiles': ['new', 'replied', 'meeting', 'opportunity', 'won_value', 'win_rate'],
+        'chart': ['new', 'replied', 'opportunity'],
+    },
+    'default': {
+        'new_label': 'New Prospects', 'value_label': 'Opportunity Value',
+        'tiles': ['new', 'contacted', 'replied', 'meeting', 'opportunity', 'reply_rate', 'meeting_booking_rate'],
+        'chart': ['new', 'contacted', 'replied'],
+    },
+}
+# Categorical series colors, fixed order; validated for CVD separation on the #0F172A surface.
+TREND_COLORS = ['#3987e5', '#d95926', '#199e70']
+PERIOD_DAYS = 30
+
+
+def trend_view(config):
+    return TREND_VIEWS.get(config.pipeline_type, TREND_VIEWS['default'])
+
+
+def trend_labels(config):
+    view = trend_view(config)
+    custom = config.labels.metric_labels or {}
+    labels = {'new': view['new_label'], 'won_value': view['value_label'], **milestone_labels(config)}
+    for key in ('reply_rate', 'meeting_booking_rate', 'reply_to_meeting_rate', 'win_rate'):
+        labels[key] = custom.get(key, METRIC_REGISTRY[key][0])
+    return labels
+
+
+def format_trend_value(key, value):
+    if value is None:
+        return '—'
+    if key == 'won_value':
+        return format_metric_currency(value)
+    if key.endswith('_rate'):
+        return f'{value:.1f}%'
+    return f'{value:,}'
+
+
+def delta_html(key, current, prior, show_prior=True):
+    """Change vs the prior period: percent for counts, points for rates."""
+    if current is None or prior is None:
+        return "<span class='mo-delta mo-delta-flat'>—</span>"
+    if key.endswith('_rate'):
+        diff = current - prior
+        text = f'{abs(diff):.1f} pts'
+    elif prior == 0:
+        diff = current
+        text = 'new' if current else 'no change'
+    elif prior < 5 and key != 'won_value':
+        # Percentages on tiny bases read as noise ("+500%"); show the absolute change.
+        diff = current - prior
+        text = f'{abs(diff):,}'
+    else:
+        diff = current - prior
+        text = f'{abs(diff) / prior * 100:.0f}%'
+    if abs(diff) < 0.05:
+        cls, arrow, text = 'flat', '→', 'no change'
+    else:
+        cls, arrow = ('up', '▲') if diff > 0 else ('down', '▼')
+    prior_html = (f"<div class='mo-delta mo-delta-prior'>prior 30d: {format_trend_value(key, prior)}</div>"
+                  if show_prior else '')
+    return f"<span class='mo-delta mo-delta-{cls}'>{arrow} {text}</span>{prior_html}"
+
+
+def trend_tiles_html(config, periods):
+    current, prior = periods[0], periods[1]
+    labels = trend_labels(config)
+    tiles = []
+    for key in trend_view(config)['tiles']:
+        tiles.append(
+            "<div class='mo-tile'>"
+            f"<div class='mo-tile-label'>{html.escape(labels[key])}</div>"
+            f"<div class='mo-tile-value'>{format_trend_value(key, current[key])}</div>"
+            f"{delta_html(key, current[key], prior[key])}"
+            "</div>"
+        )
+    return "<div class='mo-tiles'>" + "".join(tiles) + "</div>"
+
+
+def period_label(period):
+    start, end = period['start'], period['end']
+    return f"{start.strftime('%b')} {start.day} – {end.strftime('%b')} {end.day}"
+
+
+def period_table_html(config, periods):
+    """Trailing 30-day periods, newest first, each compared with the one before it."""
+    labels = trend_labels(config)
+    keys = trend_view(config)['tiles']
+    head = "<tr><th>Period</th>" + "".join(f"<th>{html.escape(labels[k])}</th>" for k in keys) + "</tr>"
+    rows = []
+    for i, period in enumerate(periods):
+        older = periods[i + 1] if i + 1 < len(periods) else None
+        name = 'Last 30 days' if i == 0 else f'{i * PERIOD_DAYS + 1}–{(i + 1) * PERIOD_DAYS} days ago'
+        cells = [f"<td><b>{name}</b><span class='mo-delta mo-delta-prior' style='display:block;'>"
+                 f"{period_label(period)}</span></td>"]
+        for k in keys:
+            delta = delta_html(k, period[k], older[k], show_prior=False) if older else ''
+            cells.append(f"<td>{format_trend_value(k, period[k])}{delta}</td>")
+        rows.append("<tr>" + "".join(cells) + "</tr>")
+    return ("<div class='mo-panel' style='margin-bottom:14px;'>"
+            "<div class='mo-label'>Month over Month · Trailing 30-Day Periods</div>"
+            f"<div class='mo-table-wrap'><table class='mo-table'>{head}{''.join(rows)}</table></div></div>")
+
+
+ROLLING_WEEKS = 4
+
+
+def weekly_trend_chart(config, weeks):
+    """Rolling four-week totals: weekly counts for one person are too small to read raw."""
+    import altair as alt
+    labels = trend_labels(config)
+    keys = trend_view(config)['chart']
+    names = [labels[k] for k in keys]
+    data = []
+    for i in range(ROLLING_WEEKS - 1, len(weeks)):
+        window = weeks[i - ROLLING_WEEKS + 1:i + 1]
+        for k in keys:
+            data.append({'Week': weeks[i]['end'].isoformat(), 'Series': labels[k],
+                         'Count': sum(w[k] for w in window)})
+    axis = dict(labelColor='#94A3B8', labelFontSize=11, domainColor='#334155', tickColor='#334155')
+    chart = (
+        alt.Chart(alt.Data(values=data))
+        .mark_line(strokeWidth=2, point=alt.OverlayMarkDef(size=64, filled=True))
+        .encode(
+            x=alt.X('Week:T', title=None, axis=alt.Axis(format='%b %d', grid=False, tickCount=7, **axis)),
+            y=alt.Y('Count:Q', title=None, axis=alt.Axis(gridColor='#1E293B', tickMinStep=1, **axis)),
+            color=alt.Color('Series:N', sort=names, scale=alt.Scale(domain=names, range=TREND_COLORS[:len(keys)]),
+                            legend=alt.Legend(orient='top', title=None, labelColor='#CBD5E1', labelFontSize=12,
+                                              symbolType='circle')),
+            tooltip=[alt.Tooltip('Week:T', title='4 weeks ending', format='%b %d'),
+                     alt.Tooltip('Series:N', title='Metric'), alt.Tooltip('Count:Q', title='Total')],
+        )
+        .properties(height=240)
+        .configure_view(strokeWidth=0)
+        .configure(background='transparent')
+    )
+    st.markdown("<div class='mo-label' style='margin-top:4px;'>Trend · Rolling 4-Week Totals, Updated Weekly</div>",
+                unsafe_allow_html=True)
+    st.altair_chart(chart, width='stretch', theme=None)
+
+
+def render_trends(config, records, reference=None):
+    today = reference.date if reference else datetime.date.today()
+    tz_ref = reference or session_reference()
+
+    def to_date(value):
+        return local_date(value, tz_ref)
+
+    periods = trailing_periods(records, config, today, to_date, days=PERIOD_DAYS, count=3)
+    st.subheader('Last 30 Days')
+    st.caption('Compared with the prior 30 days. Each count is the first time a record reached that milestone.')
+    st.markdown(trend_tiles_html(config, periods), unsafe_allow_html=True)
+    weekly_trend_chart(config, weekly_series(records, config, today, to_date, weeks=13))
+    st.markdown(period_table_html(config, periods), unsafe_allow_html=True)
+
+
+def analytics(config, storage, heading, reference=None):
+    st.subheader(heading)
+    records = storage.list_records()
+    if 'metrics' in config.dashboard_modules:
+        metric_cards(config, records)
+    render_trends(config, records, reference=reference)
+    st.subheader('Current Pipeline')
+    # One grid so both panels always render at the same height.
+    st.markdown(
+        "<div class='mo-grid-2'>"
+        + stage_breakdown_html(config, stage_breakdown(records, config))
+        + top_open_html(config, records, reference=reference)
+        + "</div>",
+        unsafe_allow_html=True
+    )
+    if 'funnel' in config.dashboard_modules:
+        st.subheader('Historical Conversion Funnel')
+        funnel_rows = conversion_funnel(records, config)
+        render_visual_conversion_funnel(funnel_rows)
+        with st.expander('Conversion Funnel Data Table', expanded=False):
+            st.dataframe(funnel_rows, hide_index=True, width="stretch")
+        st.caption('Each step counts unique records that achieved every preceding milestone. Later stage moves retain '
+                   'earlier achievements, and closed records keep their history. A zero denominator displays —.')
+    if 'table' in config.dashboard_modules:
+        with st.expander(f'All {config.labels.record_plural}', expanded=False):
             record_table(config, records)
-        st.caption('Booking counts any recorded booking, including a later cancellation. Closed and disqualified prospects retain their history. Missing evidence is not inferred; a zero denominator displays —.')

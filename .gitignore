@@ -54,7 +54,8 @@ REMEDIATION_PROGRESS.md
 code_fix_instructions.md
 
 # Internal documents
-docs/
+docs/*
+!docs/demo-deployment.md
 instructions.md
 .Agents/
 scratch/

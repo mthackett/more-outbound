@@ -6,9 +6,9 @@
     "storage": "memory",
     "pipeline_type": "sales_rep_outbound",
     "display_name": "More Outbound",
-    "page_title": "More Outbound \u2014 Sales Prospecting & Pipeline Intelligence",
+    "page_title": "More Outbound — Sales Prospecting & Pipeline Intelligence",
     "page_subtitle": "Know who to contact, why they're worth contacting, what to say, and what to do next.",
-    "page_icon": "\ud83c\udfaf",
+    "page_icon": "🎯",
     "stale_threshold_days": 7,
     "stages": [
       {
@@ -408,7 +408,6 @@
       "edit_records": true,
       "activities": true,
       "intelligence": true,
-      "reset_demo_data": true,
       "resume_matching": false,
       "screening_qa": false,
       "role_intelligence_docx": false
@@ -426,7 +425,6 @@
       "create": "Add Prospect",
       "save": "Save Changes",
       "add_note": "Log Activity",
-      "reset": "Reset Demo Data",
       "intelligence": "Sales Playbooks",
       "metric_labels": {
         "meeting_booking_rate": "Booking Rate",
@@ -450,6 +448,15 @@
       "funnel",
       "table"
     ],
-    "seed": "b2b_prospects"
+    "seed": "b2b_prospects",
+    "sidebar_widgets": [
+      "call_queue",
+      "activity_goals"
+    ],
+    "activity_targets": {
+      "calls": 40,
+      "emails": 50,
+      "meetings": 3
+    }
   }
 }

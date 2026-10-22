@@ -1665,7 +1665,7 @@ class PipelineKPIService:
         val = str(raw).strip()
         # Remove file extensions
         val = re.sub(r'(?i)\.(docx?|pdf|txt|gdoc)$', '', val).strip()
-        # Remove candidate prefixes (e.g. 'Candidate ', 'First Last - ')
+        # Remove candidate prefixes (e.g. 'Candidate ', 'Jordan Avery - ')
         val = re.sub(r'(?i)^(candidate\s+|(?:[a-z]+\s+){1,3}-\s*)', '', val).strip()
         # Remove trailing 'Resume' or 'CV'
         val = re.sub(r'(?i)\s+(resume|cv)$', '', val).strip()

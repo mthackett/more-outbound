@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import ValidationError
 from pipeline.domain.models import PipelineInstanceConfig
 
-DEFAULT_DEMO_CONFIG = Path(__file__).resolve().parents[2] / 'config' / 'demo.json'
+DEFAULT_DEMO_CONFIG = Path(__file__).resolve().parents[2] / 'config' / 'demo_sales_rep.json'
 
 
 class InstanceConfigError(ValueError):

@@ -55,6 +55,36 @@ class PipelineRecord(BaseModel):
         return self.actions[-1] if self.actions else None
 
 
+def open_next_action(record):
+    """The record's open next action as ``(description, due_date)``, or ``(None, None)``.
+
+    Prefers the structured action list and falls back to the legacy
+    ``next_action`` / ``next_action_date`` fields for records without one.
+    """
+    action = record.current_action
+    if action:
+        return action.description, action.due_date or record.fields.get('next_action_date')
+    description, due = record.fields.get('next_action'), record.fields.get('next_action_date')
+    return (description, due) if (description or due) else (None, None)
+
+
+def due_state(due, today):
+    """Classify a due date against ``today``: ``(state, days_from_today)``.
+
+    ``state`` is 'overdue', 'today', 'tomorrow' or 'upcoming'; ``(None, None)``
+    when there is no parseable due date.
+    """
+    if not due:
+        return None, None
+    try:
+        days = (date.fromisoformat(str(due)[:10]) - today).days
+    except ValueError:
+        return None, None
+    if days < 0:
+        return 'overdue', days
+    return {0: 'today', 1: 'tomorrow'}.get(days, 'upcoming'), days
+
+
 def validate_fields(config, values):
     specs = {f.key: f for f in config.fields}
     if set(values) - specs.keys():
@@ -65,8 +95,8 @@ def validate_fields(config, values):
         if value is None or value == '':
             if spec.required:
                 raise ValueError(f'{spec.label} is required')
-            clean[key] = None if spec.type in ('currency', 'date') else ''
-        elif spec.type == 'currency':
+            clean[key] = None if spec.type in ('currency', 'date', 'number') else ''
+        elif spec.type in ('currency', 'number'):
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
                 raise ValueError(f'{spec.label} must be a nonnegative finite number')
             clean[key] = float(value)
@@ -89,6 +119,8 @@ def format_field(spec, value):
         return '—'
     if spec.format == 'currency':
         return f'${value:,.0f}'
+    if spec.format == 'number':
+        return f'{value:,.0f}'
     return str(value)
 
 

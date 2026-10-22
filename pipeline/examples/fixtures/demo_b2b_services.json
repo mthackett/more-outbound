@@ -1,1204 +1,2889 @@
 [
- {
-  "id": "b2b-001",
-  "stage_id": "inquiry",
-  "created_at": "today-34T10:00",
-  "fields": {
-   "company": "Acme Global Consulting",
-   "contact": "Jonathan Vance",
-   "title": "Managing Director",
-   "email": "jonathan.vance@acmeglobalconsulting.example.com",
-   "industry": "Management Consulting",
-   "acv": 120000,
-   "opportunity_brief": "Enterprise digital transformation roadmap and change enablement.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Client Referral",
-   "priority": "High",
-   "next_action": "Review project deliverables with Jonathan Vance",
-   "next_action_date": "today+0",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-34T10:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-001-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Jonathan Vance. Engagement thesis: Enterprise digital transformation roadmap and change enablement.",
-    "occurred_at": "today-34T11:30"
-   }
-  ]
- },
- {
-  "id": "b2b-002",
-  "stage_id": "inquiry",
-  "created_at": "today-33T10:00",
-  "fields": {
-   "company": "Stratum Advisory Partners",
-   "contact": "Beatrice Sterling",
-   "title": "Senior Partner",
-   "email": "beatrice.sterling@stratumadvisorypartners.example.com",
-   "industry": "Financial Advisory",
-   "acv": 95000,
-   "opportunity_brief": "M&A post-merger integration framework for regional healthcare network.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Executive Inbound",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Beatrice Sterling",
-   "next_action_date": "today-2",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-33T10:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-002-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Beatrice Sterling. Engagement thesis: M&A post-merger integration framework for regional healthcare network.",
-    "occurred_at": "today-33T11:30"
-   }
-  ]
- },
- {
-  "id": "b2b-003",
-  "stage_id": "inquiry",
-  "created_at": "today-32T10:00",
-  "fields": {
-   "company": "Nexus Supply Chain Advisors",
-   "contact": "Carlos Mendez",
-   "title": "VP of Client Services",
-   "email": "carlos.mendez@nexussupplychainadvisors.example.com",
-   "industry": "Logistics Consulting",
-   "acv": 85000,
-   "opportunity_brief": "Warehouse automation feasibility and RFP vendor evaluation.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Executive Inbound",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Carlos Mendez",
-   "next_action_date": "today+0",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-32T10:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-003-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Carlos Mendez. Engagement thesis: Warehouse automation feasibility and RFP vendor evaluation.",
-    "occurred_at": "today-32T11:30"
-   }
-  ]
- },
- {
-  "id": "b2b-004",
-  "stage_id": "scoping",
-  "created_at": "today-31T10:00",
-  "fields": {
-   "company": "Veritas Regulatory Solutions",
-   "contact": "Dr. Rachel Green",
-   "title": "Head of Compliance Advisory",
-   "email": "dr..rachel.green@veritasregulatorysolutions.example.com",
-   "industry": "Healthcare & Pharma",
-   "acv": 140000,
-   "opportunity_brief": "FDA regulatory submission readiness audit for commercial biotech client.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Client Referral",
-   "priority": "High",
-   "next_action": "Review project deliverables with Dr. Rachel Green",
-   "next_action_date": "today+0",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-31T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-27T11:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-004-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Dr. Rachel Green for Veritas Regulatory Solutions.",
-    "occurred_at": "today-31T11:30"
-   },
-   {
-    "id": "act-b2b-004-02",
-    "kind": "note",
-    "text": "Initial requirements scoping interview conducted with Dr. Rachel Green. Scope aligned with advisory capabilities.",
-    "occurred_at": "today-27T11:00"
-   }
-  ]
- },
- {
-  "id": "b2b-005",
-  "stage_id": "scoping",
-  "created_at": "today-30T10:00",
-  "fields": {
-   "company": "Helios Clean Energy Advisory",
-   "contact": "Torsten Lind",
-   "title": "Director of Sustainable Infrastructure",
-   "email": "torsten.lind@helioscleanenergyadvisory.example.com",
-   "industry": "Clean Energy",
-   "acv": 110000,
-   "opportunity_brief": "Commercial solar microgrid feasibility and ESG reporting program.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Executive Inbound",
-   "priority": "High",
-   "next_action": "Review project deliverables with Torsten Lind",
-   "next_action_date": "today+1",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-30T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-26T11:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-005-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Torsten Lind for Helios Clean Energy Advisory.",
-    "occurred_at": "today-30T11:30"
-   },
-   {
-    "id": "act-b2b-005-02",
-    "kind": "note",
-    "text": "Initial requirements scoping interview conducted with Torsten Lind. Scope aligned with advisory capabilities.",
-    "occurred_at": "today-26T11:00"
-   }
-  ]
- },
- {
-  "id": "b2b-006",
-  "stage_id": "scoping",
-  "created_at": "today-29T10:00",
-  "fields": {
-   "company": "Pinnacle Cloud Architects",
-   "contact": "Deepak Sharma",
-   "title": "Chief Architect",
-   "email": "deepak.sharma@pinnaclecloudarchitects.example.com",
-   "industry": "IT Services",
-   "acv": 130000,
-   "opportunity_brief": "Multi-cloud migration architecture and zero-trust security audit.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Executive Inbound",
-   "priority": "High",
-   "next_action": "Review project deliverables with Deepak Sharma",
-   "next_action_date": "today+1",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-29T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-25T11:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-006-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Deepak Sharma for Pinnacle Cloud Architects.",
-    "occurred_at": "today-29T11:30"
-   },
-   {
-    "id": "act-b2b-006-02",
-    "kind": "note",
-    "text": "Initial requirements scoping interview conducted with Deepak Sharma. Scope aligned with advisory capabilities.",
-    "occurred_at": "today-25T11:00"
-   }
-  ]
- },
- {
-  "id": "b2b-007",
-  "stage_id": "proposal_dev",
-  "created_at": "today-28T10:00",
-  "fields": {
-   "company": "Vanguard Strategic Talent",
-   "contact": "Claire Dupont",
-   "title": "Executive Search Partner",
-   "email": "claire.dupont@vanguardstrategictalent.example.com",
-   "industry": "Human Capital",
-   "acv": 65000,
-   "opportunity_brief": "C-suite executive succession planning and leadership assessment.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Client Referral",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Claire Dupont",
-   "next_action_date": "today+2",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-28T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-24T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-18T14:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-007-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Claire Dupont.",
-    "occurred_at": "today-28T11:30"
-   },
-   {
-    "id": "act-b2b-007-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Claire Dupont.",
-    "occurred_at": "today-24T11:00"
-   },
-   {
-    "id": "act-b2b-007-03",
-    "kind": "note",
-    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
-    "occurred_at": "today-18T14:00"
-   }
-  ]
- },
- {
-  "id": "b2b-008",
-  "stage_id": "proposal_dev",
-  "created_at": "today-27T10:00",
-  "fields": {
-   "company": "Apex Forensic Accounting",
-   "contact": "Franklin Pierce",
-   "title": "Lead Partner",
-   "email": "franklin.pierce@apexforensicaccounting.example.com",
-   "industry": "Accounting & Audit",
-   "acv": 75000,
-   "opportunity_brief": "Internal controls review and compliance audit for Tier 1 defense subcontractor.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Executive Inbound",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Franklin Pierce",
-   "next_action_date": "today+2",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-27T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-23T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-17T14:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-008-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Franklin Pierce.",
-    "occurred_at": "today-27T11:30"
-   },
-   {
-    "id": "act-b2b-008-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Franklin Pierce.",
-    "occurred_at": "today-23T11:00"
-   },
-   {
-    "id": "act-b2b-008-03",
-    "kind": "note",
-    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
-    "occurred_at": "today-17T14:00"
-   }
-  ]
- },
- {
-  "id": "b2b-009",
-  "stage_id": "proposal_dev",
-  "created_at": "today-26T10:00",
-  "fields": {
-   "company": "BlueShift Brand Strategy",
-   "contact": "Simone Moreau",
-   "title": "Creative Director",
-   "email": "simone.moreau@blueshiftbrandstrategy.example.com",
-   "industry": "Marketing & Branding",
-   "acv": 55000,
-   "opportunity_brief": "Corporate rebrand and market positioning for Series B fintech platform.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Executive Inbound",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Simone Moreau",
-   "next_action_date": "today+2",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-26T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-22T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-16T14:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-009-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Simone Moreau.",
-    "occurred_at": "today-26T11:30"
-   },
-   {
-    "id": "act-b2b-009-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Simone Moreau.",
-    "occurred_at": "today-22T11:00"
-   },
-   {
-    "id": "act-b2b-009-03",
-    "kind": "note",
-    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
-    "occurred_at": "today-16T14:00"
-   }
-  ]
- },
- {
-  "id": "b2b-010",
-  "stage_id": "proposal_dev",
-  "created_at": "today-25T10:00",
-  "fields": {
-   "company": "Crestline Industrial Engineering",
-   "contact": "Harold Chen",
-   "title": "VP of Engineering Practice",
-   "email": "harold.chen@crestlineindustrialengineering.example.com",
-   "industry": "Industrial Automation",
-   "acv": 160000,
-   "opportunity_brief": "Reshoring manufacturing plant layout and robotic automation design.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Client Referral",
-   "priority": "High",
-   "next_action": "Review project deliverables with Harold Chen",
-   "next_action_date": "today+3",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-25T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-21T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-15T14:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-010-01",
-    "kind": "note",
-    "text": "Commercial inquiry received from Harold Chen.",
-    "occurred_at": "today-25T11:30"
-   },
-   {
-    "id": "act-b2b-010-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Harold Chen.",
-    "occurred_at": "today-21T11:00"
-   },
-   {
-    "id": "act-b2b-010-03",
-    "kind": "note",
-    "text": "Scope approved for proposal development. Lead partner preparing engagement deliverables.",
-    "occurred_at": "today-15T14:00"
-   }
-  ]
- },
- {
-  "id": "b2b-011",
-  "stage_id": "proposal_sent",
-  "created_at": "today-24T10:00",
-  "fields": {
-   "company": "Sentry Cyber Defense Advisory",
-   "contact": "Elena Rostova",
-   "title": "Principal Security Consultant",
-   "email": "elena.rostova@sentrycyberdefenseadvisory.example.com",
-   "industry": "Cybersecurity",
-   "acv": 105000,
-   "opportunity_brief": "SOC2 Type II audit readiness and incident response tabletop exercise.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Executive Inbound",
-   "priority": "High",
-   "next_action": "Review project deliverables with Elena Rostova",
-   "next_action_date": "today+3",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-24T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-20T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-14T14:00"
-   },
-   {
+  {
+    "id": "b2b-025",
     "stage_id": "proposal_sent",
-    "entered_at": "today-9T15:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-011-01",
-    "kind": "note",
-    "text": "Requirements scoping completed with Elena Rostova.",
-    "occurred_at": "today-20T11:00"
-   },
-   {
-    "id": "act-b2b-011-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Elena Rostova.",
-    "occurred_at": "today-20T11:30"
-   },
-   {
-    "id": "act-b2b-011-03",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($105,000).",
-    "occurred_at": "today-9T15:00"
-   },
-   {
-    "id": "act-b2b-011-04",
-    "kind": "note",
-    "text": "Committee review underway. Executive summary delivered to stakeholders.",
-    "occurred_at": "today-8T10:00"
-   }
-  ]
- },
- {
-  "id": "b2b-012",
-  "stage_id": "proposal_sent",
-  "created_at": "today-23T10:00",
-  "fields": {
-   "company": "Meridian Operations Group",
-   "contact": "Marcus Vance",
-   "title": "Managing Director",
-   "email": "marcus.vance@meridianoperationsgroup.example.com",
-   "industry": "Operations Consulting",
-   "acv": 88000,
-   "opportunity_brief": "Lean Six Sigma supply chain waste reduction for medical device manufacturer.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Executive Inbound",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Marcus Vance",
-   "next_action_date": "today+3",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-19T14:30",
+    "fields": {
+      "company": "Keel & Compass Travel",
+      "contact": "Marcus Oyelaran",
+      "title": "Founder & CEO",
+      "email": "marcus.oyelaran@keelcompass.example.com",
+      "phone": "(615) 555-0115",
+      "industry": "Travel",
+      "acv": 16000,
+      "opportunity_brief": "RevOps audit & roadmap. Leadership wants an outside assessment of the revenue process before hiring a RevOps lead.",
+      "pain_points": "No one owns the funnel end to end; marketing and sales blame each other.",
+      "desired_outcome": "A prioritized 90-day roadmap with owners and quick wins.",
+      "tech_stack": "HubSpot · Gong · Notion",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "60 employees. Came in via client referral.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Follow up on proposal with Marcus",
+      "next_action_date": "today-1"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-19T14:30"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-15T14:15"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-9T12:15"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-6T11:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-025-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — RevOps audit & roadmap. Leadership wants an outside assessment of the revenue process before hiring a RevOps lead.",
+        "occurred_at": "today-19T16:45"
+      },
+      {
+        "id": "act-b2b-025-02",
+        "kind": "call",
+        "text": "Intro call with Marcus: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-16T12:15"
+      },
+      {
+        "id": "act-b2b-025-03",
+        "kind": "email",
+        "text": "Sent Marcus a scoping questionnaire and two session times.",
+        "occurred_at": "today-15T16:00"
+      },
+      {
+        "id": "act-b2b-025-04",
+        "kind": "call",
+        "text": "Requirements session with Marcus and 4 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-11T15:30"
+      },
+      {
+        "id": "act-b2b-025-05",
+        "kind": "note",
+        "text": "Drafting proposal: RevOps audit & roadmap, 2-month timeline.",
+        "occurred_at": "today-9T13:45"
+      },
+      {
+        "id": "act-b2b-025-06",
+        "kind": "email",
+        "text": "Proposal sent to Marcus: RevOps audit & roadmap, $16,000 fixed fee over 2 months.",
+        "occurred_at": "today-6T16:30"
+      },
+      {
+        "id": "act-b2b-025-07",
+        "kind": "call",
+        "text": "Call with Marcus: answered questions on timeline and deliverables.",
+        "occurred_at": "today-1T17:00"
+      }
+    ]
   },
-  "stage_history": [
-   {
+  {
+    "id": "b2b-033",
     "stage_id": "inquiry",
-    "entered_at": "today-23T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-19T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-13T14:00"
-   },
-   {
-    "stage_id": "proposal_sent",
-    "entered_at": "today-8T15:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-012-01",
-    "kind": "note",
-    "text": "Requirements scoping completed with Marcus Vance.",
-    "occurred_at": "today-19T11:00"
-   },
-   {
-    "id": "act-b2b-012-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Marcus Vance.",
-    "occurred_at": "today-19T11:30"
-   },
-   {
-    "id": "act-b2b-012-03",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($88,000).",
-    "occurred_at": "today-8T15:00"
-   },
-   {
-    "id": "act-b2b-012-04",
-    "kind": "note",
-    "text": "Committee review underway. Executive summary delivered to stakeholders.",
-    "occurred_at": "today-7T10:00"
-   }
-  ]
- },
- {
-  "id": "b2b-013",
-  "stage_id": "proposal_sent",
-  "created_at": "today-22T10:00",
-  "fields": {
-   "company": "Solas Environmental Planning",
-   "contact": "Priya Patel",
-   "title": "Head of Environmental Practice",
-   "email": "priya.patel@solasenvironmentalplanning.example.com",
-   "industry": "Environmental Engineering",
-   "acv": 72000,
-   "opportunity_brief": "Phase I environmental site assessment and municipal zoning approval.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Client Referral",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Priya Patel",
-   "next_action_date": "today+3",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-1T08:45",
+    "fields": {
+      "company": "Marlowe Biotech Supply",
+      "contact": "Jonah Ivanova",
+      "title": "Head of Revenue Operations",
+      "email": "jonah.ivanova@marlowebiotech.example.com",
+      "phone": "(503) 555-0141",
+      "industry": "Life Sciences",
+      "acv": 46000,
+      "opportunity_brief": "Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+      "pain_points": "Ops requests pile up with no owner; reps build their own workarounds.",
+      "desired_outcome": "A part-time RevOps owner for six months, plus a hiring plan for the full-time role.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "120 employees. Came in via client referral.",
+      "priority": "High",
+      "qualification_notes": "Qualification in progress.",
+      "next_action": "Intro call with Jonah",
+      "next_action_date": "today+0"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-1T08:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-033-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+        "occurred_at": "today-1T11:45"
+      }
+    ]
   },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-22T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-18T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-12T14:00"
-   },
-   {
+  {
+    "id": "b2b-026",
     "stage_id": "proposal_sent",
-    "entered_at": "today-7T15:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-013-01",
-    "kind": "note",
-    "text": "Requirements scoping completed with Priya Patel.",
-    "occurred_at": "today-18T11:00"
-   },
-   {
-    "id": "act-b2b-013-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Priya Patel.",
-    "occurred_at": "today-18T11:30"
-   },
-   {
-    "id": "act-b2b-013-03",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($72,000).",
-    "occurred_at": "today-7T15:00"
-   },
-   {
-    "id": "act-b2b-013-04",
-    "kind": "note",
-    "text": "Committee review underway. Executive summary delivered to stakeholders.",
-    "occurred_at": "today-6T10:00"
-   }
-  ]
- },
- {
-  "id": "b2b-014",
-  "stage_id": "proposal_sent",
-  "created_at": "today-21T10:00",
-  "fields": {
-   "company": "Zephyr BioConsulting",
-   "contact": "Dr. David Sterling",
-   "title": "Director of Regulatory Strategy",
-   "email": "dr..david.sterling@zephyrbioconsulting.example.com",
-   "industry": "Life Sciences",
-   "acv": 125000,
-   "opportunity_brief": "Clinical trial protocol design and biostatistical analysis review.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Executive Inbound",
-   "priority": "High",
-   "next_action": "Review project deliverables with Dr. David Sterling",
-   "next_action_date": "today+5",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-19T16:00",
+    "fields": {
+      "company": "Fairway Equipment Rentals",
+      "contact": "Wesley Everly",
+      "title": "CEO",
+      "email": "wesley.everly@fairwayequipment.example.com",
+      "phone": "(212) 555-0104",
+      "industry": "Equipment Rental",
+      "acv": 24500,
+      "opportunity_brief": "Salesforce cleanup & data migration. Merging two Salesforce orgs after an acquisition.",
+      "pain_points": "Duplicate accounts and abandoned fields make every report suspect.",
+      "desired_outcome": "A clean, deduplicated org with a documented data model.",
+      "tech_stack": "Salesforce · Outreach · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Website Inquiry",
+      "notes": "160 employees. Came in via website inquiry.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Follow up on proposal with Wesley",
+      "next_action_date": "today+0"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-19T16:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-14T12:15"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-10T14:00"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-6T11:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-026-01",
+        "kind": "note",
+        "text": "New inquiry via website inquiry — Salesforce cleanup & data migration. Merging two Salesforce orgs after an acquisition.",
+        "occurred_at": "today-19T17:00"
+      },
+      {
+        "id": "act-b2b-026-02",
+        "kind": "call",
+        "text": "Intro call with Wesley: needs results before their next board meeting.",
+        "occurred_at": "today-16T14:45"
+      },
+      {
+        "id": "act-b2b-026-03",
+        "kind": "email",
+        "text": "Sent Wesley a scoping questionnaire and two session times.",
+        "occurred_at": "today-14T15:00"
+      },
+      {
+        "id": "act-b2b-026-04",
+        "kind": "call",
+        "text": "Requirements session with Wesley and 2 stakeholders; documented 8 must-haves.",
+        "occurred_at": "today-12T11:45"
+      },
+      {
+        "id": "act-b2b-026-05",
+        "kind": "note",
+        "text": "Drafting proposal: Salesforce cleanup & data migration, 4-month timeline.",
+        "occurred_at": "today-10T16:00"
+      },
+      {
+        "id": "act-b2b-026-06",
+        "kind": "email",
+        "text": "Proposal sent to Wesley: Salesforce cleanup & data migration, $24,500 fixed fee over 4 months.",
+        "occurred_at": "today-6T16:15"
+      }
+    ]
   },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-21T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-17T11:00"
-   },
-   {
+  {
+    "id": "b2b-029",
     "stage_id": "proposal_dev",
-    "entered_at": "today-11T14:00"
-   },
-   {
-    "stage_id": "proposal_sent",
-    "entered_at": "today-6T15:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-014-01",
-    "kind": "note",
-    "text": "Requirements scoping completed with Dr. David Sterling.",
-    "occurred_at": "today-17T11:00"
-   },
-   {
-    "id": "act-b2b-014-02",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Dr. David Sterling.",
-    "occurred_at": "today-17T11:30"
-   },
-   {
-    "id": "act-b2b-014-03",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($125,000).",
-    "occurred_at": "today-6T15:00"
-   },
-   {
-    "id": "act-b2b-014-04",
-    "kind": "note",
-    "text": "Committee review underway. Executive summary delivered to stakeholders.",
-    "occurred_at": "today-5T10:00"
-   }
-  ]
- },
- {
-  "id": "b2b-015",
-  "stage_id": "negotiation",
-  "created_at": "today-20T10:00",
-  "fields": {
-   "company": "Cobalt Tech Integration",
-   "contact": "Amara Okafor",
-   "title": "VP of Enterprise Solutions",
-   "email": "amara.okafor@cobalttechintegration.example.com",
-   "industry": "Software Integration",
-   "acv": 115000,
-   "opportunity_brief": "Salesforce CRM to SAP S/4HANA enterprise integration and master data sync.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Executive Inbound",
-   "priority": "High",
-   "next_action": "Review project deliverables with Amara Okafor",
-   "next_action_date": "today+5",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-12T08:15",
+    "fields": {
+      "company": "Ostrander Legal Group",
+      "contact": "Lena Whitcombe",
+      "title": "VP of Growth",
+      "email": "lena.whitcombe@ostranderlegal.example.com",
+      "phone": "(512) 555-0137",
+      "industry": "Professional Services",
+      "acv": 15000,
+      "opportunity_brief": "RevOps audit & roadmap. Growth stalled for two quarters; the CEO wants a prioritized fix list.",
+      "pain_points": "No one owns the funnel end to end; marketing and sales blame each other.",
+      "desired_outcome": "A prioritized 90-day roadmap with owners and quick wins.",
+      "tech_stack": "HubSpot · Gong · Notion",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Website Inquiry",
+      "notes": "75 employees. Came in via website inquiry.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Send proposal to Lena",
+      "next_action_date": "today+0"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-12T08:15"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-8T11:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-3T13:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-029-01",
+        "kind": "note",
+        "text": "New inquiry via website inquiry — RevOps audit & roadmap. Growth stalled for two quarters; the CEO wants a prioritized fix list.",
+        "occurred_at": "today-12T16:45"
+      },
+      {
+        "id": "act-b2b-029-02",
+        "kind": "call",
+        "text": "Intro call with Lena: needs results before their next board meeting.",
+        "occurred_at": "today-10T16:15"
+      },
+      {
+        "id": "act-b2b-029-03",
+        "kind": "email",
+        "text": "Sent Lena a scoping questionnaire and two session times.",
+        "occurred_at": "today-8T15:30"
+      },
+      {
+        "id": "act-b2b-029-04",
+        "kind": "call",
+        "text": "Requirements session with Lena and 3 stakeholders; documented 8 must-haves.",
+        "occurred_at": "today-4T12:30"
+      },
+      {
+        "id": "act-b2b-029-05",
+        "kind": "note",
+        "text": "Drafting proposal: RevOps audit & roadmap, 2-month timeline.",
+        "occurred_at": "today-3T15:15"
+      }
+    ]
   },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-20T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-16T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-10T14:00"
-   },
-   {
+  {
+    "id": "b2b-027",
     "stage_id": "proposal_sent",
-    "entered_at": "today-5T15:00"
-   },
-   {
+    "created_at": "today-18T15:00",
+    "fields": {
+      "company": "Polaris Payroll Services",
+      "contact": "Rosa Jaramillo",
+      "title": "Founder & CEO",
+      "email": "rosa.jaramillo@polarispayroll.example.com",
+      "phone": "(614) 555-0175",
+      "industry": "Financial Services",
+      "acv": 40500,
+      "opportunity_brief": "Fractional RevOps retainer. Previous RevOps manager left; systems are drifting without an owner.",
+      "pain_points": "Every tool change breaks something nobody notices for weeks.",
+      "desired_outcome": "Stable systems, a request queue and monthly reporting.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Podcast Guest Appearance",
+      "notes": "70 employees. Came in via podcast guest appearance.",
+      "priority": "High",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Follow up on proposal with Rosa",
+      "next_action_date": "today+2"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-18T15:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-15T09:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-8T12:45"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-4T10:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-027-01",
+        "kind": "note",
+        "text": "New inquiry via podcast guest appearance — Fractional RevOps retainer. Previous RevOps manager left; systems are drifting without an owner.",
+        "occurred_at": "today-18T16:15"
+      },
+      {
+        "id": "act-b2b-027-02",
+        "kind": "call",
+        "text": "Intro call with Rosa: needs results before their next board meeting.",
+        "occurred_at": "today-16T11:45"
+      },
+      {
+        "id": "act-b2b-027-03",
+        "kind": "email",
+        "text": "Sent Rosa a scoping questionnaire and two session times.",
+        "occurred_at": "today-15T11:15"
+      },
+      {
+        "id": "act-b2b-027-04",
+        "kind": "call",
+        "text": "Requirements session with Rosa and 3 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-10T09:30"
+      },
+      {
+        "id": "act-b2b-027-05",
+        "kind": "note",
+        "text": "Drafting proposal: Fractional RevOps retainer, 6-month timeline.",
+        "occurred_at": "today-8T15:45"
+      },
+      {
+        "id": "act-b2b-027-06",
+        "kind": "email",
+        "text": "Proposal sent to Rosa: Fractional RevOps retainer, $6,750/month for 6 months.",
+        "occurred_at": "today-4T14:45"
+      }
+    ]
+  },
+  {
+    "id": "b2b-024",
+    "stage_id": "proposal_sent",
+    "created_at": "today-22T14:45",
+    "fields": {
+      "company": "Summit Ridge Solar",
+      "contact": "Jonah Grummond",
+      "title": "Head of Revenue Operations",
+      "email": "jonah.grummond@summitridge.example.com",
+      "phone": "(619) 555-0113",
+      "industry": "Energy",
+      "acv": 17500,
+      "opportunity_brief": "Sales process & stage design. Each rep runs deals differently; the forecast is a gut call.",
+      "pain_points": "No exit criteria, so deals sit in \"proposal\" for months.",
+      "desired_outcome": "Documented stages, exit criteria and a rep playbook.",
+      "tech_stack": "Pipedrive · Google Workspace · Calendly",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Podcast Guest Appearance",
+      "notes": "140 employees. Came in via podcast guest appearance.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Follow up on proposal with Jonah",
+      "next_action_date": "today+2"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-22T14:45"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-20T08:45"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-15T13:15"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-11T09:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-024-01",
+        "kind": "note",
+        "text": "New inquiry via podcast guest appearance — Sales process & stage design. Each rep runs deals differently; the forecast is a gut call.",
+        "occurred_at": "today-22T15:45"
+      },
+      {
+        "id": "act-b2b-024-02",
+        "kind": "call",
+        "text": "Intro call with Jonah: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-21T08:30"
+      },
+      {
+        "id": "act-b2b-024-03",
+        "kind": "email",
+        "text": "Sent Jonah a scoping questionnaire and two session times.",
+        "occurred_at": "today-20T11:00"
+      },
+      {
+        "id": "act-b2b-024-04",
+        "kind": "call",
+        "text": "Requirements session with Jonah and 3 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-17T09:15"
+      },
+      {
+        "id": "act-b2b-024-05",
+        "kind": "note",
+        "text": "Drafting proposal: Sales process & stage design, 2-month timeline.",
+        "occurred_at": "today-15T15:15"
+      },
+      {
+        "id": "act-b2b-024-06",
+        "kind": "email",
+        "text": "Proposal sent to Jonah: Sales process & stage design, $17,500 fixed fee over 2 months.",
+        "occurred_at": "today-11T16:30"
+      },
+      {
+        "id": "act-b2b-024-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Jonah is reviewing it with the leadership team.",
+        "occurred_at": "today-5T12:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-018",
     "stage_id": "negotiation",
-    "entered_at": "today+0T16:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-015-01",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Amara Okafor.",
-    "occurred_at": "today-16T11:00"
-   },
-   {
-    "id": "act-b2b-015-02",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($115,000).",
-    "occurred_at": "today-5T15:00"
-   },
-   {
-    "id": "act-b2b-015-03",
-    "kind": "meeting",
-    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-    "occurred_at": "today+0T16:00"
-   },
-   {
-    "id": "act-b2b-015-04",
-    "kind": "note",
-    "text": "SOW redlines exchanged. Agreement reached on payment milestones.",
-    "occurred_at": "today+1T11:00"
-   }
-  ]
- },
- {
-  "id": "b2b-016",
-  "stage_id": "negotiation",
-  "created_at": "today-19T10:00",
-  "fields": {
-   "company": "Ironclad Risk Partners",
-   "contact": "Julian Weber",
-   "title": "Managing Director",
-   "email": "julian.weber@ironcladriskpartners.example.com",
-   "industry": "Risk Management",
-   "acv": 90000,
-   "opportunity_brief": "Enterprise risk management framework and supply chain continuity insurance.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Client Referral",
-   "priority": "Medium",
-   "next_action": "Review project deliverables with Julian Weber",
-   "next_action_date": "today+5",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-38T15:00",
+    "fields": {
+      "company": "Cascade Craft Beverages",
+      "contact": "Kira Zaragoza",
+      "title": "VP of Sales",
+      "email": "kira.zaragoza@cascadecraft.example.com",
+      "phone": "(212) 555-0142",
+      "industry": "Consumer Goods",
+      "acv": 15000,
+      "opportunity_brief": "Commission plan & territory design. Sales team doubled this year; territories and comp plans no longer make sense.",
+      "pain_points": "Territories are uneven, so top reps are capped and others starve.",
+      "desired_outcome": "Fewer disputes and a plan modeled against next year's targets.",
+      "tech_stack": "Salesforce · Excel · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "130 employees. Came in via client referral.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Send revised SOW to Kira",
+      "next_action_date": "today+2",
+      "engagement_start": "today+20",
+      "engagement_end": "today+79",
+      "monthly_hours": 20
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-38T15:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-33T10:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-29T16:30"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-24T11:30"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-9T16:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-018-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Commission plan & territory design. Sales team doubled this year; territories and comp plans no longer make sense.",
+        "occurred_at": "today-38T15:15"
+      },
+      {
+        "id": "act-b2b-018-02",
+        "kind": "call",
+        "text": "Intro call with Kira: budget earmarked for this quarter; decision by Kira with CEO sign-off.",
+        "occurred_at": "today-35T10:15"
+      },
+      {
+        "id": "act-b2b-018-03",
+        "kind": "email",
+        "text": "Sent Kira a scoping questionnaire and two session times.",
+        "occurred_at": "today-33T15:00"
+      },
+      {
+        "id": "act-b2b-018-04",
+        "kind": "call",
+        "text": "Requirements session with Kira and 2 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-31T14:45"
+      },
+      {
+        "id": "act-b2b-018-05",
+        "kind": "note",
+        "text": "Drafting proposal: Commission plan & territory design, 2-month timeline.",
+        "occurred_at": "today-29T16:45"
+      },
+      {
+        "id": "act-b2b-018-06",
+        "kind": "email",
+        "text": "Proposal sent to Kira: Commission plan & territory design, $15,000 fixed fee over 2 months.",
+        "occurred_at": "today-24T16:00"
+      },
+      {
+        "id": "act-b2b-018-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Kira is reviewing it with the leadership team.",
+        "occurred_at": "today-19T15:00"
+      },
+      {
+        "id": "act-b2b-018-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Kira is reviewing it with the leadership team.",
+        "occurred_at": "today-14T10:45"
+      },
+      {
+        "id": "act-b2b-018-09",
+        "kind": "call",
+        "text": "Negotiation call: Kira requested net-45 payment terms.",
+        "occurred_at": "today-9T16:45"
+      }
+    ]
   },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-19T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-15T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-9T14:00"
-   },
-   {
+  {
+    "id": "b2b-028",
     "stage_id": "proposal_sent",
-    "entered_at": "today-4T15:00"
-   },
-   {
-    "stage_id": "negotiation",
-    "entered_at": "today+1T16:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-016-01",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Julian Weber.",
-    "occurred_at": "today-15T11:00"
-   },
-   {
-    "id": "act-b2b-016-02",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($90,000).",
-    "occurred_at": "today-4T15:00"
-   },
-   {
-    "id": "act-b2b-016-03",
-    "kind": "meeting",
-    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-    "occurred_at": "today+1T16:00"
-   },
-   {
-    "id": "act-b2b-016-04",
-    "kind": "note",
-    "text": "SOW redlines exchanged. Agreement reached on payment milestones.",
-    "occurred_at": "today+2T11:00"
-   }
-  ]
- },
- {
-  "id": "b2b-017",
-  "stage_id": "negotiation",
-  "created_at": "today-18T10:00",
-  "fields": {
-   "company": "Horizon Defense Consulting",
-   "contact": "Frank Baxter",
-   "title": "Director of Federal Capture",
-   "email": "frank.baxter@horizondefenseconsulting.example.com",
-   "industry": "Government Contracting",
-   "acv": 150000,
-   "opportunity_brief": "Federal capture strategy and SBIR Phase III transition compliance.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Executive Inbound",
-   "priority": "High",
-   "next_action": "Review project deliverables with Frank Baxter",
-   "next_action_date": "today+5",
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-13T11:15",
+    "fields": {
+      "company": "Vantage Point Engineering",
+      "contact": "Yusuf Achterberg",
+      "title": "Marketing Director",
+      "email": "yusuf.achterberg@vantagepoint.example.com",
+      "phone": "(612) 555-0145",
+      "industry": "Professional Services",
+      "acv": 15000,
+      "opportunity_brief": "Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+      "pain_points": "Territories are uneven, so top reps are capped and others starve.",
+      "desired_outcome": "Balanced territories and a comp plan reps understand on one page.",
+      "tech_stack": "Salesforce · Excel · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "HubSpot Partner Directory",
+      "notes": "95 employees. Came in via hubspot partner directory.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Follow up on proposal with Yusuf",
+      "next_action_date": "today+2"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-13T11:15"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-10T12:30"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-7T10:30"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-4T15:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-028-01",
+        "kind": "note",
+        "text": "New inquiry via hubspot partner directory — Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+        "occurred_at": "today-13T15:45"
+      },
+      {
+        "id": "act-b2b-028-02",
+        "kind": "call",
+        "text": "Intro call with Yusuf: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-11T12:30"
+      },
+      {
+        "id": "act-b2b-028-03",
+        "kind": "email",
+        "text": "Sent Yusuf a scoping questionnaire and two session times.",
+        "occurred_at": "today-10T14:45"
+      },
+      {
+        "id": "act-b2b-028-04",
+        "kind": "call",
+        "text": "Requirements session with Yusuf and 2 stakeholders; documented 8 must-haves.",
+        "occurred_at": "today-8T11:15"
+      },
+      {
+        "id": "act-b2b-028-05",
+        "kind": "note",
+        "text": "Drafting proposal: Commission plan & territory design, 1-month timeline.",
+        "occurred_at": "today-7T14:30"
+      },
+      {
+        "id": "act-b2b-028-06",
+        "kind": "email",
+        "text": "Proposal sent to Yusuf: Commission plan & territory design, $15,000 fixed fee over 1 month.",
+        "occurred_at": "today-4T16:00"
+      }
+    ]
   },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-18T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-14T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-8T14:00"
-   },
-   {
-    "stage_id": "proposal_sent",
-    "entered_at": "today-3T15:00"
-   },
-   {
-    "stage_id": "negotiation",
-    "entered_at": "today+2T16:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-017-01",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Frank Baxter.",
-    "occurred_at": "today-14T11:00"
-   },
-   {
-    "id": "act-b2b-017-02",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($150,000).",
-    "occurred_at": "today-3T15:00"
-   },
-   {
-    "id": "act-b2b-017-03",
-    "kind": "meeting",
-    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-    "occurred_at": "today+2T16:00"
-   },
-   {
-    "id": "act-b2b-017-04",
-    "kind": "note",
-    "text": "SOW redlines exchanged. Agreement reached on payment milestones.",
-    "occurred_at": "today+3T11:00"
-   }
-  ]
- },
- {
-  "id": "b2b-018",
-  "stage_id": "contract_awarded",
-  "created_at": "today-17T10:00",
-  "fields": {
-   "company": "Veloce Fleet Advisory",
-   "contact": "Chloe Zhao",
-   "title": "Head of Commercial Fleet Strategy",
-   "email": "chloe.zhao@velocefleetadvisory.example.com",
-   "industry": "Transportation",
-   "acv": 68000,
-   "opportunity_brief": "Commercial fleet electrification feasibility and charging infrastructure.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Executive Inbound",
-   "priority": "Medium",
-   "next_action": "",
-   "next_action_date": null,
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
-  },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-17T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-13T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-7T14:00"
-   },
-   {
-    "stage_id": "proposal_sent",
-    "entered_at": "today-2T15:00"
-   },
-   {
-    "stage_id": "negotiation",
-    "entered_at": "today+3T16:00"
-   },
-   {
+  {
+    "id": "b2b-020",
     "stage_id": "contract_awarded",
-    "entered_at": "today+7T17:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-018-01",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Chloe Zhao.",
-    "occurred_at": "today-13T11:00"
-   },
-   {
-    "id": "act-b2b-018-02",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($68,000).",
-    "occurred_at": "today-2T15:00"
-   },
-   {
-    "id": "act-b2b-018-03",
-    "kind": "meeting",
-    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-    "occurred_at": "today+3T16:00"
-   },
-   {
-    "id": "act-b2b-018-04",
-    "kind": "opportunity",
-    "text": "Master Services Agreement executed and engagement staffing confirmed.",
-    "occurred_at": "today+7T17:00"
-   },
-   {
-    "id": "act-b2b-018-05",
-    "kind": "note",
-    "text": "Kickoff meeting scheduled with client executive sponsor and consulting team.",
-    "occurred_at": "today+8T09:00"
-   }
-  ]
- },
- {
-  "id": "b2b-019",
-  "stage_id": "contract_awarded",
-  "created_at": "today-16T10:00",
-  "fields": {
-   "company": "Highline Retail Solutions",
-   "contact": "Lucas Moreau",
-   "title": "Director of Omnichannel Practice",
-   "email": "lucas.moreau@highlineretailsolutions.example.com",
-   "industry": "Retail Strategy",
-   "acv": 82000,
-   "opportunity_brief": "B2B wholesale portal scoping and headless e-commerce architecture.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Sarah Jenkins",
-   "source": "Client Referral",
-   "priority": "Medium",
-   "next_action": "",
-   "next_action_date": null,
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-32T15:45",
+    "fields": {
+      "company": "Copperfield Security",
+      "contact": "Oscar Takeda",
+      "title": "VP of Growth",
+      "email": "oscar.takeda@copperfieldsecurity.example.com",
+      "phone": "(303) 555-0151",
+      "industry": "Security Services",
+      "acv": 30500,
+      "opportunity_brief": "HubSpot CRM implementation. Rolling out HubSpot to a 210-person team with marketing and sales on one system.",
+      "pain_points": "Marketing leads disappear between form fill and first sales call.",
+      "desired_outcome": "A configured HubSpot portal with pipelines, automation and reporting the team actually uses.",
+      "tech_stack": "HubSpot · Google Workspace · Zoom",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Past Client",
+      "notes": "210 employees. Came in via past client.",
+      "priority": "High",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Project kickoff with Oscar",
+      "next_action_date": "today+3",
+      "engagement_start": "today+3",
+      "engagement_end": "today+92",
+      "monthly_hours": 20
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-32T15:45"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-30T14:15"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-25T16:30"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-23T12:00"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-14T12:30"
+      },
+      {
+        "stage_id": "contract_awarded",
+        "entered_at": "today-6T12:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-020-01",
+        "kind": "note",
+        "text": "New inquiry via past client — HubSpot CRM implementation. Rolling out HubSpot to a 210-person team with marketing and sales on one system.",
+        "occurred_at": "today-32T16:30"
+      },
+      {
+        "id": "act-b2b-020-02",
+        "kind": "call",
+        "text": "Intro call with Oscar: pain is real but timeline is loose; Oscar wants a rough scope first.",
+        "occurred_at": "today-31T11:30"
+      },
+      {
+        "id": "act-b2b-020-03",
+        "kind": "email",
+        "text": "Sent Oscar a scoping questionnaire and two session times.",
+        "occurred_at": "today-30T16:00"
+      },
+      {
+        "id": "act-b2b-020-04",
+        "kind": "call",
+        "text": "Requirements session with Oscar and 2 stakeholders; documented 5 must-haves.",
+        "occurred_at": "today-26T12:15"
+      },
+      {
+        "id": "act-b2b-020-05",
+        "kind": "note",
+        "text": "Drafting proposal: HubSpot CRM implementation, 3-month timeline.",
+        "occurred_at": "today-25T16:45"
+      },
+      {
+        "id": "act-b2b-020-06",
+        "kind": "email",
+        "text": "Proposal sent to Oscar: HubSpot CRM implementation, $30,500 fixed fee over 3 months.",
+        "occurred_at": "today-23T12:45"
+      },
+      {
+        "id": "act-b2b-020-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Oscar is reviewing it with the leadership team.",
+        "occurred_at": "today-18T14:45"
+      },
+      {
+        "id": "act-b2b-020-08",
+        "kind": "call",
+        "text": "Negotiation call: Oscar asked for a smaller first phase to prove value.",
+        "occurred_at": "today-14T15:15"
+      },
+      {
+        "id": "act-b2b-020-09",
+        "kind": "note",
+        "text": "Signed SOW received: $30,500. Kickoff scheduled.",
+        "occurred_at": "today-6T16:00"
+      }
+    ]
   },
-  "stage_history": [
-   {
+  {
+    "id": "b2b-031",
     "stage_id": "inquiry",
-    "entered_at": "today-16T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-12T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-6T14:00"
-   },
-   {
+    "created_at": "today-6T13:15",
+    "fields": {
+      "company": "Tandem Marketing Co",
+      "contact": "Kira Novak",
+      "title": "Sales Operations Manager",
+      "email": "kira.novak@tandemmarketing.example.com",
+      "phone": "(206) 555-0183",
+      "industry": "Marketing Agency",
+      "acv": 22000,
+      "opportunity_brief": "Marketing automation setup. Building nurture programs and lead scoring from scratch.",
+      "pain_points": "Marketing cannot show which campaigns produce pipeline.",
+      "desired_outcome": "Nurture sequences, lead scoring and campaign attribution in place.",
+      "tech_stack": "HubSpot Marketing Hub · WordPress · Canva",
+      "opportunity_owner": "Alex Rivera",
+      "source": "LinkedIn Post",
+      "notes": "40 employees. Came in via linkedin post.",
+      "priority": "Medium",
+      "qualification_notes": "Qualification in progress.",
+      "next_action": "Book requirements session with Kira",
+      "next_action_date": "today+3"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-6T13:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-031-01",
+        "kind": "note",
+        "text": "New inquiry via linkedin post — Marketing automation setup. Building nurture programs and lead scoring from scratch.",
+        "occurred_at": "today-6T16:00"
+      },
+      {
+        "id": "act-b2b-031-02",
+        "kind": "call",
+        "text": "Intro call with Kira: needs results before their next board meeting.",
+        "occurred_at": "today-3T09:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-023",
     "stage_id": "proposal_sent",
-    "entered_at": "today-1T15:00"
-   },
-   {
+    "created_at": "today-26T11:30",
+    "fields": {
+      "company": "Quarry Lane Builders",
+      "contact": "Reid Novak",
+      "title": "CEO",
+      "email": "reid.novak@quarrylane.example.com",
+      "phone": "(503) 555-0100",
+      "industry": "Construction",
+      "acv": 13000,
+      "opportunity_brief": "Commission plan & territory design. Sales team doubled this year; territories and comp plans no longer make sense.",
+      "pain_points": "Territories are uneven, so top reps are capped and others starve.",
+      "desired_outcome": "Fewer disputes and a plan modeled against next year's targets.",
+      "tech_stack": "Salesforce · Excel · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Newsletter",
+      "notes": "180 employees. Came in via newsletter.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Follow up on proposal with Reid",
+      "next_action_date": "today+3"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-26T11:30"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-23T08:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-17T10:15"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-14T15:00"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-023-01",
+        "kind": "note",
+        "text": "New inquiry via newsletter — Commission plan & territory design. Sales team doubled this year; territories and comp plans no longer make sense.",
+        "occurred_at": "today-26T17:00"
+      },
+      {
+        "id": "act-b2b-023-02",
+        "kind": "call",
+        "text": "Intro call with Reid: needs results before their next board meeting.",
+        "occurred_at": "today-24T09:00"
+      },
+      {
+        "id": "act-b2b-023-03",
+        "kind": "email",
+        "text": "Sent Reid a scoping questionnaire and two session times.",
+        "occurred_at": "today-23T16:30"
+      },
+      {
+        "id": "act-b2b-023-04",
+        "kind": "call",
+        "text": "Requirements session with Reid and 4 stakeholders; documented 8 must-haves.",
+        "occurred_at": "today-19T09:15"
+      },
+      {
+        "id": "act-b2b-023-05",
+        "kind": "note",
+        "text": "Drafting proposal: Commission plan & territory design, 1-month timeline.",
+        "occurred_at": "today-17T14:30"
+      },
+      {
+        "id": "act-b2b-023-06",
+        "kind": "email",
+        "text": "Proposal sent to Reid: Commission plan & territory design, $13,000 fixed fee over 1 month.",
+        "occurred_at": "today-14T16:00"
+      },
+      {
+        "id": "act-b2b-023-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Reid is reviewing it with the leadership team.",
+        "occurred_at": "today-9T12:00"
+      },
+      {
+        "id": "act-b2b-023-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Reid is reviewing it with the leadership team.",
+        "occurred_at": "today-5T13:15"
+      }
+    ]
+  },
+  {
+    "id": "b2b-032",
+    "stage_id": "scoping",
+    "created_at": "today-3T16:15",
+    "fields": {
+      "company": "Greenleaf Landscaping",
+      "contact": "Hannah Lindqvist",
+      "title": "VP of Sales",
+      "email": "hannah.lindqvist@greenleaflandscaping.example.com",
+      "phone": "(919) 555-0101",
+      "industry": "Home Services",
+      "acv": 18500,
+      "opportunity_brief": "Commission plan & territory design. Sales team doubled this year; territories and comp plans no longer make sense.",
+      "pain_points": "Territories are uneven, so top reps are capped and others starve.",
+      "desired_outcome": "Fewer disputes and a plan modeled against next year's targets.",
+      "tech_stack": "Salesforce · Excel · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "HubSpot Partner Directory",
+      "notes": "120 employees. Came in via hubspot partner directory.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Requirements session with Hannah's team",
+      "next_action_date": "today+4"
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-3T16:15"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-1T12:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-032-01",
+        "kind": "note",
+        "text": "New inquiry via hubspot partner directory — Commission plan & territory design. Sales team doubled this year; territories and comp plans no longer make sense.",
+        "occurred_at": "today-3T16:30"
+      },
+      {
+        "id": "act-b2b-032-02",
+        "kind": "call",
+        "text": "Intro call with Hannah: budget earmarked for this quarter; decision by Hannah with CEO sign-off.",
+        "occurred_at": "today-2T12:00"
+      },
+      {
+        "id": "act-b2b-032-03",
+        "kind": "email",
+        "text": "Sent Hannah a scoping questionnaire and two session times.",
+        "occurred_at": "today-1T14:30"
+      }
+    ]
+  },
+  {
+    "id": "b2b-019",
     "stage_id": "negotiation",
-    "entered_at": "today+4T16:00"
-   },
-   {
-    "stage_id": "contract_awarded",
-    "entered_at": "today+8T17:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-019-01",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Lucas Moreau.",
-    "occurred_at": "today-12T11:00"
-   },
-   {
-    "id": "act-b2b-019-02",
-    "kind": "replied",
-    "text": "Formal proposal deliverable submitted for committee evaluation ($82,000).",
-    "occurred_at": "today-1T15:00"
-   },
-   {
-    "id": "act-b2b-019-03",
-    "kind": "meeting",
-    "text": "Commercial terms and SOW negotiation session with legal & procurement.",
-    "occurred_at": "today+4T16:00"
-   },
-   {
-    "id": "act-b2b-019-04",
-    "kind": "opportunity",
-    "text": "Master Services Agreement executed and engagement staffing confirmed.",
-    "occurred_at": "today+8T17:00"
-   },
-   {
-    "id": "act-b2b-019-05",
-    "kind": "note",
-    "text": "Kickoff meeting scheduled with client executive sponsor and consulting team.",
-    "occurred_at": "today+9T09:00"
-   }
-  ]
- },
- {
-  "id": "b2b-020",
-  "stage_id": "lost",
-  "created_at": "today-15T10:00",
-  "fields": {
-   "company": "Polaris Change Management",
-   "contact": "Karin Lindholm",
-   "title": "Senior Change Consultant",
-   "email": "karin.lindholm@polarischangemanagement.example.com",
-   "industry": "Organizational Change",
-   "acv": 58000,
-   "opportunity_brief": "Enterprise ERP rollout change management and stakeholder communication.",
-   "pain_points": "Client needs specialized expertise to navigate complex requirements within strict deadlines.",
-   "desired_outcome": "Comprehensive advisory report, implementation roadmap, and operational sign-off.",
-   "tech_stack": "Microsoft 365 \u00b7 Slack \u00b7 Asana",
-   "qualification_notes": "Commercial budget confirmed; stakeholder sponsor actively engaged.",
-   "opportunity_owner": "Alex Rivera",
-   "source": "Executive Inbound",
-   "priority": "Medium",
-   "next_action": "",
-   "next_action_date": null,
-   "notes": "Initial scoping completed . Commercial engagement model agreed upon."
+    "created_at": "today-33T12:45",
+    "fields": {
+      "company": "Fieldstone Insurance",
+      "contact": "Nora Ivanova",
+      "title": "CEO",
+      "email": "nora.ivanova@fieldstoneinsurance.example.com",
+      "phone": "(612) 555-0129",
+      "industry": "Insurance",
+      "acv": 19000,
+      "opportunity_brief": "Sales process & stage design. Founder-led sales is becoming a team; stages and exit criteria need definition.",
+      "pain_points": "New reps have no playbook and ramp slowly.",
+      "desired_outcome": "A forecast based on stage evidence, not optimism.",
+      "tech_stack": "Pipedrive · Google Workspace · Calendly",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "160 employees. Came in via client referral.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Send revised SOW to Nora",
+      "next_action_date": "today+5",
+      "engagement_start": "today+22",
+      "engagement_end": "today+81",
+      "monthly_hours": 20
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-33T12:45"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-28T10:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-23T11:00"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-18T15:00"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-3T10:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-019-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Sales process & stage design. Founder-led sales is becoming a team; stages and exit criteria need definition.",
+        "occurred_at": "today-33T17:00"
+      },
+      {
+        "id": "act-b2b-019-02",
+        "kind": "call",
+        "text": "Intro call with Nora: budget earmarked for this quarter; decision by Nora with CEO sign-off.",
+        "occurred_at": "today-30T11:00"
+      },
+      {
+        "id": "act-b2b-019-03",
+        "kind": "email",
+        "text": "Sent Nora a scoping questionnaire and two session times.",
+        "occurred_at": "today-28T16:30"
+      },
+      {
+        "id": "act-b2b-019-04",
+        "kind": "call",
+        "text": "Requirements session with Nora and 3 stakeholders; documented 9 must-haves.",
+        "occurred_at": "today-25T14:15"
+      },
+      {
+        "id": "act-b2b-019-05",
+        "kind": "note",
+        "text": "Drafting proposal: Sales process & stage design, 2-month timeline.",
+        "occurred_at": "today-23T16:00"
+      },
+      {
+        "id": "act-b2b-019-06",
+        "kind": "email",
+        "text": "Proposal sent to Nora: Sales process & stage design, $19,000 fixed fee over 2 months.",
+        "occurred_at": "today-18T16:00"
+      },
+      {
+        "id": "act-b2b-019-07",
+        "kind": "call",
+        "text": "Call with Nora: answered questions on timeline and deliverables.",
+        "occurred_at": "today-14T15:30"
+      },
+      {
+        "id": "act-b2b-019-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Nora is reviewing it with the leadership team.",
+        "occurred_at": "today-9T10:45"
+      },
+      {
+        "id": "act-b2b-019-09",
+        "kind": "email",
+        "text": "Followed up on the proposal; Nora is reviewing it with the leadership team.",
+        "occurred_at": "today-5T17:00"
+      },
+      {
+        "id": "act-b2b-019-10",
+        "kind": "call",
+        "text": "Negotiation call: Nora wants to add a training session for the sales team.",
+        "occurred_at": "today-3T16:45"
+      }
+    ]
   },
-  "stage_history": [
-   {
-    "stage_id": "inquiry",
-    "entered_at": "today-15T10:00"
-   },
-   {
-    "stage_id": "scoping",
-    "entered_at": "today-11T11:00"
-   },
-   {
-    "stage_id": "proposal_dev",
-    "entered_at": "today-5T14:00"
-   },
-   {
-    "stage_id": "proposal_sent",
-    "entered_at": "today+0T15:00"
-   },
-   {
+  {
+    "id": "b2b-021",
+    "stage_id": "negotiation",
+    "created_at": "today-29T09:00",
+    "fields": {
+      "company": "Silverline HVAC",
+      "contact": "Yusuf Okafor",
+      "title": "Founder & CEO",
+      "email": "yusuf.okafor@silverlinehvac.example.com",
+      "phone": "(215) 555-0135",
+      "industry": "Home Services",
+      "acv": 17500,
+      "opportunity_brief": "Sales process & stage design. Each rep runs deals differently; the forecast is a gut call.",
+      "pain_points": "New reps have no playbook and ramp slowly.",
+      "desired_outcome": "A forecast based on stage evidence, not optimism.",
+      "tech_stack": "Pipedrive · Google Workspace · Calendly",
+      "opportunity_owner": "Alex Rivera",
+      "source": "LinkedIn Post",
+      "notes": "190 employees. Came in via linkedin post.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "Send revised SOW to Yusuf",
+      "next_action_date": "today+5",
+      "engagement_start": "today+23",
+      "engagement_end": "today+82",
+      "monthly_hours": 25
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-29T09:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-27T13:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-22T10:45"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-17T10:00"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-9T17:00"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-021-01",
+        "kind": "note",
+        "text": "New inquiry via linkedin post — Sales process & stage design. Each rep runs deals differently; the forecast is a gut call.",
+        "occurred_at": "today-29T12:45"
+      },
+      {
+        "id": "act-b2b-021-02",
+        "kind": "call",
+        "text": "Intro call with Yusuf: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-28T16:45"
+      },
+      {
+        "id": "act-b2b-021-03",
+        "kind": "email",
+        "text": "Sent Yusuf a scoping questionnaire and two session times.",
+        "occurred_at": "today-27T14:45"
+      },
+      {
+        "id": "act-b2b-021-04",
+        "kind": "call",
+        "text": "Requirements session with Yusuf and 2 stakeholders; documented 5 must-haves.",
+        "occurred_at": "today-24T13:15"
+      },
+      {
+        "id": "act-b2b-021-05",
+        "kind": "note",
+        "text": "Drafting proposal: Sales process & stage design, 2-month timeline.",
+        "occurred_at": "today-22T14:30"
+      },
+      {
+        "id": "act-b2b-021-06",
+        "kind": "email",
+        "text": "Proposal sent to Yusuf: Sales process & stage design, $17,500 fixed fee over 2 months.",
+        "occurred_at": "today-17T16:00"
+      },
+      {
+        "id": "act-b2b-021-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Yusuf is reviewing it with the leadership team.",
+        "occurred_at": "today-13T16:15"
+      },
+      {
+        "id": "act-b2b-021-08",
+        "kind": "call",
+        "text": "Negotiation call: Yusuf asked to phase the work across two quarters.",
+        "occurred_at": "today-9T17:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-030",
     "stage_id": "lost",
-    "entered_at": "today+4T12:00"
-   }
-  ],
-  "activities": [
-   {
-    "id": "act-b2b-020-01",
-    "kind": "contacted",
-    "text": "Initial requirements scoping interview conducted with Karin Lindholm.",
-    "occurred_at": "today-11T11:00"
-   },
-   {
-    "id": "act-b2b-020-02",
-    "kind": "note",
-    "text": "Client decided to defer project to next fiscal year due to internal reorganization.",
-    "occurred_at": "today+4T12:00"
-   }
-  ]
- }
+    "created_at": "today-9T09:00",
+    "fields": {
+      "company": "Driftwood Hospitality Group",
+      "contact": "Wendy Petrakis",
+      "title": "VP of Growth",
+      "email": "wendy.petrakis@driftwoodhospitality.example.com",
+      "phone": "(602) 555-0169",
+      "industry": "Hospitality",
+      "acv": 37000,
+      "opportunity_brief": "Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+      "pain_points": "Every tool change breaks something nobody notices for weeks.",
+      "desired_outcome": "Stable systems, a request queue and monthly reporting.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "350 employees. Came in via client referral.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-9T09:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-7T10:45"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-1T13:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-030-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+        "occurred_at": "today-9T12:15"
+      },
+      {
+        "id": "act-b2b-030-02",
+        "kind": "call",
+        "text": "Intro call with Wendy: needs results before their next board meeting.",
+        "occurred_at": "today-8T16:30"
+      },
+      {
+        "id": "act-b2b-030-03",
+        "kind": "email",
+        "text": "Sent Wendy a scoping questionnaire and two session times.",
+        "occurred_at": "today-7T15:15"
+      },
+      {
+        "id": "act-b2b-030-04",
+        "kind": "call",
+        "text": "Requirements session with Wendy and 3 stakeholders; documented 7 must-haves.",
+        "occurred_at": "today-5T15:00"
+      },
+      {
+        "id": "act-b2b-030-05",
+        "kind": "note",
+        "text": "Closed lost: scope too small for an engagement; sent a free checklist instead.",
+        "occurred_at": "today-1T16:30"
+      }
+    ]
+  },
+  {
+    "id": "b2b-013",
+    "stage_id": "contract_awarded",
+    "created_at": "today-52T10:15",
+    "fields": {
+      "company": "Helm Street Software",
+      "contact": "Harper Blackwood",
+      "title": "COO",
+      "email": "harper.blackwood@helmstreet.example.com",
+      "phone": "(617) 555-0178",
+      "industry": "B2B Software",
+      "acv": 17000,
+      "opportunity_brief": "Sales process & stage design. Founder-led sales is becoming a team; stages and exit criteria need definition.",
+      "pain_points": "No exit criteria, so deals sit in \"proposal\" for months.",
+      "desired_outcome": "A forecast based on stage evidence, not optimism.",
+      "tech_stack": "Pipedrive · Google Workspace · Calendly",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "55 employees. Came in via client referral.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "",
+      "next_action_date": null,
+      "engagement_start": "today-6",
+      "engagement_end": "today+53",
+      "monthly_hours": 20
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-52T10:15"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-49T10:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-43T14:00"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-38T10:00"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-22T11:45"
+      },
+      {
+        "stage_id": "contract_awarded",
+        "entered_at": "today-15T12:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-013-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Sales process & stage design. Founder-led sales is becoming a team; stages and exit criteria need definition.",
+        "occurred_at": "today-52T15:30"
+      },
+      {
+        "id": "act-b2b-013-02",
+        "kind": "call",
+        "text": "Intro call with Harper: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-50T12:30"
+      },
+      {
+        "id": "act-b2b-013-03",
+        "kind": "email",
+        "text": "Sent Harper a scoping questionnaire and two session times.",
+        "occurred_at": "today-49T13:30"
+      },
+      {
+        "id": "act-b2b-013-04",
+        "kind": "call",
+        "text": "Requirements session with Harper and 2 stakeholders; documented 5 must-haves.",
+        "occurred_at": "today-44T12:00"
+      },
+      {
+        "id": "act-b2b-013-05",
+        "kind": "note",
+        "text": "Drafting proposal: Sales process & stage design, 2-month timeline.",
+        "occurred_at": "today-43T15:30"
+      },
+      {
+        "id": "act-b2b-013-06",
+        "kind": "email",
+        "text": "Proposal sent to Harper: Sales process & stage design, $17,000 fixed fee over 2 months.",
+        "occurred_at": "today-38T12:00"
+      },
+      {
+        "id": "act-b2b-013-07",
+        "kind": "call",
+        "text": "Call with Harper: answered questions on timeline and deliverables.",
+        "occurred_at": "today-34T08:15"
+      },
+      {
+        "id": "act-b2b-013-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Harper is reviewing it with the leadership team.",
+        "occurred_at": "today-30T09:00"
+      },
+      {
+        "id": "act-b2b-013-09",
+        "kind": "call",
+        "text": "Call with Harper: answered questions on timeline and deliverables.",
+        "occurred_at": "today-26T11:45"
+      },
+      {
+        "id": "act-b2b-013-10",
+        "kind": "call",
+        "text": "Negotiation call: Harper asked to phase the work across two quarters.",
+        "occurred_at": "today-22T14:45"
+      },
+      {
+        "id": "act-b2b-013-11",
+        "kind": "note",
+        "text": "Signed SOW received: $17,000. Kickoff scheduled.",
+        "occurred_at": "today-15T14:45"
+      }
+    ]
+  },
+  {
+    "id": "b2b-012",
+    "stage_id": "contract_awarded",
+    "created_at": "today-55T14:00",
+    "fields": {
+      "company": "Westbrook Logistics",
+      "contact": "Ines Strand",
+      "title": "COO",
+      "email": "ines.strand@westbrooklogistics.example.com",
+      "phone": "(617) 555-0146",
+      "industry": "Transportation",
+      "acv": 26500,
+      "opportunity_brief": "Marketing automation setup. Email marketing runs from a newsletter tool with no CRM connection.",
+      "pain_points": "Marketing cannot show which campaigns produce pipeline.",
+      "desired_outcome": "Nurture sequences, lead scoring and campaign attribution in place.",
+      "tech_stack": "HubSpot Marketing Hub · WordPress · Canva",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "280 employees. Came in via client referral.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "",
+      "next_action_date": null,
+      "engagement_start": "today-8",
+      "engagement_end": "today+81",
+      "monthly_hours": 25
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-55T14:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-49T12:15"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-44T13:45"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-41T14:15"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-25T09:15"
+      },
+      {
+        "stage_id": "contract_awarded",
+        "entered_at": "today-17T14:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-012-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Marketing automation setup. Email marketing runs from a newsletter tool with no CRM connection.",
+        "occurred_at": "today-55T15:30"
+      },
+      {
+        "id": "act-b2b-012-02",
+        "kind": "call",
+        "text": "Intro call with Ines: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-52T08:45"
+      },
+      {
+        "id": "act-b2b-012-03",
+        "kind": "email",
+        "text": "Sent Ines a scoping questionnaire and two session times.",
+        "occurred_at": "today-49T14:30"
+      },
+      {
+        "id": "act-b2b-012-04",
+        "kind": "call",
+        "text": "Requirements session with Ines and 2 stakeholders; documented 5 must-haves.",
+        "occurred_at": "today-46T11:30"
+      },
+      {
+        "id": "act-b2b-012-05",
+        "kind": "note",
+        "text": "Drafting proposal: Marketing automation setup, 3-month timeline.",
+        "occurred_at": "today-44T16:30"
+      },
+      {
+        "id": "act-b2b-012-06",
+        "kind": "email",
+        "text": "Proposal sent to Ines: Marketing automation setup, $26,500 fixed fee over 3 months.",
+        "occurred_at": "today-41T16:00"
+      },
+      {
+        "id": "act-b2b-012-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Ines is reviewing it with the leadership team.",
+        "occurred_at": "today-36T15:45"
+      },
+      {
+        "id": "act-b2b-012-08",
+        "kind": "call",
+        "text": "Call with Ines: answered questions on timeline and deliverables.",
+        "occurred_at": "today-32T14:45"
+      },
+      {
+        "id": "act-b2b-012-09",
+        "kind": "call",
+        "text": "Call with Ines: answered questions on timeline and deliverables.",
+        "occurred_at": "today-28T08:45"
+      },
+      {
+        "id": "act-b2b-012-10",
+        "kind": "call",
+        "text": "Negotiation call: Ines asked to phase the work across two quarters.",
+        "occurred_at": "today-25T12:00"
+      },
+      {
+        "id": "act-b2b-012-11",
+        "kind": "note",
+        "text": "Signed SOW received: $26,500. Kickoff scheduled.",
+        "occurred_at": "today-17T15:15"
+      }
+    ]
+  },
+  {
+    "id": "b2b-022",
+    "stage_id": "lost",
+    "created_at": "today-28T10:45",
+    "fields": {
+      "company": "Harbor & Pine Dental Group",
+      "contact": "Rafael Hollander",
+      "title": "VP of Growth",
+      "email": "rafael.hollander@harborpine.example.com",
+      "phone": "(206) 555-0161",
+      "industry": "Healthcare Services",
+      "acv": 34000,
+      "opportunity_brief": "HubSpot CRM implementation. Moving off spreadsheets and a legacy contact manager onto HubSpot Sales Hub.",
+      "pain_points": "Deals tracked in spreadsheets; no shared view of the pipeline or follow-ups.",
+      "desired_outcome": "A configured HubSpot portal with pipelines, automation and reporting the team actually uses.",
+      "tech_stack": "HubSpot · Google Workspace · Zoom",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Website Inquiry",
+      "notes": "140 employees. Came in via website inquiry.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-28T10:45"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-25T09:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-022-01",
+        "kind": "note",
+        "text": "New inquiry via website inquiry — HubSpot CRM implementation. Moving off spreadsheets and a legacy contact manager onto HubSpot Sales Hub.",
+        "occurred_at": "today-28T13:00"
+      },
+      {
+        "id": "act-b2b-022-02",
+        "kind": "call",
+        "text": "Intro call with Rafael: budget earmarked for this quarter; decision by Rafael with CEO sign-off.",
+        "occurred_at": "today-27T12:45"
+      },
+      {
+        "id": "act-b2b-022-03",
+        "kind": "note",
+        "text": "Closed lost: scope too small for an engagement; sent a free checklist instead.",
+        "occurred_at": "today-25T10:15"
+      }
+    ]
+  },
+  {
+    "id": "b2b-009",
+    "stage_id": "lost",
+    "created_at": "today-65T09:15",
+    "fields": {
+      "company": "Redwood Property Management",
+      "contact": "Quentin Lattimore",
+      "title": "VP of Growth",
+      "email": "quentin.lattimore@redwoodproperty.example.com",
+      "phone": "(919) 555-0195",
+      "industry": "Real Estate",
+      "acv": 26000,
+      "opportunity_brief": "HubSpot CRM implementation. Rolling out HubSpot to a 85-person team with marketing and sales on one system.",
+      "pain_points": "Marketing leads disappear between form fill and first sales call.",
+      "desired_outcome": "Lead routing and follow-up automation live within the quarter.",
+      "tech_stack": "HubSpot · Google Workspace · Zoom",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Past Client",
+      "notes": "85 employees. Came in via past client.",
+      "priority": "Medium",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-65T09:15"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-60T13:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-57T13:15"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-54T12:00"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-40T15:15"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-26T14:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-009-01",
+        "kind": "note",
+        "text": "New inquiry via past client — HubSpot CRM implementation. Rolling out HubSpot to a 85-person team with marketing and sales on one system.",
+        "occurred_at": "today-65T15:30"
+      },
+      {
+        "id": "act-b2b-009-02",
+        "kind": "call",
+        "text": "Intro call with Quentin: needs results before their next board meeting.",
+        "occurred_at": "today-62T11:45"
+      },
+      {
+        "id": "act-b2b-009-03",
+        "kind": "email",
+        "text": "Sent Quentin a scoping questionnaire and two session times.",
+        "occurred_at": "today-60T13:45"
+      },
+      {
+        "id": "act-b2b-009-04",
+        "kind": "call",
+        "text": "Requirements session with Quentin and 4 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-58T14:15"
+      },
+      {
+        "id": "act-b2b-009-05",
+        "kind": "note",
+        "text": "Drafting proposal: HubSpot CRM implementation, 3-month timeline.",
+        "occurred_at": "today-57T16:00"
+      },
+      {
+        "id": "act-b2b-009-06",
+        "kind": "email",
+        "text": "Proposal sent to Quentin: HubSpot CRM implementation, $26,000 fixed fee over 3 months.",
+        "occurred_at": "today-54T13:30"
+      },
+      {
+        "id": "act-b2b-009-07",
+        "kind": "call",
+        "text": "Call with Quentin: answered questions on timeline and deliverables.",
+        "occurred_at": "today-48T09:00"
+      },
+      {
+        "id": "act-b2b-009-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Quentin is reviewing it with the leadership team.",
+        "occurred_at": "today-42T14:30"
+      },
+      {
+        "id": "act-b2b-009-09",
+        "kind": "call",
+        "text": "Negotiation call: Quentin asked to phase the work across two quarters.",
+        "occurred_at": "today-40T15:45"
+      },
+      {
+        "id": "act-b2b-009-10",
+        "kind": "note",
+        "text": "Closed lost: project postponed after a leadership change.",
+        "occurred_at": "today-26T17:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-017",
+    "stage_id": "lost",
+    "created_at": "today-38T12:00",
+    "fields": {
+      "company": "Lakeside Veterinary Partners",
+      "contact": "Fiona Pellegrino",
+      "title": "Sales Operations Manager",
+      "email": "fiona.pellegrino@lakesideveterinary.example.com",
+      "phone": "(919) 555-0182",
+      "industry": "Healthcare Services",
+      "acv": 46000,
+      "opportunity_brief": "Fractional RevOps retainer. Previous RevOps manager left; systems are drifting without an owner.",
+      "pain_points": "Ops requests pile up with no owner; reps build their own workarounds.",
+      "desired_outcome": "A part-time RevOps owner for six months, plus a hiring plan for the full-time role.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "120 employees. Came in via client referral.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-38T12:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-33T11:45"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-27T11:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-017-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Fractional RevOps retainer. Previous RevOps manager left; systems are drifting without an owner.",
+        "occurred_at": "today-38T17:00"
+      },
+      {
+        "id": "act-b2b-017-02",
+        "kind": "call",
+        "text": "Intro call with Fiona: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-36T13:15"
+      },
+      {
+        "id": "act-b2b-017-03",
+        "kind": "email",
+        "text": "Sent Fiona a scoping questionnaire and two session times.",
+        "occurred_at": "today-33T14:30"
+      },
+      {
+        "id": "act-b2b-017-04",
+        "kind": "call",
+        "text": "Requirements session with Fiona and 2 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-30T09:30"
+      },
+      {
+        "id": "act-b2b-017-05",
+        "kind": "note",
+        "text": "Closed lost: no budget this year; will revisit.",
+        "occurred_at": "today-27T14:15"
+      }
+    ]
+  },
+  {
+    "id": "b2b-016",
+    "stage_id": "lost",
+    "created_at": "today-43T13:00",
+    "fields": {
+      "company": "Juniper Wellness Clinics",
+      "contact": "Rafael Achterberg",
+      "title": "Sales Operations Manager",
+      "email": "rafael.achterberg@juniperwellness.example.com",
+      "phone": "(404) 555-0105",
+      "industry": "Healthcare Services",
+      "acv": 15000,
+      "opportunity_brief": "Pipeline & forecast dashboard build. Board reporting takes days of spreadsheet work every month.",
+      "pain_points": "Forecast misses by 20% or more, quarter after quarter.",
+      "desired_outcome": "Automated pipeline and forecast dashboards refreshed daily.",
+      "tech_stack": "Salesforce · Looker Studio · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Website Inquiry",
+      "notes": "90 employees. Came in via website inquiry.",
+      "priority": "Medium",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-43T13:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-39T12:00"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-31T08:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-016-01",
+        "kind": "note",
+        "text": "New inquiry via website inquiry — Pipeline & forecast dashboard build. Board reporting takes days of spreadsheet work every month.",
+        "occurred_at": "today-43T13:15"
+      },
+      {
+        "id": "act-b2b-016-02",
+        "kind": "call",
+        "text": "Intro call with Rafael: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-41T10:15"
+      },
+      {
+        "id": "act-b2b-016-03",
+        "kind": "email",
+        "text": "Sent Rafael a scoping questionnaire and two session times.",
+        "occurred_at": "today-39T15:00"
+      },
+      {
+        "id": "act-b2b-016-04",
+        "kind": "call",
+        "text": "Requirements session with Rafael and 4 stakeholders; documented 8 must-haves.",
+        "occurred_at": "today-36T16:45"
+      },
+      {
+        "id": "act-b2b-016-05",
+        "kind": "note",
+        "text": "Closed lost: no budget this year; will revisit.",
+        "occurred_at": "today-31T12:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-011",
+    "stage_id": "lost",
+    "created_at": "today-61T13:30",
+    "fields": {
+      "company": "Orchard Valley Foods",
+      "contact": "Tessa Thakkar",
+      "title": "VP of Growth",
+      "email": "tessa.thakkar@orchardvalley.example.com",
+      "phone": "(206) 555-0101",
+      "industry": "Food Distribution",
+      "acv": 17000,
+      "opportunity_brief": "Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+      "pain_points": "Territories are uneven, so top reps are capped and others starve.",
+      "desired_outcome": "Balanced territories and a comp plan reps understand on one page.",
+      "tech_stack": "Salesforce · Excel · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "240 employees. Came in via client referral.",
+      "priority": "Medium",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-61T13:30"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-56T09:45"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-52T08:30"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-48T10:30"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-34T12:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-011-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+        "occurred_at": "today-61T15:00"
+      },
+      {
+        "id": "act-b2b-011-02",
+        "kind": "call",
+        "text": "Intro call with Tessa: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-59T16:15"
+      },
+      {
+        "id": "act-b2b-011-03",
+        "kind": "email",
+        "text": "Sent Tessa a scoping questionnaire and two session times.",
+        "occurred_at": "today-56T12:45"
+      },
+      {
+        "id": "act-b2b-011-04",
+        "kind": "call",
+        "text": "Requirements session with Tessa and 4 stakeholders; documented 5 must-haves.",
+        "occurred_at": "today-53T16:15"
+      },
+      {
+        "id": "act-b2b-011-05",
+        "kind": "note",
+        "text": "Drafting proposal: Commission plan & territory design, 2-month timeline.",
+        "occurred_at": "today-52T16:30"
+      },
+      {
+        "id": "act-b2b-011-06",
+        "kind": "email",
+        "text": "Proposal sent to Tessa: Commission plan & territory design, $17,000 fixed fee over 2 months.",
+        "occurred_at": "today-48T15:15"
+      },
+      {
+        "id": "act-b2b-011-07",
+        "kind": "call",
+        "text": "Call with Tessa: answered questions on timeline and deliverables.",
+        "occurred_at": "today-43T16:00"
+      },
+      {
+        "id": "act-b2b-011-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Tessa is reviewing it with the leadership team.",
+        "occurred_at": "today-38T08:00"
+      },
+      {
+        "id": "act-b2b-011-09",
+        "kind": "note",
+        "text": "Closed lost: chose a larger agency with a bundled offering.",
+        "occurred_at": "today-34T13:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-007",
+    "stage_id": "lost",
+    "created_at": "today-67T11:30",
+    "fields": {
+      "company": "Brightside Learning",
+      "contact": "Zoe Jaramillo",
+      "title": "VP of Growth",
+      "email": "zoe.jaramillo@brightsidelearning.example.com",
+      "phone": "(617) 555-0101",
+      "industry": "EdTech",
+      "acv": 48000,
+      "opportunity_brief": "Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+      "pain_points": "Ops requests pile up with no owner; reps build their own workarounds.",
+      "desired_outcome": "Stable systems, a request queue and monthly reporting.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Past Client",
+      "notes": "110 employees. Came in via past client.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-67T11:30"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-63T16:30"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-56T14:30"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-54T12:00"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-35T14:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-007-01",
+        "kind": "note",
+        "text": "New inquiry via past client — Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+        "occurred_at": "today-67T13:30"
+      },
+      {
+        "id": "act-b2b-007-02",
+        "kind": "call",
+        "text": "Intro call with Zoe: pain is real but timeline is loose; Zoe wants a rough scope first.",
+        "occurred_at": "today-65T16:15"
+      },
+      {
+        "id": "act-b2b-007-03",
+        "kind": "email",
+        "text": "Sent Zoe a scoping questionnaire and two session times.",
+        "occurred_at": "today-63T16:45"
+      },
+      {
+        "id": "act-b2b-007-04",
+        "kind": "call",
+        "text": "Requirements session with Zoe and 4 stakeholders; documented 5 must-haves.",
+        "occurred_at": "today-58T10:30"
+      },
+      {
+        "id": "act-b2b-007-05",
+        "kind": "note",
+        "text": "Drafting proposal: Fractional RevOps retainer, 6-month timeline.",
+        "occurred_at": "today-56T17:00"
+      },
+      {
+        "id": "act-b2b-007-06",
+        "kind": "email",
+        "text": "Proposal sent to Zoe: Fractional RevOps retainer, $8,000/month for 6 months.",
+        "occurred_at": "today-54T15:15"
+      },
+      {
+        "id": "act-b2b-007-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Zoe is reviewing it with the leadership team.",
+        "occurred_at": "today-49T13:15"
+      },
+      {
+        "id": "act-b2b-007-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Zoe is reviewing it with the leadership team.",
+        "occurred_at": "today-44T11:45"
+      },
+      {
+        "id": "act-b2b-007-09",
+        "kind": "call",
+        "text": "Call with Zoe: answered questions on timeline and deliverables.",
+        "occurred_at": "today-38T08:30"
+      },
+      {
+        "id": "act-b2b-007-10",
+        "kind": "note",
+        "text": "Closed lost: chose a larger agency with a bundled offering.",
+        "occurred_at": "today-35T16:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-008",
+    "stage_id": "lost",
+    "created_at": "today-66T10:45",
+    "fields": {
+      "company": "Ridgeview Accounting",
+      "contact": "Mateo Abernathy",
+      "title": "VP of Sales",
+      "email": "mateo.abernathy@ridgeviewaccounting.example.com",
+      "phone": "(415) 555-0160",
+      "industry": "Professional Services",
+      "acv": 44500,
+      "opportunity_brief": "Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+      "pain_points": "Every tool change breaks something nobody notices for weeks.",
+      "desired_outcome": "A part-time RevOps owner for six months, plus a hiring plan for the full-time role.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "LinkedIn Post",
+      "notes": "50 employees. Came in via linkedin post.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-66T10:45"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-64T09:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-58T09:30"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-53T10:30"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-39T12:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-008-01",
+        "kind": "note",
+        "text": "New inquiry via linkedin post — Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+        "occurred_at": "today-66T11:30"
+      },
+      {
+        "id": "act-b2b-008-02",
+        "kind": "call",
+        "text": "Intro call with Mateo: budget earmarked for this quarter; decision by Mateo with CEO sign-off.",
+        "occurred_at": "today-65T14:00"
+      },
+      {
+        "id": "act-b2b-008-03",
+        "kind": "email",
+        "text": "Sent Mateo a scoping questionnaire and two session times.",
+        "occurred_at": "today-64T09:15"
+      },
+      {
+        "id": "act-b2b-008-04",
+        "kind": "call",
+        "text": "Requirements session with Mateo and 4 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-59T16:30"
+      },
+      {
+        "id": "act-b2b-008-05",
+        "kind": "note",
+        "text": "Drafting proposal: Fractional RevOps retainer, 6-month timeline.",
+        "occurred_at": "today-58T10:45"
+      },
+      {
+        "id": "act-b2b-008-06",
+        "kind": "email",
+        "text": "Proposal sent to Mateo: Fractional RevOps retainer, $7,417/month for 6 months.",
+        "occurred_at": "today-53T16:45"
+      },
+      {
+        "id": "act-b2b-008-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Mateo is reviewing it with the leadership team.",
+        "occurred_at": "today-49T13:00"
+      },
+      {
+        "id": "act-b2b-008-08",
+        "kind": "call",
+        "text": "Call with Mateo: answered questions on timeline and deliverables.",
+        "occurred_at": "today-43T09:45"
+      },
+      {
+        "id": "act-b2b-008-09",
+        "kind": "note",
+        "text": "Closed lost: budget reallocated to hiring.",
+        "occurred_at": "today-39T13:45"
+      }
+    ]
+  },
+  {
+    "id": "b2b-014",
+    "stage_id": "lost",
+    "created_at": "today-52T14:00",
+    "fields": {
+      "company": "Pinecrest Senior Living",
+      "contact": "Xavier Hakimi",
+      "title": "CEO",
+      "email": "xavier.hakimi@pinecrestsenior.example.com",
+      "phone": "(215) 555-0125",
+      "industry": "Healthcare Services",
+      "acv": 30500,
+      "opportunity_brief": "HubSpot CRM implementation. Rolling out HubSpot to a 400-person team with marketing and sales on one system.",
+      "pain_points": "Marketing leads disappear between form fill and first sales call.",
+      "desired_outcome": "Lead routing and follow-up automation live within the quarter.",
+      "tech_stack": "HubSpot · Google Workspace · Zoom",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Past Client",
+      "notes": "400 employees. Came in via past client.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-52T14:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-48T08:45"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-40T10:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-014-01",
+        "kind": "note",
+        "text": "New inquiry via past client — HubSpot CRM implementation. Rolling out HubSpot to a 400-person team with marketing and sales on one system.",
+        "occurred_at": "today-52T14:30"
+      },
+      {
+        "id": "act-b2b-014-02",
+        "kind": "call",
+        "text": "Intro call with Xavier: budget earmarked for this quarter; decision by Xavier with CEO sign-off.",
+        "occurred_at": "today-49T14:45"
+      },
+      {
+        "id": "act-b2b-014-03",
+        "kind": "email",
+        "text": "Sent Xavier a scoping questionnaire and two session times.",
+        "occurred_at": "today-48T12:45"
+      },
+      {
+        "id": "act-b2b-014-04",
+        "kind": "call",
+        "text": "Requirements session with Xavier and 3 stakeholders; documented 8 must-haves.",
+        "occurred_at": "today-43T16:00"
+      },
+      {
+        "id": "act-b2b-014-05",
+        "kind": "note",
+        "text": "Closed lost: scope too small for an engagement; sent a free checklist instead.",
+        "occurred_at": "today-40T12:15"
+      }
+    ]
+  },
+  {
+    "id": "b2b-015",
+    "stage_id": "lost",
+    "created_at": "today-43T16:15",
+    "fields": {
+      "company": "Atlas Fleet Maintenance",
+      "contact": "Dmitri Larkspur",
+      "title": "VP of Growth",
+      "email": "dmitri.larkspur@atlasfleet.example.com",
+      "phone": "(602) 555-0156",
+      "industry": "Transportation",
+      "acv": 54000,
+      "opportunity_brief": "Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+      "pain_points": "Ops requests pile up with no owner; reps build their own workarounds.",
+      "desired_outcome": "A part-time RevOps owner for six months, plus a hiring plan for the full-time role.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Past Client",
+      "notes": "150 employees. Came in via past client.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-43T16:15"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-40T15:15"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-015-01",
+        "kind": "note",
+        "text": "New inquiry via past client — Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+        "occurred_at": "today-43T16:30"
+      },
+      {
+        "id": "act-b2b-015-02",
+        "kind": "call",
+        "text": "Intro call with Dmitri: needs results before their next board meeting.",
+        "occurred_at": "today-41T14:00"
+      },
+      {
+        "id": "act-b2b-015-03",
+        "kind": "note",
+        "text": "Closed lost: decided to handle it in-house with a new hire.",
+        "occurred_at": "today-40T16:45"
+      }
+    ]
+  },
+  {
+    "id": "b2b-006",
+    "stage_id": "lost",
+    "created_at": "today-76T17:00",
+    "fields": {
+      "company": "Bluebird Home Health",
+      "contact": "Adele Delacroix",
+      "title": "COO",
+      "email": "adele.delacroix@bluebirdhome.example.com",
+      "phone": "(602) 555-0139",
+      "industry": "Healthcare Services",
+      "acv": 27000,
+      "opportunity_brief": "HubSpot CRM implementation. Rolling out HubSpot to a 310-person team with marketing and sales on one system.",
+      "pain_points": "Marketing leads disappear between form fill and first sales call.",
+      "desired_outcome": "A configured HubSpot portal with pipelines, automation and reporting the team actually uses.",
+      "tech_stack": "HubSpot · Google Workspace · Zoom",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Local Business Meetup",
+      "notes": "310 employees. Came in via local business meetup.",
+      "priority": "Medium",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-76T17:00"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-72T14:15"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-66T14:00"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-63T08:15"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-45T09:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-006-01",
+        "kind": "note",
+        "text": "New inquiry via local business meetup — HubSpot CRM implementation. Rolling out HubSpot to a 310-person team with marketing and sales on one system.",
+        "occurred_at": "today-76T17:00"
+      },
+      {
+        "id": "act-b2b-006-02",
+        "kind": "call",
+        "text": "Intro call with Adele: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-73T17:00"
+      },
+      {
+        "id": "act-b2b-006-03",
+        "kind": "email",
+        "text": "Sent Adele a scoping questionnaire and two session times.",
+        "occurred_at": "today-72T16:45"
+      },
+      {
+        "id": "act-b2b-006-04",
+        "kind": "call",
+        "text": "Requirements session with Adele and 3 stakeholders; documented 9 must-haves.",
+        "occurred_at": "today-68T14:45"
+      },
+      {
+        "id": "act-b2b-006-05",
+        "kind": "note",
+        "text": "Drafting proposal: HubSpot CRM implementation, 3-month timeline.",
+        "occurred_at": "today-66T15:30"
+      },
+      {
+        "id": "act-b2b-006-06",
+        "kind": "email",
+        "text": "Proposal sent to Adele: HubSpot CRM implementation, $27,000 fixed fee over 3 months.",
+        "occurred_at": "today-63T15:15"
+      },
+      {
+        "id": "act-b2b-006-07",
+        "kind": "email",
+        "text": "Followed up on the proposal; Adele is reviewing it with the leadership team.",
+        "occurred_at": "today-57T12:30"
+      },
+      {
+        "id": "act-b2b-006-08",
+        "kind": "call",
+        "text": "Call with Adele: answered questions on timeline and deliverables.",
+        "occurred_at": "today-53T11:00"
+      },
+      {
+        "id": "act-b2b-006-09",
+        "kind": "email",
+        "text": "Followed up on the proposal; Adele is reviewing it with the leadership team.",
+        "occurred_at": "today-47T15:30"
+      },
+      {
+        "id": "act-b2b-006-10",
+        "kind": "note",
+        "text": "Closed lost: budget reallocated to hiring.",
+        "occurred_at": "today-45T17:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-004",
+    "stage_id": "lost",
+    "created_at": "today-79T14:45",
+    "fields": {
+      "company": "Lanternfish Media",
+      "contact": "Reid Adeyemi",
+      "title": "Sales Operations Manager",
+      "email": "reid.adeyemi@lanternfishmedia.example.com",
+      "phone": "(312) 555-0128",
+      "industry": "Marketing Agency",
+      "acv": 18000,
+      "opportunity_brief": "Pipeline & forecast dashboard build. Leadership wants weekly pipeline visibility without asking reps.",
+      "pain_points": "Forecast misses by 20% or more, quarter after quarter.",
+      "desired_outcome": "Automated pipeline and forecast dashboards refreshed daily.",
+      "tech_stack": "Salesforce · Looker Studio · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "HubSpot Partner Directory",
+      "notes": "35 employees. Came in via hubspot partner directory.",
+      "priority": "Medium",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-79T14:45"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-77T09:45"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-72T09:15"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-67T16:15"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-47T14:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-004-01",
+        "kind": "note",
+        "text": "New inquiry via hubspot partner directory — Pipeline & forecast dashboard build. Leadership wants weekly pipeline visibility without asking reps.",
+        "occurred_at": "today-79T17:00"
+      },
+      {
+        "id": "act-b2b-004-02",
+        "kind": "call",
+        "text": "Intro call with Reid: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-78T12:30"
+      },
+      {
+        "id": "act-b2b-004-03",
+        "kind": "email",
+        "text": "Sent Reid a scoping questionnaire and two session times.",
+        "occurred_at": "today-77T15:00"
+      },
+      {
+        "id": "act-b2b-004-04",
+        "kind": "call",
+        "text": "Requirements session with Reid and 2 stakeholders; documented 6 must-haves.",
+        "occurred_at": "today-73T08:30"
+      },
+      {
+        "id": "act-b2b-004-05",
+        "kind": "note",
+        "text": "Drafting proposal: Pipeline & forecast dashboard build, 2-month timeline.",
+        "occurred_at": "today-72T13:30"
+      },
+      {
+        "id": "act-b2b-004-06",
+        "kind": "email",
+        "text": "Proposal sent to Reid: Pipeline & forecast dashboard build, $18,000 fixed fee over 2 months.",
+        "occurred_at": "today-67T17:00"
+      },
+      {
+        "id": "act-b2b-004-07",
+        "kind": "call",
+        "text": "Call with Reid: answered questions on timeline and deliverables.",
+        "occurred_at": "today-63T16:45"
+      },
+      {
+        "id": "act-b2b-004-08",
+        "kind": "call",
+        "text": "Call with Reid: answered questions on timeline and deliverables.",
+        "occurred_at": "today-58T09:15"
+      },
+      {
+        "id": "act-b2b-004-09",
+        "kind": "email",
+        "text": "Followed up on the proposal; Reid is reviewing it with the leadership team.",
+        "occurred_at": "today-52T16:30"
+      },
+      {
+        "id": "act-b2b-004-10",
+        "kind": "note",
+        "text": "Closed lost: chose a larger agency with a bundled offering.",
+        "occurred_at": "today-47T16:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-003",
+    "stage_id": "contract_awarded",
+    "created_at": "today-84T14:45",
+    "fields": {
+      "company": "Sablewood Furniture",
+      "contact": "Oscar Petrakis",
+      "title": "VP of Growth",
+      "email": "oscar.petrakis@sablewoodfurniture.example.com",
+      "phone": "(312) 555-0150",
+      "industry": "Manufacturing",
+      "acv": 12500,
+      "opportunity_brief": "Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+      "pain_points": "Comp disputes take hours of leadership time every month.",
+      "desired_outcome": "Balanced territories and a comp plan reps understand on one page.",
+      "tech_stack": "Salesforce · Excel · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Local Business Meetup",
+      "notes": "170 employees. Came in via local business meetup.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "",
+      "next_action_date": null,
+      "engagement_start": "today-45",
+      "engagement_end": "today+14",
+      "monthly_hours": 20
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-84T14:45"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-79T14:45"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-76T16:15"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-74T10:30"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-62T08:15"
+      },
+      {
+        "stage_id": "contract_awarded",
+        "entered_at": "today-52T08:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-003-01",
+        "kind": "note",
+        "text": "New inquiry via local business meetup — Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+        "occurred_at": "today-84T16:15"
+      },
+      {
+        "id": "act-b2b-003-02",
+        "kind": "call",
+        "text": "Intro call with Oscar: budget earmarked for this quarter; decision by Oscar with CEO sign-off.",
+        "occurred_at": "today-81T08:00"
+      },
+      {
+        "id": "act-b2b-003-03",
+        "kind": "email",
+        "text": "Sent Oscar a scoping questionnaire and two session times.",
+        "occurred_at": "today-79T16:30"
+      },
+      {
+        "id": "act-b2b-003-04",
+        "kind": "call",
+        "text": "Requirements session with Oscar and 3 stakeholders; documented 7 must-haves.",
+        "occurred_at": "today-77T11:30"
+      },
+      {
+        "id": "act-b2b-003-05",
+        "kind": "note",
+        "text": "Drafting proposal: Commission plan & territory design, 2-month timeline.",
+        "occurred_at": "today-76T17:00"
+      },
+      {
+        "id": "act-b2b-003-06",
+        "kind": "email",
+        "text": "Proposal sent to Oscar: Commission plan & territory design, $12,500 fixed fee over 2 months.",
+        "occurred_at": "today-74T16:00"
+      },
+      {
+        "id": "act-b2b-003-07",
+        "kind": "call",
+        "text": "Call with Oscar: answered questions on timeline and deliverables.",
+        "occurred_at": "today-69T16:00"
+      },
+      {
+        "id": "act-b2b-003-08",
+        "kind": "email",
+        "text": "Followed up on the proposal; Oscar is reviewing it with the leadership team.",
+        "occurred_at": "today-63T15:15"
+      },
+      {
+        "id": "act-b2b-003-09",
+        "kind": "call",
+        "text": "Negotiation call: Oscar asked for a smaller first phase to prove value.",
+        "occurred_at": "today-62T11:30"
+      },
+      {
+        "id": "act-b2b-003-10",
+        "kind": "note",
+        "text": "Signed SOW received: $12,500. Kickoff scheduled.",
+        "occurred_at": "today-52T13:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-001",
+    "stage_id": "contract_awarded",
+    "created_at": "today-91T12:15",
+    "fields": {
+      "company": "Meridian Staffing Solutions",
+      "contact": "Fiona Kowalczyk",
+      "title": "Head of Revenue Operations",
+      "email": "fiona.kowalczyk@meridianstaffing.example.com",
+      "phone": "(612) 555-0183",
+      "industry": "Staffing",
+      "acv": 17500,
+      "opportunity_brief": "Sales process & stage design. Each rep runs deals differently; the forecast is a gut call.",
+      "pain_points": "No exit criteria, so deals sit in \"proposal\" for months.",
+      "desired_outcome": "Documented stages, exit criteria and a rep playbook.",
+      "tech_stack": "Pipedrive · Google Workspace · Calendly",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Client Referral",
+      "notes": "260 employees. Came in via client referral.",
+      "priority": "Medium",
+      "qualification_notes": "Budget confirmed; decision maker engaged.",
+      "next_action": "",
+      "next_action_date": null,
+      "engagement_start": "today-43",
+      "engagement_end": "today+16",
+      "monthly_hours": 20
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-91T12:15"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-85T11:30"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-80T16:45"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-76T11:00"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-60T08:15"
+      },
+      {
+        "stage_id": "contract_awarded",
+        "entered_at": "today-53T09:45"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-001-01",
+        "kind": "note",
+        "text": "New inquiry via client referral — Sales process & stage design. Each rep runs deals differently; the forecast is a gut call.",
+        "occurred_at": "today-91T16:30"
+      },
+      {
+        "id": "act-b2b-001-02",
+        "kind": "call",
+        "text": "Intro call with Fiona: needs results before their next board meeting.",
+        "occurred_at": "today-88T09:15"
+      },
+      {
+        "id": "act-b2b-001-03",
+        "kind": "email",
+        "text": "Sent Fiona a scoping questionnaire and two session times.",
+        "occurred_at": "today-85T13:00"
+      },
+      {
+        "id": "act-b2b-001-04",
+        "kind": "call",
+        "text": "Requirements session with Fiona and 3 stakeholders; documented 9 must-haves.",
+        "occurred_at": "today-82T15:00"
+      },
+      {
+        "id": "act-b2b-001-05",
+        "kind": "note",
+        "text": "Drafting proposal: Sales process & stage design, 2-month timeline.",
+        "occurred_at": "today-80T17:00"
+      },
+      {
+        "id": "act-b2b-001-06",
+        "kind": "email",
+        "text": "Proposal sent to Fiona: Sales process & stage design, $17,500 fixed fee over 2 months.",
+        "occurred_at": "today-76T13:00"
+      },
+      {
+        "id": "act-b2b-001-07",
+        "kind": "call",
+        "text": "Call with Fiona: answered questions on timeline and deliverables.",
+        "occurred_at": "today-72T11:00"
+      },
+      {
+        "id": "act-b2b-001-08",
+        "kind": "call",
+        "text": "Call with Fiona: answered questions on timeline and deliverables.",
+        "occurred_at": "today-67T15:45"
+      },
+      {
+        "id": "act-b2b-001-09",
+        "kind": "email",
+        "text": "Followed up on the proposal; Fiona is reviewing it with the leadership team.",
+        "occurred_at": "today-61T10:30"
+      },
+      {
+        "id": "act-b2b-001-10",
+        "kind": "call",
+        "text": "Negotiation call: Fiona asked for a smaller first phase to prove value.",
+        "occurred_at": "today-60T16:30"
+      },
+      {
+        "id": "act-b2b-001-11",
+        "kind": "note",
+        "text": "Signed SOW received: $17,500. Kickoff scheduled.",
+        "occurred_at": "today-53T12:30"
+      }
+    ]
+  },
+  {
+    "id": "b2b-002",
+    "stage_id": "lost",
+    "created_at": "today-86T10:15",
+    "fields": {
+      "company": "Clearspring Water Systems",
+      "contact": "Ximena Jablonski",
+      "title": "Director of Sales",
+      "email": "ximena.jablonski@clearspringwater.example.com",
+      "phone": "(503) 555-0169",
+      "industry": "Manufacturing",
+      "acv": 42500,
+      "opportunity_brief": "Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+      "pain_points": "Every tool change breaks something nobody notices for weeks.",
+      "desired_outcome": "A part-time RevOps owner for six months, plus a hiring plan for the full-time role.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Podcast Guest Appearance",
+      "notes": "220 employees. Came in via podcast guest appearance.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-86T10:15"
+      },
+      {
+        "stage_id": "scoping",
+        "entered_at": "today-82T08:00"
+      },
+      {
+        "stage_id": "proposal_dev",
+        "entered_at": "today-76T16:30"
+      },
+      {
+        "stage_id": "proposal_sent",
+        "entered_at": "today-73T09:30"
+      },
+      {
+        "stage_id": "negotiation",
+        "entered_at": "today-63T12:45"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-53T16:00"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-002-01",
+        "kind": "note",
+        "text": "New inquiry via podcast guest appearance — Fractional RevOps retainer. Needs ongoing RevOps leadership but is not ready for a full-time hire.",
+        "occurred_at": "today-86T11:00"
+      },
+      {
+        "id": "act-b2b-002-02",
+        "kind": "call",
+        "text": "Intro call with Ximena: budget earmarked for this quarter; decision by Ximena with CEO sign-off.",
+        "occurred_at": "today-85T13:30"
+      },
+      {
+        "id": "act-b2b-002-03",
+        "kind": "email",
+        "text": "Sent Ximena a scoping questionnaire and two session times.",
+        "occurred_at": "today-82T14:45"
+      },
+      {
+        "id": "act-b2b-002-04",
+        "kind": "call",
+        "text": "Requirements session with Ximena and 2 stakeholders; documented 9 must-haves.",
+        "occurred_at": "today-78T14:45"
+      },
+      {
+        "id": "act-b2b-002-05",
+        "kind": "note",
+        "text": "Drafting proposal: Fractional RevOps retainer, 6-month timeline.",
+        "occurred_at": "today-76T16:45"
+      },
+      {
+        "id": "act-b2b-002-06",
+        "kind": "email",
+        "text": "Proposal sent to Ximena: Fractional RevOps retainer, $7,083/month for 6 months.",
+        "occurred_at": "today-73T14:30"
+      },
+      {
+        "id": "act-b2b-002-07",
+        "kind": "call",
+        "text": "Call with Ximena: answered questions on timeline and deliverables.",
+        "occurred_at": "today-68T13:00"
+      },
+      {
+        "id": "act-b2b-002-08",
+        "kind": "call",
+        "text": "Negotiation call: Ximena asked to phase the work across two quarters.",
+        "occurred_at": "today-63T14:15"
+      },
+      {
+        "id": "act-b2b-002-09",
+        "kind": "note",
+        "text": "Closed lost: budget reallocated to hiring.",
+        "occurred_at": "today-53T16:15"
+      }
+    ]
+  },
+  {
+    "id": "b2b-010",
+    "stage_id": "lost",
+    "created_at": "today-61T13:00",
+    "fields": {
+      "company": "Northwind Analytics",
+      "contact": "Zoe Tolliver",
+      "title": "VP of Sales",
+      "email": "zoe.tolliver@northwindanalytics.example.com",
+      "phone": "(612) 555-0199",
+      "industry": "B2B Software",
+      "acv": 13000,
+      "opportunity_brief": "Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+      "pain_points": "Comp disputes take hours of leadership time every month.",
+      "desired_outcome": "Balanced territories and a comp plan reps understand on one page.",
+      "tech_stack": "Salesforce · Excel · Slack",
+      "opportunity_owner": "Alex Rivera",
+      "source": "Website Inquiry",
+      "notes": "65 employees. Came in via website inquiry.",
+      "priority": "Medium",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-61T13:00"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-57T14:30"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-010-01",
+        "kind": "note",
+        "text": "New inquiry via website inquiry — Commission plan & territory design. Reps are fighting over accounts and leadership wants a fair, simple plan.",
+        "occurred_at": "today-61T15:00"
+      },
+      {
+        "id": "act-b2b-010-02",
+        "kind": "call",
+        "text": "Intro call with Zoe: previous consultant left the project half-done; wants a clear plan.",
+        "occurred_at": "today-59T15:30"
+      },
+      {
+        "id": "act-b2b-010-03",
+        "kind": "note",
+        "text": "Closed lost: no budget this year; will revisit.",
+        "occurred_at": "today-57T16:00"
+      }
+    ]
+  },
+  {
+    "id": "b2b-005",
+    "stage_id": "lost",
+    "created_at": "today-77T15:00",
+    "fields": {
+      "company": "Prairie State Insurance Agency",
+      "contact": "Rosa Moreau",
+      "title": "Sales Operations Manager",
+      "email": "rosa.moreau@prairiestate.example.com",
+      "phone": "(512) 555-0178",
+      "industry": "Insurance",
+      "acv": 49000,
+      "opportunity_brief": "Fractional RevOps retainer. Previous RevOps manager left; systems are drifting without an owner.",
+      "pain_points": "Every tool change breaks something nobody notices for weeks.",
+      "desired_outcome": "A part-time RevOps owner for six months, plus a hiring plan for the full-time role.",
+      "tech_stack": "HubSpot · Salesforce · Zapier",
+      "opportunity_owner": "Alex Rivera",
+      "source": "LinkedIn Post",
+      "notes": "45 employees. Came in via linkedin post.",
+      "priority": "High",
+      "qualification_notes": "Closed; notes kept for future outreach.",
+      "next_action": "",
+      "next_action_date": null
+    },
+    "stage_history": [
+      {
+        "stage_id": "inquiry",
+        "entered_at": "today-77T15:00"
+      },
+      {
+        "stage_id": "lost",
+        "entered_at": "today-74T17:00"
+      }
+    ],
+    "activities": [
+      {
+        "id": "act-b2b-005-01",
+        "kind": "note",
+        "text": "New inquiry via linkedin post — Fractional RevOps retainer. Previous RevOps manager left; systems are drifting without an owner.",
+        "occurred_at": "today-77T17:00"
+      },
+      {
+        "id": "act-b2b-005-02",
+        "kind": "call",
+        "text": "Intro call with Rosa: budget earmarked for this quarter; decision by Rosa with CEO sign-off.",
+        "occurred_at": "today-76T12:15"
+      },
+      {
+        "id": "act-b2b-005-03",
+        "kind": "note",
+        "text": "Closed lost: scope too small for an engagement; sent a free checklist instead.",
+        "occurred_at": "today-74T17:00"
+      }
+    ]
+  }
 ]

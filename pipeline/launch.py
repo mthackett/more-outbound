@@ -15,6 +15,9 @@ def launch_command(mode, port, address):
     command = [sys.executable, '-m', 'streamlit', 'run', str(app),
                '--server.port', str(port), '--server.address', address,
                '--server.headless', 'true', '--browser.gatherUsageStats', 'false']
+    if mode == 'demo':
+        # Public visitors never see Deploy / developer menu items.
+        command += ['--client.toolbarMode', 'minimal']
     return command, env
 
 

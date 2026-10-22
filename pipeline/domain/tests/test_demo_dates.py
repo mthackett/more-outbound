@@ -170,30 +170,20 @@ class TestDemoDates(unittest.TestCase):
         escaped = escape_markdown("$100 to $200")
         self.assertEqual(escaped, "\\$100 to \\$200")
 
-    def test_in_ui_reset_demo_data_button_in_apptest(self):
+    def test_reset_demo_data_button_removed_from_sidebar(self):
         with patch.dict("os.environ", {"PIPELINE_MODE": "demo", "DEMO_MODE": "false"}):
             app = AppTest.from_file(str(APP), default_timeout=20).run()
             self.assertFalse(app.exception)
+            self.assertFalse(any(b.key == "btn_reset_demo_data" for b in app.button))
 
-            # Check that reset button exists in sidebar
-            reset_btn = next((b for b in app.button if b.key == "btn_reset_demo_data"), None)
-            self.assertIsNotNone(reset_btn, "Reset Demo Data button not found in sidebar")
-
-            # Mutate a record
-            app.session_state["_demo_store"].update("demo-001", {"company": "Mutated Name"}, "contacted")
-            rec = next(r for r in app.session_state["_demo_store"].list_records() if r.id == "demo-001")
-            self.assertEqual(rec.fields["company"], "Mutated Name")
-
-            # Click reset button
-            reset_btn.click().run()
-            self.assertFalse(app.exception)
-
-            # Check that success flash message appeared
-            self.assertTrue(any("Demo data reset to initial scenario." in s.value for s in app.success))
-
-            # Check that record is restored to original seed company
-            rec_restored = next(r for r in app.session_state["_demo_store"].list_records() if r.id == "demo-001")
-            self.assertEqual(rec_restored.fields["company"], "Lumina HealthTech")
+    def test_storage_reset_restores_seed(self):
+        with patch.dict("os.environ", {"PIPELINE_MODE": "demo", "DEMO_MODE": "false"}):
+            app = AppTest.from_file(str(APP), default_timeout=20).run()
+            store = app.session_state["_demo_store"]
+            store.update("demo-001", {"company": "Mutated Name"}, "contacted")
+            store.reset()
+            rec = next(r for r in store.list_records() if r.id == "demo-001")
+            self.assertEqual(rec.fields["company"], "Lumina HealthTech")
 
     def test_shortened_kpi_titles_in_both_configs_and_views(self):
         with patch.dict("os.environ", {"PIPELINE_MODE": "demo", "DEMO_MODE": "false"}):
@@ -203,7 +193,7 @@ class TestDemoDates(unittest.TestCase):
             # 1. Sales Rep pipeline view
             sales_labels = [m.label for m in app.metric]
             self.assertEqual(sales_labels, ["Booking Rate", "Reply Rate", "Reply-to-Meeting", "Prospects", "Active Prospects", "Pipeline ACV"])
-            self.assertEqual(app.metric[5].value, "$1.13M")
+            self.assertEqual(app.metric[5].value, "$1.02M")
             for label in sales_labels:
                 self.assertLessEqual(len(label), 16, f"KPI label too long: {label}")
 
@@ -212,14 +202,14 @@ class TestDemoDates(unittest.TestCase):
             self.assertFalse(app.exception)
             sales_analytics_labels = [m.label for m in app.metric]
             self.assertEqual(sales_analytics_labels, ["Booking Rate", "Reply Rate", "Reply-to-Meeting", "Prospects", "Active Prospects", "Pipeline ACV"])
-            self.assertEqual(app.metric[5].value, "$1.13M")
+            self.assertEqual(app.metric[5].value, "$1.02M")
 
             # 3. Switch to B2B Services workspace
             app.selectbox(key="demo_workspace_selector").set_value("b2b_services").run()
             self.assertFalse(app.exception)
             b2b_labels = [m.label for m in app.metric]
-            self.assertEqual(b2b_labels, ["Booking Rate", "Reply Rate", "Reply-to-Meeting", "Opportunities", "Active", "Pipeline ACV"])
-            self.assertEqual(app.metric[5].value, "$1.78M")
+            self.assertEqual(b2b_labels, ["Win Rate", "Negotiation Rate", "Opportunities", "Active", "Pipeline Value", "Avg Deal Size"])
+            self.assertEqual(app.metric[4].value, "$279,500")
             for label in b2b_labels:
                 self.assertLessEqual(len(label), 16, f"B2B KPI label too long: {label}")
 
@@ -227,8 +217,41 @@ class TestDemoDates(unittest.TestCase):
             app.radio(key="public_navigation").set_value("pipeline").run()
             self.assertFalse(app.exception)
             b2b_pipeline_labels = [m.label for m in app.metric]
-            self.assertEqual(b2b_pipeline_labels, ["Booking Rate", "Reply Rate", "Reply-to-Meeting", "Opportunities", "Active", "Pipeline ACV"])
-            self.assertEqual(app.metric[5].value, "$1.78M")
+            self.assertEqual(b2b_pipeline_labels, ["Win Rate", "Negotiation Rate", "Opportunities", "Active", "Pipeline Value", "Avg Deal Size"])
+            self.assertEqual(app.metric[4].value, "$279,500")
+
+    def test_analytics_populated_across_reruns_and_workspace_switches(self):
+        # Regression: per-run module reloads made stored records fail an isinstance
+        # check in the metrics code, so analytics rendered all zeros.
+        with patch.dict("os.environ", {"PIPELINE_MODE": "demo", "DEMO_MODE": "false"}):
+            app = AppTest.from_file(str(APP), default_timeout=20).run()
+            app.radio(key="public_navigation").set_value("analytics").run()
+            expected = {"sales_rep": ("92", "$1.02M"), "b2b_services": ("33", "$279,500")}
+            for ws in ["sales_rep", "b2b_services", "sales_rep", "b2b_services", "sales_rep"]:
+                app.selectbox(key="demo_workspace_selector").set_value(ws).run()
+                app.run()
+                self.assertFalse(app.exception)
+                values = [m.value for m in app.metric]
+                total, acv = expected[ws]
+                self.assertIn(total, values, f"{ws}: {values}")
+                self.assertIn(acv, values, f"{ws}: {values}")
+
+    def test_metrics_accept_records_from_reloaded_record_class(self):
+        from pydantic import BaseModel
+        from pipeline.domain.outreach_metrics import historical_cohorts
+
+        class ForeignRecord(BaseModel):  # stands in for a PipelineRecord from a reloaded module
+            id: str
+            stage_id: str
+            stage_history: list = []
+            activities: list = []
+            fields: dict = {}
+
+        from pipeline.domain.instance_loader import load_demo_config
+        cfg = load_demo_config(Path(__file__).resolve().parents[3] / "config" / "demo_sales_rep.json")
+        cohorts, _ = historical_cohorts([ForeignRecord(id="x", stage_id="replied")], cfg)
+        self.assertEqual(cohorts["total"], {"x"})
+        self.assertEqual(cohorts["replied"], {"x"})
 
     def test_format_metric_currency_scaling(self):
         from pipeline.adapters.primary.public_ui import format_metric_currency
@@ -250,25 +273,25 @@ class TestDemoDates(unittest.TestCase):
             self.assertFalse(app.exception)
 
             # Inject a string into page session state to verify type safety ('2' > 4 in Python would raise TypeError)
-            app.session_state["public_0_page"] = "2"
+            app.session_state["public_0_sales_rep_page"] = "2"
             app.run()
             self.assertFalse(app.exception)
-            self.assertEqual(app.session_state["public_0_page"], 2)
+            self.assertEqual(app.session_state["public_0_sales_rep_page"], 2)
 
-            # Set page to 4 in Sales Rep (which has 4 pages)
-            app.selectbox(key="public_0_page").set_value(4).run()
+            # Set page 8 in Sales Rep (10 pages)
+            app.selectbox(key="public_0_sales_rep_page").set_value(8).run()
             self.assertFalse(app.exception)
-            self.assertEqual(app.session_state["public_0_page"], 4)
+            self.assertEqual(app.session_state["public_0_sales_rep_page"], 8)
 
-            # Toggle to B2B Services (which only has 2 pages)
+            # Toggle to B2B Services (only 4 pages): its widgets are scoped separately and start on page 1
             app.selectbox(key="demo_workspace_selector").set_value("b2b_services").run()
             self.assertFalse(app.exception)
-            # Should have safely clamped to page 1
-            self.assertEqual(app.session_state["public_0_page"], 1)
+            self.assertEqual(app.session_state["public_0_b2b_services_page"], 1)
 
-            # Toggle back to Sales Rep
+            # Toggle back to Sales Rep: its own page selection is preserved
             app.selectbox(key="demo_workspace_selector").set_value("sales_rep").run()
             self.assertFalse(app.exception)
+            self.assertEqual(app.session_state["public_0_sales_rep_page"], 8)
 
             # Toggle back to B2B Services
             app.selectbox(key="demo_workspace_selector").set_value("b2b_services").run()

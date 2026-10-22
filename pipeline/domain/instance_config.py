@@ -3,7 +3,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Milestone = Literal['contacted', 'replied', 'meeting', 'opportunity']
-Metric = Literal['meeting_booking_rate', 'reply_rate', 'reply_to_meeting_rate', 'total', 'active', 'pipeline_value']
+SidebarWidget = Literal['call_queue', 'activity_goals', 'proposals_awaiting', 'capacity']
+Metric = Literal['meeting_booking_rate', 'reply_rate', 'reply_to_meeting_rate', 'win_rate',
+                 'total', 'active', 'pipeline_value', 'avg_deal_size']
 FIELD_TYPES = {
     # Core Identity & Account
     'company': 'text', 'contact': 'text', 'title': 'text', 'email': 'text',
@@ -20,6 +22,8 @@ FIELD_TYPES = {
     'fit_rationale': 'long_text', 'opportunity_rationale': 'long_text',
     'suggested_action': 'text', 'suggested_angle': 'long_text',
     'discovery_questions': 'long_text', 'objections': 'long_text',
+    # Delivery planning (services engagements)
+    'engagement_start': 'date', 'engagement_end': 'date', 'monthly_hours': 'number',
 }
 
 
@@ -47,21 +51,21 @@ class StageConfig(StrictConfig):
 class FieldConfig(StrictConfig):
     key: str
     label: str = Field(min_length=1)
-    type: Literal['text', 'long_text', 'currency', 'date'] = 'text'
+    type: Literal['text', 'long_text', 'currency', 'date', 'number'] = 'text'
     required: bool = False
     visible: bool = True
     editable: bool = True
     intake: bool = True
     card: bool = False
     table: bool = True
-    format: Literal['text', 'currency', 'date'] = 'text'
+    format: Literal['text', 'currency', 'date', 'number'] = 'text'
     max_length: int = Field(default=2000, ge=1, le=10000)
 
     @model_validator(mode='after')
     def supported(self):
         if FIELD_TYPES.get(self.key) != self.type:
             raise ValueError('Unsupported field key/type combination')
-        expected = self.type if self.type in ('currency', 'date') else 'text'
+        expected = self.type if self.type in ('currency', 'date', 'number') else 'text'
         if self.format != expected:
             raise ValueError('Field format must match its type')
         if self.required and not (self.visible and self.editable and self.intake):
@@ -104,6 +108,18 @@ class LabelsConfig(StrictConfig):
     metric_labels: dict[str, str] = Field(default_factory=dict)
 
 
+class ActivityTargets(StrictConfig):
+    """Weekly activity goals shown in the sidebar (counted over the last 7 days)."""
+    calls: int = Field(default=40, ge=1)
+    emails: int = Field(default=50, ge=1)
+    meetings: int = Field(default=3, ge=1)
+
+
+class DeliveryCapacity(StrictConfig):
+    """Billable hours available per month, for committed-vs-available capacity."""
+    hours_per_month: int = Field(ge=1)
+
+
 class InstanceCapabilities(StrictConfig):
     schema_version: Literal[1] = 1
     mode: Literal['private', 'demo'] = 'private'
@@ -118,6 +134,9 @@ class InstanceCapabilities(StrictConfig):
     labels: LabelsConfig = Field(default_factory=LabelsConfig)
     metrics: list[Metric] = Field(default_factory=list)
     dashboard_modules: list[Literal['metrics', 'funnel', 'table']] = Field(default_factory=list)
+    sidebar_widgets: list[SidebarWidget] = Field(default_factory=list)
+    activity_targets: ActivityTargets | None = None
+    delivery_capacity: DeliveryCapacity | None = None
 
     @model_validator(mode='after')
     def validate_instance(self):
@@ -145,7 +164,12 @@ class InstanceCapabilities(StrictConfig):
                 raise ValueError('Intake navigation requires record creation')
             if 'metrics' in self.dashboard_modules and not self.metrics:
                 raise ValueError('Metrics dashboard requires metrics')
-            if 'pipeline_value' in self.metrics and 'acv' not in {f.key for f in self.fields}:
+            if 'activity_goals' in self.sidebar_widgets and self.activity_targets is None:
+                raise ValueError('Activity goals require activity targets')
+            if 'capacity' in self.sidebar_widgets and (self.delivery_capacity is None
+                                                       or 'monthly_hours' not in {f.key for f in self.fields}):
+                raise ValueError('Capacity requires delivery capacity and the monthly hours field')
+            if {'pipeline_value', 'avg_deal_size'} & set(self.metrics) and 'acv' not in {f.key for f in self.fields}:
                 raise ValueError('Pipeline value requires the ACV field')
             if (getattr(self, 'logo_path', None) or getattr(self, 'favicon_path', None)):
                 raise ValueError('Public branding cannot reference local private files')

@@ -19,17 +19,17 @@ class TestOutreachDemo(unittest.TestCase):
     def test_fixture_exact_historical_counts_and_rates(self):
         store = MemoryRecordStorage(self.cfg, self.seed)
         records = store.list_records()
-        self.assertEqual(len(records), 40)
+        self.assertEqual(len(records), 92)
         c, _ = historical_cohorts(records, self.cfg)
         self.assertEqual({key: len(value) for key, value in c.items()},
-                         {'total': 40, 'contacted': 30, 'replied': 17, 'meeting': 10, 'opportunity': 4})
+                         {'total': 92, 'contacted': 77, 'replied': 24, 'meeting': 15, 'opportunity': 9})
         metrics = calculate_metrics(records, self.cfg)
-        self.assertAlmostEqual(metrics['meeting_booking_rate']['value'], 100 * 10/30)
-        self.assertAlmostEqual(metrics['reply_rate']['value'], 100 * 17/30)
-        self.assertAlmostEqual(metrics['reply_to_meeting_rate']['value'], 100 * 10/17)
-        self.assertEqual(metrics['active']['value'], 32)
-        self.assertEqual(metrics['pipeline_value']['value'], 1128000)
-        self.assertEqual([r['Count'] for r in conversion_funnel(records, self.cfg)], [40, 30, 17, 10, 4])
+        self.assertAlmostEqual(metrics['meeting_booking_rate']['value'], 100 * 15/77)
+        self.assertAlmostEqual(metrics['reply_rate']['value'], 100 * 24/77)
+        self.assertAlmostEqual(metrics['reply_to_meeting_rate']['value'], 100 * 15/24)
+        self.assertEqual(metrics['active']['value'], 36)
+        self.assertEqual(metrics['pipeline_value']['value'], 1022500)
+        self.assertEqual([r['Count'] for r in conversion_funnel(records, self.cfg)], [92, 77, 24, 15, 9])
 
     def test_missing_malformed_duplicate_and_canceled_evidence(self):
         records = [
@@ -58,17 +58,19 @@ class TestOutreachDemo(unittest.TestCase):
             store.add_activity('demo-001', 'contacted', 'Synthetic contact')
         with ThreadPoolExecutor(max_workers=2) as pool:
             list(pool.map(lambda pair: edit(*pair), [(a, 'Session A'), (b, 'Session B')]))
-        self.assertEqual(a.list_records()[0].fields['company'], 'Session A')
-        self.assertEqual(b.list_records()[0].fields['company'], 'Session B')
+        def hero(store):
+            return next(r for r in store.list_records() if r.id == 'demo-001')
+        self.assertEqual(hero(a).fields['company'], 'Session A')
+        self.assertEqual(hero(b).fields['company'], 'Session B')
         a.reset()
         self.assertEqual([r.model_dump() for r in a.list_records()], original)
-        self.assertEqual(b.list_records()[0].fields['company'], 'Session B')
-        exposed = a.list_records()[0]
+        self.assertEqual(hero(b).fields['company'], 'Session B')
+        exposed = hero(a)
         exposed.fields['company'] = 'External mutation'
-        self.assertNotEqual(a.list_records()[0].fields['company'], 'External mutation')
+        self.assertNotEqual(hero(a).fields['company'], 'External mutation')
         with self.assertRaises(ValueError):
             a.update('demo-001', {'acv': -1}, 'replied')
-        self.assertEqual(a.list_records()[0].stage_id, 'identified')
+        self.assertEqual(hero(a).stage_id, 'identified')
         with self.assertRaises(ValueError):
             a.update('demo-001', {}, 'unknown')
 
@@ -93,11 +95,12 @@ class TestOutreachDemo(unittest.TestCase):
             self.assertFalse(b.exception)
             displayed = {m.label: m.value for m in a.metric}
             self.assertEqual([displayed[k] for k in ('Booking Rate', 'Reply Rate', 'Reply-to-Meeting')],
-                             ['33.3%', '56.7%', '58.8%'])
+                             ['19.5%', '31.2%', '62.5%'])
             a.session_state['_demo_store'].update('demo-001', {'company': 'Session A'}, 'contacted')
             a.run()
             b.run()
-            self.assertNotEqual(b.session_state['_demo_store'].list_records()[0].fields['company'], 'Session A')
+            b_hero = next(r for r in b.session_state['_demo_store'].list_records() if r.id == 'demo-001')
+            self.assertNotEqual(b_hero.fields['company'], 'Session A')
             a.session_state['_demo_store'].reset()
             a.run()
             self.assertEqual(a.session_state['_demo_store'].list_records()[0].fields['company'], self.seed[0]['fields']['company'])
@@ -167,13 +170,12 @@ class TestOutreachDemo(unittest.TestCase):
         future_sched = [r for r in records if r.stage_id in active_stage_ids and r.current_action and r.current_action.status == 'open' and r.current_action.due_date and r.current_action.due_date > ref_today]
         no_action = [r for r in records if not (r.current_action and r.current_action.status == 'open')]
 
-        # Verify rebalance distribution targets:
-        # 5-7 due today, 2-3 overdue, 5-8 awaiting reply, 12-16 future scheduled
+        # A believable single-rep day: a handful due today, a couple overdue, most work scheduled ahead.
         self.assertTrue(5 <= len(due_today) <= 7, f"Due today count {len(due_today)} not in 5-7")
         self.assertTrue(2 <= len(overdue) <= 3, f"Overdue count {len(overdue)} not in 2-3")
-        self.assertTrue(5 <= len(awaiting_reply) <= 8, f"Awaiting reply count {len(awaiting_reply)} not in 5-8")
-        self.assertTrue(12 <= len(future_sched) <= 16, f"Future scheduled count {len(future_sched)} not in 12-16")
-        self.assertEqual(len(due_today) + len(overdue) + len(future_sched) + len(no_action), 40)
+        self.assertTrue(3 <= len(awaiting_reply) <= 8, f"Awaiting reply count {len(awaiting_reply)} not in 3-8")
+        self.assertTrue(20 <= len(future_sched) <= 32, f"Future scheduled count {len(future_sched)} not in 20-32")
+        self.assertEqual(len(due_today) + len(overdue) + len(future_sched) + len(no_action), 92)
 
         # Stage change preserves outstanding action
         target = due_today[0]

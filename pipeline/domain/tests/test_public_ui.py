@@ -24,19 +24,19 @@ class TestPublicUI(unittest.TestCase):
         self.assertFalse(app.exception)
         initial_count = len(app.session_state['_demo_store'].list_records())
         app.radio(key='public_navigation').set_value('intake').run()
-        app.text_input(key='public_0_intake_company').set_value('Fictional Test Account')
-        app.text_input(key='public_0_intake_contact').set_value('Avery Example')
+        app.text_input(key='public_0_sales_rep_intake_company').set_value('Fictional Test Account')
+        app.text_input(key='public_0_sales_rep_intake_contact').set_value('Avery Example')
         next(b for b in app.button if b.label == 'Add Prospect').click().run()
         self.assertFalse(app.exception)
         records = app.session_state['_demo_store'].list_records()
         self.assertEqual(len(records), initial_count + 1)
         record_id = records[-1].id
         app.radio(key='public_navigation').set_value('pipeline').run()
-        app.text_input(key='public_0_search').set_value('Fictional Test Account').run()
-        app.selectbox(key='public_0_stage_' + record_id).set_value('meeting_booked')
+        app.text_input(key='public_0_sales_rep_search').set_value('Fictional Test Account').run()
+        app.selectbox(key='public_0_sales_rep_stage_' + record_id).set_value('meeting_booked')
         next(b for b in app.button if b.label == 'Save Changes').click().run()
         self.assertFalse(app.exception)
-        app.text_area(key='public_0_note_' + record_id).set_value('Synthetic discovery booked.')
+        app.text_area(key='public_0_sales_rep_note_' + record_id).set_value('Synthetic discovery booked.')
         next(b for b in app.button if b.label in ('Add Note', 'Log Activity')).click().run()
         record = app.session_state['_demo_store'].list_records()[-1]
         self.assertEqual(record.stage_id, 'meeting_booked')
@@ -126,13 +126,14 @@ class TestPublicUI(unittest.TestCase):
         self.assertFalse(app.exception)
         # Verify initial Sales Rep workspace
         sales_records = app.session_state['_demo_store'].list_records()
-        self.assertEqual(len(sales_records), 40)
-        first_id = sales_records[0].id
-        self.assertEqual(sales_records[0].fields['company'], 'Lumina HealthTech')
+        self.assertEqual(len(sales_records), 92)
+        first_id = 'demo-001'
+        self.assertEqual(next(r for r in sales_records if r.id == first_id).fields['company'], 'Lumina HealthTech')
 
         # Make an edit in Sales Rep
-        app.selectbox(key=f'public_0_stage_{first_id}').set_value('meeting_booked')
-        next(b for b in app.button if b.label == 'Save Changes').click().run()
+        app.selectbox(key=f'public_0_sales_rep_stage_{first_id}').set_value('meeting_booked')
+        next(b for b in app.button if b.label == 'Save Changes'
+             and b.form_id == f'public_0_sales_rep_stage_form_{first_id}').click().run()
         self.assertFalse(app.exception)
         rec = next(r for r in app.session_state['_demo_store'].list_records() if r.id == first_id)
         self.assertEqual(rec.stage_id, 'meeting_booked')
@@ -141,15 +142,15 @@ class TestPublicUI(unittest.TestCase):
         app.selectbox(key='demo_workspace_selector').set_value('b2b_services').run()
         self.assertFalse(app.exception)
         b2b_records = app.session_state['_demo_store'].list_records()
-        self.assertEqual(len(b2b_records), 20)
-        self.assertEqual(b2b_records[0].fields['company'], 'Acme Global Consulting')
+        self.assertEqual(len(b2b_records), 33)
+        self.assertTrue(all(r.fields['opportunity_owner'] == 'Alex Rivera' for r in b2b_records))
         self.assertIn('Opportunities', [s.label for s in app.metric])
 
         # Switch back to Sales Rep workspace and verify preservation of edit
         app.selectbox(key='demo_workspace_selector').set_value('sales_rep').run()
         self.assertFalse(app.exception)
         preserved_records = app.session_state['_demo_store'].list_records()
-        self.assertEqual(len(preserved_records), 40)
+        self.assertEqual(len(preserved_records), 92)
         rec_preserved = next(r for r in preserved_records if r.id == first_id)
         self.assertEqual(rec_preserved.stage_id, 'meeting_booked')
 
@@ -201,8 +202,8 @@ class TestPublicUI(unittest.TestCase):
         app.radio(key='public_navigation').set_value('intake').run()
 
         # 1. Test creation with minimal required data (no phone)
-        app.text_input(key='public_0_intake_company').set_value('Minimal Prospect LLC')
-        app.text_input(key='public_0_intake_contact').set_value('Jordan Minimal')
+        app.text_input(key='public_0_sales_rep_intake_company').set_value('Minimal Prospect LLC')
+        app.text_input(key='public_0_sales_rep_intake_contact').set_value('Jordan Minimal')
         next(b for b in app.button if b.label == 'Add Prospect').click().run()
         self.assertFalse(app.exception)
 
@@ -211,9 +212,9 @@ class TestPublicUI(unittest.TestCase):
         self.assertEqual(created_min.fields.get('phone', ''), '')
 
         # 2. Test creation with valid reserved phone number
-        app.text_input(key='public_0_intake_company').set_value('Phone Prospect Corp')
-        app.text_input(key='public_0_intake_contact').set_value('Taylor Phone')
-        app.text_input(key='public_0_intake_phone').set_value('(415) 555-0142')
+        app.text_input(key='public_0_sales_rep_intake_company').set_value('Phone Prospect Corp')
+        app.text_input(key='public_0_sales_rep_intake_contact').set_value('Taylor Phone')
+        app.text_input(key='public_0_sales_rep_intake_phone').set_value('(415) 555-0142')
         next(b for b in app.button if b.label == 'Add Prospect').click().run()
         self.assertFalse(app.exception)
 
@@ -230,17 +231,17 @@ class TestPublicUI(unittest.TestCase):
 
         funnel = conversion_funnel(records, cfg)
         self.assertEqual(len(funnel), 5)
-        self.assertEqual([r['Count'] for r in funnel], [40, 30, 17, 10, 4])
+        self.assertEqual([r['Count'] for r in funnel], [92, 77, 24, 15, 9])
         self.assertEqual(funnel[0]['Conversion from Previous'], '—')
         self.assertEqual(funnel[0]['Overall Conversion'], '100.0%')
-        self.assertEqual(funnel[1]['Conversion from Previous'], '75.0%')
-        self.assertEqual(funnel[1]['Overall Conversion'], '75.0%')
-        self.assertEqual(funnel[2]['Conversion from Previous'], '56.7%')
-        self.assertEqual(funnel[2]['Overall Conversion'], '42.5%')
-        self.assertEqual(funnel[3]['Conversion from Previous'], '58.8%')
-        self.assertEqual(funnel[3]['Overall Conversion'], '25.0%')
-        self.assertEqual(funnel[4]['Conversion from Previous'], '40.0%')
-        self.assertEqual(funnel[4]['Overall Conversion'], '10.0%')
+        self.assertEqual(funnel[1]['Conversion from Previous'], '83.7%')
+        self.assertEqual(funnel[1]['Overall Conversion'], '83.7%')
+        self.assertEqual(funnel[2]['Conversion from Previous'], '31.2%')
+        self.assertEqual(funnel[2]['Overall Conversion'], '26.1%')
+        self.assertEqual(funnel[3]['Conversion from Previous'], '62.5%')
+        self.assertEqual(funnel[3]['Overall Conversion'], '16.3%')
+        self.assertEqual(funnel[4]['Conversion from Previous'], '60.0%')
+        self.assertEqual(funnel[4]['Overall Conversion'], '9.8%')
 
         # Navigate to analytics and ensure visual funnel and table render cleanly
         app.radio(key='public_navigation').set_value('analytics').run()

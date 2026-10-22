@@ -353,7 +353,7 @@ class TestPhase1PipelineKPIs(unittest.TestCase):
             "RevOps Analyst"
         )
         self.assertEqual(
-            PipelineKPIService.get_canonical_resume_variant("RevOps Analyst Resume.docx"),
+            PipelineKPIService.get_canonical_resume_variant("Jordan Avery - RevOps Analyst Resume.docx"),
             "RevOps Analyst"
         )
         self.assertEqual(

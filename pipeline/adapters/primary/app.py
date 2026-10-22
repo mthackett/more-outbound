@@ -35,9 +35,7 @@ if is_public:
         st.error(str(exc))
         st.stop()
     st.set_page_config(page_title=demo_config.page_title, layout="wide")
-    import importlib
     import pipeline.adapters.primary.public_ui as public_ui
-    importlib.reload(public_ui)
     public_ui.render_public(demo_config)
     st.stop()
 
@@ -1885,7 +1883,7 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
                 "Client Company": "",
                 "Extension Possible": "",
                 "FTE Conversion": "",
-                "Selected Resume": "Revenue Operations Analyst Resume",
+                "Selected Resume": "Jordan Avery Revenue Operations Analyst Resume",
                 "Drive Folder Link": "https://drive.google.com",
                 "Notes": "Sarah Jenkins (Recruiter) - Position closed internally; stay in touch for Q4 headcount."
             },
@@ -1919,7 +1917,7 @@ if active_section in (SECTION_CRM, "📊 Pipeline Tracker & CRM"):
                 ],
                 "Target Pay Range": "$75.00 – $80.00 / hr ($156,000 – $166,400/yr)",
                 "Date Created": "2026-09-23",
-                "Selected Resume": "GTM Engineer Resume",
+                "Selected Resume": "Jordan Avery GTM Engineer Resume",
                 "Drive Folder Link": "https://drive.google.com",
                 "Notes": "Screening with talent partner Alex. Highlight multi-cloud pipeline architectures."
             }

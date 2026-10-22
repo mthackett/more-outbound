@@ -94,7 +94,7 @@ Before processing live applications, confirm the following settings:
 
 - [ ] **3. Candidate Resume Storage in Drive**:
   * Your configured Google Drive resume folder (`GOOGLE_RESUMES_FOLDER_ID`) currently holds:
-    * `Revenue Operations Analyst Resume`
+    * `Jordan Avery Revenue Operations Analyst Resume`
   * If targeting additional tracks (e.g., *GTM Engineering*, *Business Analytics*, *Solutions Implementation*), create Google Docs inside that folder with matching naming conventions:
     `<Name> <Role Track> Resume`.
 
