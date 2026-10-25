@@ -4,6 +4,16 @@ credentials.json
 token.json
 client_secret*.json
 oauth_*.json
+.streamlit/secrets.toml
+
+# Local Development & Launcher Scripts
+start.ps1
+start.sh
+
+# Logs
+*.log
+stderr.log
+stdout.log
 
 # Legacy Scratch / Prototype Directory
 project/
@@ -15,6 +25,8 @@ rendered/
 jd.txt
 *.tmp
 .DS_Store
+Thumbs.db
+desktop.ini
 
 # Local NoSQL Database & Personal Data
 outbound_db.json
@@ -34,6 +46,13 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Testing & Linting
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
 
 # Jupyter Notebook Checkpoints
 .ipynb_checkpoints/
@@ -58,4 +77,4 @@ docs/*
 !docs/demo-deployment.md
 instructions.md
 .Agents/
-scratch/
+scratch/
