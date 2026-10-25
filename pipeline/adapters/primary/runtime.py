@@ -3,12 +3,11 @@
 
 def public_mode(environ):
     mode = environ.get('PIPELINE_MODE', '').strip().lower()
-    demo = environ.get('DEMO_MODE', 'false').strip().lower()
-    if mode not in ('', 'demo', 'private') or demo not in ('true', 'false', '1', '0'):
+    demo = environ.get('DEMO_MODE', '').strip().lower()
+    if mode not in ('', 'demo') or demo not in ('', 'true', 'false', '1', '0'):
         raise ValueError('Invalid instance mode')
-    if demo in ('true', '1') and mode == 'private':
-        raise ValueError('Conflicting instance modes')
-    return mode == 'demo' or demo in ('true', '1')
+    return True
+
 
 
 def select_session(state, identity):

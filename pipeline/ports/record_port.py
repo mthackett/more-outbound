@@ -1,4 +1,4 @@
-"""Generic demo storage contract, independent of the private Sheet schema."""
+"""Storage contract for pipeline records."""
 from typing import Protocol
 from pipeline.domain.records import PipelineRecord
 

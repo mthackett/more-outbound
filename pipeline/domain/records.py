@@ -1,4 +1,4 @@
-"""Generic records and an explicit lossless bridge for the private job model."""
+"""Generic records and stage event tracking models."""
 from copy import deepcopy
 from datetime import date, datetime, timezone
 import math
@@ -127,8 +127,7 @@ def format_field(spec, value):
 class LegacyJobSnapshot:
     """Read-only generic projection. The full legacy payload remains authoritative.
 
-    Public edits never pass through this bridge or a Google Sheet. Private edits
-    continue using JobPosting and the established storage port.
+    Edits in the web session do not alter legacy source payloads.
     """
     def __init__(self, job):
         self._payload = deepcopy(job.model_dump(mode='json'))

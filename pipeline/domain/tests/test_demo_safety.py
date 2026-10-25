@@ -13,7 +13,7 @@ class TestDemoSafety(unittest.TestCase):
     def test_modes_fail_closed(self):
         self.assertTrue(public_mode({'DEMO_MODE': 'true'}))
         self.assertTrue(public_mode({'PIPELINE_MODE': 'demo'}))
-        for env in ({'DEMO_MODE': 'typo'}, {'PIPELINE_MODE': 'typo'}, {'DEMO_MODE': 'true', 'PIPELINE_MODE': 'private'}):
+        for env in ({'DEMO_MODE': 'typo'}, {'PIPELINE_MODE': 'typo'}, {'DEMO_MODE': 'true', 'PIPELINE_MODE': 'invalid'}):
             with self.assertRaises(ValueError):
                 public_mode(env)
 
@@ -63,15 +63,16 @@ render_analytics_dashboard_view([
         self.assertEqual(len(app.exception), 0)
         self.assertEqual(app.number_input[0].value, 90)
 
-    def test_public_startup_never_loads_private_services(self):
+    def test_public_startup_never_loads_unauthorized_services(self):
         from streamlit.testing.v1 import AppTest
         app_path = Path(__file__).resolve().parents[2] / 'adapters/primary/app.py'
-        with patch.dict(os.environ, {'DEMO_MODE': 'true', 'GOOGLE_SPREADSHEET_ID': 'forbidden-private-id'}), \
-             patch('pipeline.domain.services.PipelineConfigService.load_config', side_effect=AssertionError('private config')), \
+        with patch.dict(os.environ, {'DEMO_MODE': 'true', 'GOOGLE_SPREADSHEET_ID': 'forbidden-sentinel-id'}), \
+             patch('pipeline.domain.services.PipelineConfigService.load_config', side_effect=AssertionError('unauthorized config')), \
              patch('pipeline.adapters.secondary.google_sheets.GoogleSheetsAdapter.__init__', side_effect=AssertionError('live provider')):
             app = AppTest.from_file(str(app_path)).run()
             self.assertEqual(len(app.exception), 0)
-            self.assertNotIn('forbidden-private-id', str(app))
+            self.assertNotIn('forbidden-sentinel-id', str(app))
+
 
 
 if __name__ == '__main__':

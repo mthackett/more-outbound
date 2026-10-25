@@ -1,4 +1,4 @@
-"""Configuration-driven public views. Imports no private workflow or provider."""
+"""Configuration-driven views for the sales prospecting and pipeline intelligence UI."""
 import datetime
 import hashlib
 import html
@@ -1207,6 +1207,10 @@ def pipeline(config, storage, prefix, reference=None):
     total_pages = max(1, (total_count + page_size - 1) // page_size)
 
     page_key = prefix + '_page'
+    saved_page_key = f"_saved_page_{prefix}"
+    if page_key not in st.session_state and saved_page_key in st.session_state:
+        st.session_state[page_key] = st.session_state[saved_page_key]
+
     raw_page = st.session_state.get(page_key, 1)
     try:
         current_page = int(raw_page)
@@ -1229,6 +1233,7 @@ def pipeline(config, storage, prefix, reference=None):
             format_func=str,
             key=page_key
         )
+    st.session_state[saved_page_key] = page
 
     # Accurate range display: e.g. "Showing 1–10 of 40 prospects · Page 1 of 4"
     if total_count == 0:

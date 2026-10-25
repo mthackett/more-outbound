@@ -1,4 +1,4 @@
-"""Account intelligence with explicit compatibility for private career stories."""
+"""Account intelligence for actionable outreach."""
 import json
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field

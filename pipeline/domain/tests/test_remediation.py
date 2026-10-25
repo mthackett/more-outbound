@@ -80,7 +80,7 @@ class _WorkspaceHelper:
 # TEST 1: Missing sharing-recipient does not create public Drive permissions
 # ===========================================================================
 
-class TestDrivePrivateByDefault(unittest.TestCase):
+class TestDriveRestrictedByDefault(unittest.TestCase):
     """Fix #1: absence of CANDIDATE_EMAIL / GOOGLE_USER_EMAIL must never
     cause public sharing."""
 

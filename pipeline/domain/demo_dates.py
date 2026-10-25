@@ -9,8 +9,8 @@ absolute dates, so the demo stays current whenever a visitor opens it:
 A visitor session resolves one timezone-aware :class:`DemoReference` when it
 starts. :func:`materialize_seed` turns the relative seed into ordinary absolute
 ISO values exactly once per session; the resulting records are then handled like
-any other data. Records created or edited by the visitor, and every private
-workspace path, never pass through this module, so their dates are always real.
+any other data. Records created or edited by the visitor never pass
+through this module, so their dates are always real.
 
 Materialization is strict: a relative seed containing an absolute value (or an
 already-materialized row) raises instead of being shifted again. That prevents

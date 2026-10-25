@@ -227,43 +227,6 @@ class TestJobSignalEditing(unittest.TestCase):
 
 
 class TestJobSignalsUI(unittest.TestCase):
-    def test_app_recovery_uses_current_rules_instead_of_checkpoint_findings(self):
-        import streamlit as st
-        from streamlit.testing.v1 import AppTest
-        from pipeline.adapters.secondary.mock_adapter import MockDocumentStorageAdapter
-        st.cache_resource.clear()
-        self.addCleanup(st.cache_resource.clear)
-        drive = MockDocumentStorageAdapter()
-        storage = MockJobStorageAdapter()
-        workspace = drive.create_application_workspace('Example', 'Analyst', 'recovery-signals-test')
-        folder = workspace['folder_id']
-        jd = 'Responsibilities include SQL analytics and maintaining reporting tools.'
-        drive.upload_raw_job_description(folder, jd)
-        drive.workspaces[folder]['files'].append({'name': 'Role_Intelligence_Report.docx', 'id': 'report'})
-        drive.save_ingestion_checkpoint(folder, {
-            'opportunity_id': workspace['opportunity_id'], 'company': 'Original Company', 'title': 'Original Title',
-            'family': 'revenue_operations', 'jd_text': jd, 'telemetry_warnings': ['[Old Rule]: Stale warning']
-        })
-        with tempfile.TemporaryDirectory() as tmp:
-            path = str(Path(tmp) / 'config.json')
-            PipelineConfigService.save_config({'telemetry_rules': [{**rule(), 'match_mode': 'token', 'patterns': ['SQL']}]}, path)
-            with patch.dict(os.environ, {'PRIVATE_OFFLINE': 'true', 'PIPELINE_CONFIG_PATH': path, 'ENABLE_CLI_LOGGING': 'false'}), \
-                 patch('pipeline.adapters.secondary.mock_adapter.MockDocumentStorageAdapter', return_value=drive), \
-                 patch('pipeline.adapters.secondary.mock_adapter.MockJobStorageAdapter', return_value=storage), \
-                 patch('pipeline.domain.services.QuickLinksService.load_quicklinks', return_value=[]), \
-                 patch('pipeline.domain.story_bank.StoryBankService.load_stories', return_value=[]), \
-                 patch('pipeline.adapters.secondary.twilio_adapter.TwilioMessagingAdapter._init_client'):
-                app = AppTest.from_file(str(Path(__file__).resolve().parents[2] / 'adapters' / 'primary' / 'app.py'), default_timeout=15).run()
-                self.assertFalse(app.exception)
-                app.button(key=f'btn_res_{folder}').click().run()
-                self.assertFalse(app.exception)
-                saved = storage.fetch_all_opportunities()
-                self.assertEqual(len(saved), 1, [e.value for e in app.error])
-                self.assertEqual(saved[0]['Company Name'], 'Original Company')
-                groups = TelemetryService.load_display_findings(saved[0]['Job Signals'])
-                self.assertEqual([len(g) for g in groups], [1, 0, 0])
-                self.assertIn('SQL', groups[0][0])
-                self.assertNotIn('Stale', str(groups))
 
     def test_display_semantic_colors_order_and_empty_sections(self):
         from streamlit.testing.v1 import AppTest

@@ -47,29 +47,16 @@ python -m venv .venv
 
 Open http://localhost:8501 and switch workspaces from the sidebar. To launch straight into one
 workspace, set `PIPELINE_INSTANCE_CONFIG`, e.g. `$env:PIPELINE_INSTANCE_CONFIG='config/demo_b2b_services.json'`.
-A missing or invalid configuration shows a safe error. Public mode never loads private settings,
-credentials, stories, quicklinks or provider adapters, even when provider environment variables exist.
+A missing or invalid configuration shows a safe error message.
 
 To regenerate the synthetic data after changing the simulation: `python tools/build_demo_fixtures.py`
 (`--check` prints the month-over-month stats without writing).
 
-## Private workspace
-
-The same codebase also runs a private job-application workspace (Google Sheets/Drive, OpenAI-assisted
-extraction, resume matching, role-intelligence reports). It is not part of the public demo.
-
-```powershell
-.venv/Scripts/python.exe -m pip install -r requirements.txt
-.venv/Scripts/python.exe -m pipeline.launch --mode private
-```
-
-Keep your existing `.env`, `pipeline_config.json`, credentials, tokens, `stories.json`, quicklinks and Google resources. Do not replace these with examples. `PIPELINE_CONFIG_PATH` still selects legacy private settings. `start.ps1` defaults to private; `./start.ps1 -Mode demo` launches public. A private synthetic preview uses `$env:PRIVATE_OFFLINE='true'` before the private command; remove that environment variable to reconnect. This preview is for the private workflow and can load local private preferences; it is not the public deployment. See [GETTING_STARTED.md](GETTING_STARTED.md) for Google setup.
-
 ## Configuration and metrics
 
-`config/demo_sales_rep.json` and `config/demo_b2b_services.json` define versioned identity/branding, ordered stages, active/terminal states, milestone IDs, typed fields, navigation, feature flags, action labels, integration capabilities, storage, dashboard modules, metrics, sidebar widgets, weekly activity targets and delivery capacity. `config/private.json.example` illustrates private branding without changing user preferences. Public config uses a strict read-only loader; private settings retain their existing compatibility loader.
+`config/demo_sales_rep.json` and `config/demo_b2b_services.json` define versioned identity/branding, ordered stages, active/terminal states, milestone IDs, typed fields, navigation, feature flags, action labels, integration capabilities, storage, dashboard modules, metrics, sidebar widgets, weekly activity targets and delivery capacity.
 
-Fields support text, long text, currency, number and ISO dates, required validation, visibility/editability, intake/card/table placement and finite formatters; the supported keys are listed in `FIELD_TYPES` (`pipeline/domain/instance_config.py`). Public storage must be memory; all integrations and private resume/screening/report features must be disabled. Unknown fields/metrics, duplicate IDs and incompatible features fail validation. JSON never executes formulas.
+Fields support text, long text, currency, number and ISO dates, required validation, visibility/editability, intake/card/table placement and finite formatters; the supported keys are listed in `FIELD_TYPES` (`pipeline/domain/instance_config.py`). Public demo storage is in-memory; integrations and external provider features are disabled. Unknown fields/metrics, duplicate IDs and incompatible features fail validation. JSON never executes formulas.
 
 | Metric | Definition | Seed result |
 |---|---|---|
@@ -83,34 +70,23 @@ Fields support text, long text, currency, number and ISO dates, required validat
 
 Each stable ID counts once. Recorded stage/activity achievements survive later stage changes, disqualification and meeting cancellation. Cancellation alone does not imply a booking. Missing/malformed history is ignored, and intermediate stages are never inferred. Zero denominators display an em dash. The funnel counts records achieving every preceding milestone: 92 → 77 → 24 → 15 → 9 for the Sales Rep workspace. Month-over-month figures compare trailing 30-day periods and count the first time each record reached a milestone. Pipeline metrics describe the entire session, independently of the list filters.
 
-## Architecture and private compatibility
+## Architecture
 
-Canonical code lives in `pipeline/`: domain models/services, ports, primary UI/CLI drivers and secondary adapters. The public demo UI is `pipeline/adapters/primary/public_ui.py` (pages) and `demo_widgets.py` (sidebar tools and sandbox dialogs); metrics and trends live in `pipeline/domain/outreach_metrics.py`. Public `PipelineRecord` is independent of `JobPosting`; lossless legacy snapshots retain full private payloads. Existing Sheets mappings, recovery identity/source/completion checks, compensation precedence, screening, resume references and career intelligence remain intact.
+Canonical code lives in `pipeline/`: domain models/services, ports, primary UI/CLI drivers and secondary adapters. The demo UI is `pipeline/adapters/primary/public_ui.py` (pages) and `demo_widgets.py` (sidebar tools and sandbox dialogs); metrics and trends live in `pipeline/domain/outreach_metrics.py`. Account intelligence is read from `intel.json.example`.
 
-Public account intelligence is in `intel.json.example`. Private `StoryBankService` and its legacy JSON format remain supported. An ignored canonical-story seed under `job_pipeline/domain/` stays in place and is read through a compatibility fallback.
-
-The old Streamlit path, single-job/batch/OAuth command entry points, and legacy models/services/story-bank/logger/version imports have narrow wrappers. Canonical and legacy leaf imports share module/class identity. Arbitrary undocumented nested legacy imports are not guaranteed. New code must use `pipeline.*`.
-
-Private commands remain available:
-
-```powershell
-.venv/Scripts/python.exe -m pipeline.adapters.primary.cli_runner --jd jd.txt
-.venv/Scripts/python.exe -m pipeline.adapters.primary.sheets_batch
-.venv/Scripts/python.exe -m pipeline.setup_oauth
-```
-
-These are private operations and can perform real I/O when configured. Run automated checks through the isolated runner instead:
+Run automated checks through the isolated runner:
 
 ```powershell
 .venv/Scripts/python.exe tools/run_tests.py
 ```
 
-The runner uses disposable source copies, synthetic fixtures, no dotenv loading, stripped provider environment and blocked external sockets. Loopback is allowed for Streamlit tests. Runtime dependencies for public use are Streamlit and Pydantic; the full requirements add Google/OpenAI/document/clipboard support. Pytest is unnecessary. No new package-distribution build is introduced; launch from a source checkout.
+The runner uses disposable source copies, synthetic fixtures, no dotenv loading, stripped provider environment and blocked external sockets. Loopback is allowed for Streamlit tests. Runtime dependencies are Streamlit and Pydantic. Pytest is unnecessary. Launch from a source checkout.
 
 ## Hosting and limitations
 
-See [Demo deployment](docs/demo-deployment.md). Procfile and Railway explicitly launch demo mode; `nixpacks.toml` installs only `requirements-demo.txt` and `.python-version` pins Python 3.12. Public edits are session-local, disappear when that session expires or the server restarts, and never update private Sheets/Drive. Reloading a fresh session restores the seed data. Do not enter sensitive data into a public demonstration. Hosting-provider deployment and authenticated Google verification require separate operational checks; this release does not add private-instance authentication.
+See [Demo deployment](docs/demo-deployment.md). Procfile and Railway explicitly launch demo mode; `nixpacks.toml` installs `requirements-demo.txt` and `.python-version` pins Python 3.12. Edits are session-local, disappear when that session expires or the server restarts, and restore the seed data upon page refresh. Do not enter sensitive data into a public demonstration.
 
 ## License
 
 Copyright © 2026 Matthew Hackett. All rights reserved; see [LICENSE](LICENSE). The code is published for viewing as a portfolio project.
+

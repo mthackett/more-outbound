@@ -278,20 +278,6 @@ class TestV152IntakeRegression(unittest.TestCase):
         self.assertEqual(req_skills, [])
         self.assertEqual(pref_skills, [])
 
-    def test_both_intake_entry_points_wire_shared_component(self):
-        """
-        Verifies that both Ingest & Apply and Pipeline Tracker (+ Add Opportunity)
-        wire to the corrected shared render_shared_intake component in app.py.
-        """
-        app_path = Path(__file__).resolve().parents[2] / "adapters" / "primary" / "app.py"
-        app_source = app_path.read_text(encoding="utf-8")
-
-        # Ingest & Apply entry point
-        self.assertIn('render_shared_intake(', app_source)
-        self.assertIn('view_context="ingest"', app_source)
-
-        # Pipeline Tracker (+ Add Opportunity) entry point
-        self.assertIn('view_context="crm_add"', app_source)
 
     def test_role_intelligence_remains_deferred_by_default(self):
         """

@@ -1,4 +1,4 @@
-"""Run offline tests in a disposable source copy, never beside private data."""
+"""Run offline tests in an isolated disposable source copy."""
 import argparse
 import os
 from pathlib import Path
@@ -24,7 +24,7 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
     env = {k: v for k, v in os.environ.items() if not k.startswith(
-        ('GOOGLE_', 'OPENAI_', 'TWILIO_', 'CANDIDATE_', 'PIPELINE_', 'QUICKLINKS_', 'STORIES_', 'DEMO_MODE', 'PRIVATE_OFFLINE'))}
+        ('GOOGLE_', 'OPENAI_', 'TWILIO_', 'CANDIDATE_', 'PIPELINE_', 'QUICKLINKS_', 'STORIES_', 'DEMO_MODE'))}
     env.update(PYTHONIOENCODING='utf-8', PYTHONDONTWRITEBYTECODE='1')
     code = '''
 import dotenv, socket, sys, unittest

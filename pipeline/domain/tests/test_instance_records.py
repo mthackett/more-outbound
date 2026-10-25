@@ -18,7 +18,7 @@ class TestInstanceRecords(unittest.TestCase):
         self.assertNotIn('selected_resume_name', record.model_dump())
         self.assertEqual(format_field(next(f for f in cfg.fields if f.key == 'acv'), values['acv']), '$12,000')
         for bad in ({'company': ' ', 'contact': 'A'}, {'company': 'A', 'contact': 'B', 'acv': float('nan')},
-                    {'company': 'A', 'contact': 'B', 'private_extra': 'x'}):
+                    {'company': 'A', 'contact': 'B', 'unexpected_extra': 'x'}):
             with self.assertRaises(ValueError):
                 validate_fields(cfg, bad)
 
@@ -26,7 +26,7 @@ class TestInstanceRecords(unittest.TestCase):
         raw = load_demo_config().model_dump()
         variants = []
         for key, value in [('storage', 'google'), ('initial_stage', 'unknown'), ('metrics', ['arbitrary_expression']),
-                           ('schema_version', 9), ('logo_path', 'private.png')]:
+                           ('schema_version', 9), ('logo_path', 'custom.png')]:
             variants.append({**raw, key: value})
         variants += [{**raw, 'integrations': {'google_workspace': True}},
                      {**raw, 'stages': raw['stages'] + [raw['stages'][0]]},
@@ -42,13 +42,13 @@ class TestInstanceRecords(unittest.TestCase):
             with self.assertRaises(InstanceConfigError):
                 load_demo_config(path)
             self.assertFalse(path.exists())
-            for content in ('invalid json', '{}', '{"instance_config":{"mode":"private"}}'):
+            for content in ('invalid json', '{}', '{"instance_config":{"mode":"legacy"}}'):
                 path.write_text(content)
                 with self.assertRaises(InstanceConfigError):
                     load_demo_config(path)
                 self.assertEqual(path.read_text(), content)
 
-    def test_private_legacy_model_roundtrip_preserves_every_field(self):
+    def test_legacy_model_roundtrip_preserves_every_field(self):
         job = JobPosting(
             opportunity_id='legacy-synthetic-01', company_name='Fictional Co', job_title='Operations Lead',
             status='Hiring Manager', raw_description='Synthetic raw source', source_url='https://example.invalid/role',
@@ -71,9 +71,10 @@ class TestInstanceRecords(unittest.TestCase):
         snapshot = LegacyJobSnapshot(job)
         view = snapshot.as_record()
         self.assertEqual(view.id, job.opportunity_id)
-        view.fields['notes'] = 'Edited projection cannot alter private source'
+        view.fields['notes'] = 'Edited projection cannot alter original source'
         self.assertEqual(snapshot.restore().model_dump(mode='json'), before)
         self.assertEqual(job.model_dump(mode='json'), before)
+
 
     def test_sheet_snapshot_preserves_unknown_columns_and_history_encoding(self):
         row = {'Opportunity ID': 'legacy-id', 'Stage History': '[{"stage":"Applied"}]',

@@ -1,5 +1,5 @@
-# Railway/Nixpacks build for the public demo: install only the demo dependencies
-# (Streamlit + Pydantic) instead of requirements.txt, which adds the private
-# workspace's Google / OpenAI / document SDKs. Python version comes from .python-version.
+# Railway/Nixpacks build for More Outbound: install demo dependencies
+# (Streamlit + Pydantic). Python version comes from .python-version.
 [phases.install]
 cmds = ["python -m venv --copies /opt/venv && . /opt/venv/bin/activate && pip install -r requirements-demo.txt"]
+

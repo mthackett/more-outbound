@@ -122,8 +122,8 @@ class DeliveryCapacity(StrictConfig):
 
 class InstanceCapabilities(StrictConfig):
     schema_version: Literal[1] = 1
-    mode: Literal['private', 'demo'] = 'private'
-    storage: Literal['google', 'memory'] = 'google'
+    mode: Literal['legacy', 'demo'] = 'legacy'
+    storage: Literal['google', 'memory'] = 'memory'
     seed: Literal['empty', 'b2b_prospects', 'sales_rep_prospects', 'b2b_services_prospects'] = 'empty'
     stages: list[StageConfig] = Field(default_factory=list)
     initial_stage: str = ''
@@ -151,7 +151,7 @@ class InstanceCapabilities(StrictConfig):
             if self.storage != 'memory' or any(self.integrations.model_dump().values()):
                 raise ValueError('Demo requires memory storage and disabled integrations')
             if any((self.features.resume_matching, self.features.screening_qa, self.features.role_intelligence_docx)):
-                raise ValueError('Private capabilities are unavailable in public demo')
+                raise ValueError('Unsupported features are unavailable in public demo')
             if not (self.stages and self.fields and self.navigation and self.initial_stage):
                 raise ValueError('Demo stages, fields, navigation and initial stage are required')
             if not any(f.required for f in self.fields):
@@ -172,5 +172,5 @@ class InstanceCapabilities(StrictConfig):
             if {'pipeline_value', 'avg_deal_size'} & set(self.metrics) and 'acv' not in {f.key for f in self.fields}:
                 raise ValueError('Pipeline value requires the ACV field')
             if (getattr(self, 'logo_path', None) or getattr(self, 'favicon_path', None)):
-                raise ValueError('Public branding cannot reference local private files')
+                raise ValueError('Public branding cannot reference local files')
         return self

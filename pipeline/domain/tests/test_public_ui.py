@@ -64,25 +64,25 @@ class TestPublicUI(unittest.TestCase):
                 self.assertIn('Register Account', [b.label for b in app.button])
                 self.assertFalse(app.exception)
 
-    def test_invalid_config_stops_without_private_data_or_provider(self):
+    def test_invalid_config_stops_without_legacy_data_or_provider(self):
         with patch.dict(os.environ, {'PIPELINE_INSTANCE_CONFIG': 'missing-demo-config.json'}), \
-             patch('pipeline.domain.services.PipelineConfigService.load_config', side_effect=AssertionError('private config')):
+             patch('pipeline.domain.services.PipelineConfigService.load_config', side_effect=AssertionError('unauthorized config')):
             app = AppTest.from_file(str(APP)).run()
             self.assertFalse(app.exception)
             self.assertEqual(len(app.error), 1)
             self.assertNotIn('missing-demo-config.json', app.error[0].value)
 
-    def test_public_ui_has_no_private_controls_or_cloud_ids(self):
-        with patch.dict(os.environ, {'GOOGLE_SPREADSHEET_ID': 'private-sentinel', 'CANDIDATE_EMAIL': 'private@example.invalid'}):
+    def test_public_ui_has_no_leak_of_controls_or_cloud_ids(self):
+        with patch.dict(os.environ, {'GOOGLE_SPREADSHEET_ID': 'sentinel-sheet-id', 'CANDIDATE_EMAIL': 'candidate@example.invalid'}):
             app = AppTest.from_file(str(APP)).run()
             for destination in ('pipeline', 'intake', 'analytics', 'intelligence'):
                 app.radio(key='public_navigation').set_value(destination).run()
                 rendered = str(app)
-                for private in ('private-sentinel', 'private@example.invalid', 'Resume Performance', 'Salary', 'Job Post', 'Quick Cloud Links'):
-                    self.assertNotIn(private, rendered)
+                for sentinel in ('sentinel-sheet-id', 'candidate@example.invalid', 'Resume Performance', 'Salary', 'Job Post', 'Quick Cloud Links'):
+                    self.assertNotIn(sentinel, rendered)
                 self.assertFalse(app.exception)
 
-    def test_public_all_views_never_read_private_files_or_initialize_providers(self):
+    def test_public_all_views_never_read_protected_files_or_initialize_providers(self):
         original_open = io.open
         protected = {'.env', 'stories.json', 'quicklinks.json', 'pipeline_config.json',
                      'canonical_stories.json', 'credentials.json', 'token.json', 'client_secret.json'}
@@ -98,7 +98,8 @@ class TestPublicUI(unittest.TestCase):
                 stack.enter_context(patch(f'pipeline.adapters.secondary.{module}.{name}.__init__',
                                           side_effect=AssertionError('Live provider initialized')))
             stack.enter_context(patch('io.open', side_effect=guarded_open))
-            stack.enter_context(patch('dotenv.load_dotenv', side_effect=AssertionError('private environment file')))
+            stack.enter_context(patch('dotenv.load_dotenv', side_effect=AssertionError('environment file loaded unexpectedly')))
+
             app = AppTest.from_file(str(APP), default_timeout=20).run()
             for destination in ('pipeline', 'intake', 'analytics', 'intelligence'):
                 app.radio(key='public_navigation').set_value(destination).run()

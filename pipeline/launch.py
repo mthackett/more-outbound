@@ -1,4 +1,4 @@
-"""Explicit-mode launcher for both instances of the same Streamlit source."""
+"""Launcher for More Outbound Streamlit application."""
 import argparse
 import os
 from pathlib import Path
@@ -23,7 +23,8 @@ def launch_command(mode, port, address):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--mode', choices=['demo', 'private'], required=True)
+    parser.add_argument('--mode', choices=['demo'], default='demo')
+
     parser.add_argument('--port', type=int, default=8501)
     parser.add_argument('--address', default='127.0.0.1')
     args = parser.parse_args()
